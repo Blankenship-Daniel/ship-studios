@@ -67,8 +67,10 @@ no direct gemini-server call is required for the standard flow.
    ask for `key`/`root_note` if not known.
 6. **Per loop — export the matrix** — `stemmy-loops:export-deliverables
    {path: <tagged loop>, out_dir: projects/<track>/deliverables/, presets:
-   ["44.1/16", "48/24", "96/24"], tag: true}`. TPDF dither + metadata carry-
-   forward across all three formats.
+   ["distribution_44k_16", "production_48k_24", "master_96k_24"], tag: true}` —
+   the 44.1/16 + 48/24 + 96/24 formats. TPDF dither + metadata carry-forward
+   across all three. (Preset names are an exact allow-list; omit `presets` to
+   get the `distribution_44k_16` + `production_48k_24` default pair.)
 7. **Optional — audible descriptions** — `stemmy-loops:describe-loops
    {out_dir}`. Gemini-backed groove / feel / kit-emphasis notes attached to
    the set, for pack metadata or for the user to pick favorites.

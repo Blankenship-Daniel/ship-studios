@@ -26,14 +26,15 @@ Never invent a tool — every name below is verified.
 - Optional `describe-loops` / `caption-loops` need the `listen` / `llm`
   extra (+ `GEMINI_API_KEY` / `ANTHROPIC_API_KEY`) — only for blurbs.
 - Resolve up front: source path(s), **BPM** (a number — `bpm: 120`, not
-  `"120 BPM"`; required by `extract-oneshots` / `find-loops`), key/root if
-  known, and a pack name. If BPM is unknown, ask — extraction has no reliable
-  auto-tempo.
+  `"120 BPM"`; required by `find-loops` — `extract-oneshots` needs no BPM),
+  key/root if known, and a pack name. If BPM is unknown, ask — loop
+  extraction has no reliable auto-tempo.
 
 ## Recipe (ordered)
 
-1. **Extract the hits** — `stemmy-loops:extract-oneshots {path, bpm, out_dir:
-   artifacts/<run>/oneshots}`. One WAV per onset → the kit elements
+1. **Extract the hits** — `stemmy-loops:extract-oneshots {path, out_dir:
+   artifacts/<run>/oneshots}` (no `bpm` param — it slices by onset, not grid).
+   One WAV per onset → the kit elements
    (kick/snare/hat/etc). Run per source stem if the hits come from separate
    close mics.
 2. **Extract the loops** — `stemmy-loops:find-loops {path, bpm, bars, top_n,
@@ -41,12 +42,14 @@ Never invent a tool — every name below is verified.
    full clean → seam → master chain via [[loops-to-deliverables]] when the
    loops need polishing. Both write `manifest.json`.
 3. **Tag each deliverable** — `stemmy-loops:tag-deliverable {path,
-   out_path, bpm, key, root, bars, originator}` on every one-shot and loop.
+   out_path, bpm, key, root_note, bars, originator}` on every one-shot and loop.
    Embeds BPM/key/root/bars + a `tags.json` sidecar. Tag the whole pack
    consistently — same key/originator across items.
 4. **Export the format matrix** — `stemmy-loops:export-deliverables {path,
-   out_dir, presets: ["44.1/16", "48/24", "96/24"], tag: true}` per item.
-   TPDF dither + metadata carry-forward.
+   out_dir, presets: ["distribution_44k_16", "production_48k_24",
+   "master_96k_24"], tag: true}` per item — the 44.1/16 + 48/24 + 96/24
+   formats (preset names are an exact allow-list). TPDF dither + metadata
+   carry-forward.
 5. **Organize the pack tree** — assemble the exported files into a sellable
    layout (filesystem, no MCP tool):
    ```
@@ -81,8 +84,8 @@ path and the README path.
 - **`export-deliverables` silently drops RIFF INFO tags.** Tags written by
   `tag-deliverable` can vanish on export. **Verify** the exported pack with
   `drum-prep verify-tags <pack-dir>` and re-tag/re-embed if coverage dropped
-  (see [[delivery-qc]] / [[stemmy-loops-tagging-gotchas]]). Don't ship a pack
-  whose files lost their metadata.
+  (see [[delivery-qc]], and the `stemmy-loops-tagging-gotchas` memory note).
+  Don't ship a pack whose files lost their metadata.
 - **Keep loudness consistent across the pack.** Master every loop to the same
   `target_lufs` (a sample-pack-typical target, not a streaming master target)
   so items don't jump in level between previews. One-shots should be

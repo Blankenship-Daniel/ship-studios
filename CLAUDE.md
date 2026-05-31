@@ -11,6 +11,8 @@ ship-studios is the **central MCP host** for a music *create → mix → master 
 
 Both servers are registered in `.mcp.json` and launched as stdio subprocesses via `uv --directory <rel> run <console-script>`. This file is the contract: **only use the tool names listed below, exactly as spelled (mind hyphen vs underscore).**
 
+> **Recently added (branch `claude/gemini-3-default-model`, not yet merged/pushed):** the mix/master/EQ roadmap in [`docs/mix-master-capability-roadmap.md`](docs/mix-master-capability-roadmap.md) is now **implemented** in both sibling repos. New `[L]` tools: `de-ess`, `match-loudness`, `excite-loop`, `match-eq`, `multiband-compress`, `measure-microdynamics`, `build-target-profile`, `match-to-profile`, `analyze-album-normalization`, `suppress-resonances`, `apply-dynamic-eq` (43 tools total); plus `apply-eq` phase modes, elliptical bass-mono on `adjust-stereo`, a `render-mastered` EQ stage. New `[G]` tools: `critique-region`, `master-assistant` (23 total); plus meter-grounded + typed critique on the 4 critique tools, asymmetric `check-streaming-targets`, per-tool thinking + Files-API caching. The tool-surface tables/pipelines below are NOT yet updated to list these — treat the listed surface as the stable contract and the above as live-but-undocumented. `suppress-resonances` / `apply-dynamic-eq` are unit-tested only and want an ear-tuning pass.
+
 ### Philosophy
 
 A track moves left-to-right through the lifecycle: **understand** the source → **create loops** (optional) → **measure** → **perceptual critique** → **corrective + render** → **deliver**. Measure before you move; let Gemini's ears and the DSP meters cross-check each other; never master inside the mix stage. Pipelines below encode the canonical orderings.
@@ -271,12 +273,15 @@ Both servers are sibling repos using `uv`. Sync each in its own directory before
 # Minimal — MCP server + DSP mix/master measurement & render tools:
 uv sync --extra loops-mcp --extra mixing
 
-# Full — every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz):
+# Full — every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed):
 uv sync --extra loops-mcp --extra mixing --extra llm --extra listen \
-        --extra separate --extra classify --extra quantize --extra beats --extra viz
+        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed
+
+# Or the convenience superset (separate + embed + classify + quantize + viz + llm + listen + beats):
+uv sync --extra loops-mcp --extra mixing --extra ml
 ```
 
-- `loops-mcp` → MCP server itself · `mixing` → loudness/render/AB tools · `llm` → `diagnose/ask/suggest/caption-loops/analyze-loops` LLM flags · `listen` → `describe-loops` (Gemini) · `separate` → `extract-drums` + `find-loops separate=true` · `classify` → hit tagging · `quantize` → `quantize-loop` · `beats` → deep beat tracker · `viz` → debug plots.
+- `loops-mcp` → MCP server itself · `mixing` → loudness/render/AB tools · `llm` → `diagnose/ask/suggest/caption-loops/analyze-loops` LLM flags · `listen` → `describe-loops` (Gemini) · `separate` → `extract-drums` + `find-loops separate=true` · `classify` → hit tagging · `quantize` → `quantize-loop` · `beats` → deep beat tracker · `viz` → debug plots · `embed` → CLAP loop/bar embeddings (semantic similarity / structure clustering) · `ml` → convenience superset of all of the above.
 
 ### `../stemmy-gemini-mcp`
 
@@ -303,6 +308,7 @@ Pure-DSP measurement/render tools on **either** server need **no env vars and no
 The same pipelines run without an interactive Claude session via the `ship-studios` console script (`ship_studios.cli:main`). It opens both servers over stdio and drives `call_tool` in the verified order:
 
 ```bash
+ship-studios doctor          # check env vars + sibling repos before first run
 ship-studios master          projects/<track>/mix/final.wav --platform spotify
 ship-studios mix-check       projects/<track>/mix/draft.wav
 ship-studios reference-match projects/<track>/mix/draft.wav --reference projects/<track>/refs/ref.wav
@@ -310,7 +316,7 @@ ship-studios loops           projects/<track>/stems/drums.wav --bpm 120
 ship-studios understand      projects/<track>/refs/ref.wav
 ```
 
-Each subcommand maps to the matching pipeline function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. Use it for batch/CI runs; use the skills/slash commands for interactive work.
+The five pipeline subcommands (`master`, `mix-check`, `reference-match`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
 
 ---
 

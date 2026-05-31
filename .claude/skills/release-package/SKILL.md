@@ -19,7 +19,7 @@ human-readable reference text, **not** a machine-parsed distributor tag. In
 practice distributors take metadata from their own upload form; what this skill
 guarantees is the audio, the format matrix, compliance, and cross-track
 consistency. (To embed real release metadata, `tag-deliverable` needs new
-fields — see [[skill-gap-unblock-paths]]; ask and I'll add them.)
+fields — see the `skill-gap-unblock-paths` memory note; ask and I'll add them.)
 
 ## Prerequisites
 
@@ -42,7 +42,8 @@ fields — see [[skill-gap-unblock-paths]]; ask and I'll add them.)
    anything non-compliant and route it back to [[batch-master]] /
    [[master-track]] — don't silently ship it.
 4. **Export the matrix** — per track `[L] export-deliverables {presets:
-   ["44.1/16", "48/24", "96/24"], tag: true}` → `projects/<album>/release/`.
+   ["distribution_44k_16", "production_48k_24", "master_96k_24"], tag: true}`
+   (the 44.1/16 + 48/24 + 96/24 formats) → `projects/<album>/release/`.
 5. **Tag survival** — `drum-prep verify-tags` / [[delivery-qc]] across the
    release; `export-deliverables tag=true` silently drops the RIFF INFO chunk,
    so verify rather than assume.

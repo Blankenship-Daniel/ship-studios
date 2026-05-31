@@ -81,9 +81,11 @@ green loudness numbers — surface it.
   returns success while silently dropping the RIFF INFO `LIST` chunk — only
   `verify-tags` reveals it.
 - **Re-tag, don't re-export, when untagged.** Re-running the export with
-  `tag=true` will drop the tags again. Tag the files in place instead — see
-  [[stemmy-loops-tagging-gotchas]] in memory and the tagging step in
-  [[loops-to-deliverables]].
+  `tag=true` will drop the tags again. Re-tag the exported files instead —
+  **out-of-place** (`tag-deliverable` with `out_path != path`, then move the
+  tagged WAV back over the export; in-place tagging fails on the `.tmp`
+  extension). See the `stemmy-loops-tagging-gotchas` memory note and the
+  tagging step in [[loops-to-deliverables]].
 - **`verify-tags` takes a directory.** Point it at the deliverables dir, not a
   single file.
 - **Verify the written files, not the source.** Steps 1–5 must point at the

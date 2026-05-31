@@ -23,7 +23,8 @@ numeric cross-check, the EQ, and the A/B render live on **stemmy-loops**.
   `apply-eq` are core DSP.
 - Resolve `mix_path` and `reference_path` up front. If the user gives a
   Spotify/YouTube link instead of a file, ask them to drop a WAV in
-  `projects/<track>/input/` first — these tools read local audio.
+  `projects/<track>/refs/` (reference) or `projects/<track>/stems/` (the mix)
+  first — these tools read local audio.
 
 ## Recipe (ordered)
 

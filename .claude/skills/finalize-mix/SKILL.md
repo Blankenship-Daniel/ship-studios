@@ -20,10 +20,11 @@ verified against the tool surface — spelled exactly (hyphen vs underscore).
 
 - `.mcp.json` registers `stemmy-loops` (sibling at `../stemmy-loops-mcp`).
   Confirm the server is up.
-- The corrective tools here (`compress-loop`, `saturate-loop`,
-  `adjust-stereo`) and the measurement tools (`measure-loudness`,
-  `measure-spectrum`, `measure-stereo`) all need the `mixing` extra; they are
-  pure DSP with **no** API key.
+- `measure-loudness` (and the `render-*` tools) need the `mixing` extra
+  (pyloudnorm); the other tools here — `compress-loop`, `saturate-loop`,
+  `adjust-stereo`, `measure-spectrum`, `measure-stereo` — are core DSP. Install
+  `mixing` regardless, since the recipe baselines loudness. All are pure DSP
+  with **no** API key.
 - The input is a near-final **stereo** mix bus, not stems and not loops.
   Resolve the path up front. If the mix isn't clean yet (tonal/phase/balance
   problems), run [[mix-check]] first — glue can't fix a broken mix and it

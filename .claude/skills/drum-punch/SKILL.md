@@ -42,9 +42,10 @@ None of those is per-band transient design — this is.
 3. **Re-measure** — `[L] inspect-loop` (or `measure-loudness` again) +
    `[L] check-clipping`. Confirm crest/PLR **rose** (more transient) and the
    attack boost did **not** push true-peak into clipping.
-4. **Loudness-matched A/B** — `[L] render-ab {processed, gap,
-   reference: <original>}` → one A/B WAV so the change is judged at matched
-   level, not just louder. (`render-ab` collapses to mono — fine for a punch
+4. **Loudness-matched A/B** — `[L] render-ab {processed, reference: <original>,
+   out_path, gap_seconds}` → one A/B WAV so the change is judged at matched
+   level, not just louder. (`out_path` is required; `gap_seconds` defaults to
+   0.5. `render-ab` collapses to mono — fine for a punch
    check; for a stereo kit audition use [[drum-audition]].)
 
 ## Outputs

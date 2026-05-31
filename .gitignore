@@ -20,9 +20,12 @@ artifacts/*
 !artifacts/.gitkeep
 
 # Project working files — keep the dir + per-track scaffold, drop audio
-projects/**/input/*
+# (canonical per-track layout: stems/ mix/ masters/ refs/ loops/ deliverables/)
+projects/**/stems/*
 projects/**/mix/*
-projects/**/master/*
+projects/**/masters/*
+projects/**/refs/*
+projects/**/loops/*
 projects/**/deliverables/*
 !projects/.gitkeep
 !projects/**/.gitkeep

@@ -42,8 +42,8 @@ every name below is verified against CLAUDE.md.
      ...}` per value.
    - Reference-match strength → re-run the [[reference-match]] EQ at each
      strength (or for a kit, `drum-prep reference-match <dir> --strength <s>
-     --out-root <dir>/ref-matched-<s>`).
-   - Drum-mix feel → `drum-prep mix <dir> --feel <feel> --out-root
+     --out-dir <dir>/ref-matched-<s>`).
+   - Drum-mix feel → `drum-prep mix <dir> --feel <feel> --out-dir
      <dir>/mix-<feel>`.
 3. **Measure each variant** — `[L] measure-loudness` + `[L] measure-spectrum`
    on every rendered file. This is the variant matrix: param → measured LUFS /

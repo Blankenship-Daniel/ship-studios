@@ -26,8 +26,8 @@ flat unity sum, not a fader/automation mix — glue and loudness belong to
 ## Recipe (ordered)
 
 1. **Confirm the two taste-forks first** — surface both before running:
-   - `--feel roomy | punchy | natural` — how loud the room/overhead ambience sits
-     vs the close mics.
+   - `--feel roomy | punchy | natural | dry` — how loud the room/overhead
+     ambience sits vs the close mics (`dry` pulls the room down hardest).
    - `--perspective drummer | audience` — whose left/right. `drummer` puts the
      hi-hat LEFT and flips the overhead/room L↔R; `audience` mirrors it.
 2. **Mix** — `drum-prep mix "<SRC>" [--feel …] [--perspective …] [--plate PATH]`.
@@ -45,7 +45,7 @@ flat unity sum, not a fader/automation mix — glue and loudness belong to
    - **No bus compression or limiting** — glue + loudness are [[master-track]]'s
      job.
    Full surface: `drum-prep mix <SRC> [--manifest M] [--stems-dir DIR]
-   [--out-dir DIR] [--feel roomy|punchy|natural] [--perspective
+   [--out-dir DIR] [--feel roomy|punchy|natural|dry] [--perspective
    audience|drummer] [--plate PATH] [--plate-offset -19.0] [--flat] [--t0 44]
    [--dur 12]`. `--t0`/`--dur` set the excerpt window.
 

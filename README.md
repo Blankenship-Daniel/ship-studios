@@ -74,9 +74,12 @@ you sync the extras it needs.** From `../stemmy-loops-mcp`:
 # Minimal: MCP server + the mix/master measurement & render tools
 uv sync --extra loops-mcp --extra mixing
 
-# Full: every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz)
+# Full: every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed)
 uv sync --extra loops-mcp --extra mixing --extra llm --extra listen \
-        --extra separate --extra classify --extra quantize --extra beats --extra viz
+        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed
+
+# Or the convenience superset (everything above in one extra):
+uv sync --extra loops-mcp --extra mixing --extra ml
 ```
 
 The Gemini server bundles all its deps — no extras. From
@@ -118,6 +121,7 @@ From this repo:
 
 ```bash
 uv sync
+ship-studios doctor   # verify the sibling repos + API keys are in place
 ship-studios --help
 ```
 
@@ -133,7 +137,7 @@ LUFS / true-peak ceiling, re-verify streaming compliance, export the format
 matrix.
 
 - **Interactive:** `/master` or *"master this track to -14 LUFS for Spotify"*
-- **Headless:** `ship-studios master projects/<track>/input/mix.wav --target-lufs -14 --ceiling-dbtp -1`
+- **Headless:** `ship-studios master projects/<track>/mix/mix.wav --target-lufs -14 --ceiling-dbtp -1`
 - **Chain:** loops `measure-loudness` / `measure-spectrum` / `measure-stereo` /
   `check-clipping` / `measure-distortion` → gemini `mastering-feedback` →
   loops `render-mastered` → gemini `check-streaming-targets` →
@@ -145,7 +149,7 @@ Fuse Gemini's perceptual listen with DSP measurement into one prioritized
 issue list and concrete corrective moves.
 
 - **Interactive:** `/mix-check` or *"what's wrong with this mix?"*
-- **Headless:** `ship-studios mix-check projects/<track>/input/mix.wav`
+- **Headless:** `ship-studios mix-check projects/<track>/mix/mix.wav`
 - **Chain:** gemini `detect-mix-issues` / `analyze-mix-balance` →
   loops `measure-loudness` / `measure-spectrum` / `measure-stereo` →
   gemini `find-resonances` / `find-sibilance` / `analyze-phase-mono` →
@@ -157,7 +161,7 @@ Derive numeric and perceptual deltas, apply EQ to close the gap, render a
 loudness-matched A/B audition.
 
 - **Interactive:** `/reference-match` or *"make it sound like this track"*
-- **Headless:** `ship-studios reference-match projects/<track>/input/mix.wav --reference path/to/ref.wav`
+- **Headless:** `ship-studios reference-match projects/<track>/mix/mix.wav --reference path/to/ref.wav`
 - **Chain:** gemini `match-reference-numeric` / `compare-to-reference` →
   loops `compare-tonality` → loops `apply-eq` → loops `render-ab`
 
@@ -166,7 +170,7 @@ loudness-matched A/B audition.
 Extract loops, clean and seam them, master, tag, export the format matrix.
 
 - **Interactive:** `/loops` or *"slice this drum stem into mastered loops"*
-- **Headless:** `ship-studios loops projects/<track>/input/drums.wav --bpm 120`
+- **Headless:** `ship-studios loops projects/<track>/stems/drums.wav --bpm 120`
 - **Chain:** loops `find-loops` (or `analyze-loops`) → loops `clean-loop` →
   loops `optimize-seam` → loops `render-mastered` → loops `tag-deliverable` →
   loops `export-deliverables` (optional loops `describe-loops`)
@@ -184,8 +188,8 @@ comparison. Read-only; never modifies audio.
 
 ### `new-track` — scaffold a project working dir
 
-Pure filesystem. Creates `projects/<slug>/` with `input/`, `mix/`, `master/`,
-`deliverables/`, and a `notes.md`.
+Pure filesystem. Creates `projects/<slug>/` with `stems/`, `mix/`, `masters/`,
+`refs/`, `loops/`, `deliverables/`, and a `track.md`.
 
 - **Interactive:** `/new-track` or *"start a new song called …"*
 - **Headless:** create the dirs yourself, or run the skill from Claude Code.
@@ -211,11 +215,13 @@ Mic roles auto-detect from filenames; commit a `kit.json` to pin/override (it's
 JSON, so it's safe to commit — audio stays gitignored). See
 `drum_prep/examples/kit.json`.
 
-Four flows + an end-to-end chain, each a Claude Code skill/command and a
-`drum-prep` subcommand:
+The core close-mic flows + an end-to-end chain. Each is a `drum-prep`
+subcommand; `phase-align` / `reference-match` / `audition` / `chain` also have
+Claude Code skills/commands (`overheads` is CLI-only). The full CLI exposes
+more subcommands — run `drum-prep --help` for the complete list:
 
 - **overheads** — merge an L/R overhead pair into one stereo reference (no-op if
-  already stereo). `drum-prep overheads <dir>`
+  already stereo). `drum-prep overheads <dir>` *(CLI only — no slash command)*
 - **phase-align** (`/drum-phase-align`) — align every close mic to the overheads
   (broadband; kick low-passed; snare-bottom→top & kick-beater→in partner pairs;
   room polarity-only). `drum-prep phase-align <dir>`
@@ -240,7 +246,7 @@ ship-studios/
 ├── .mcp.json                  registers stemmy-loops + stemmy-gemini (stdio)
 ├── .env.example               ANTHROPIC_API_KEY / GEMINI_API_KEY template
 ├── .claude/
-│   ├── settings.json          enables both servers, pre-allows read-only tools
+│   ├── settings.json          enables both servers, pre-allows their tools (+ uv/stemmy/drum-prep Bash)
 │   ├── skills/                one SKILL.md per pipeline
 │   └── commands/              thin slash-command entry points
 ├── ship_studios/              headless CLI package
@@ -249,9 +255,10 @@ ship-studios/
 │   ├── pipelines.py           the six pipelines as async functions
 │   └── cli.py                 `ship-studios` console script
 ├── drum_prep/                 local drum-stem DSP (opt-in `drum-prep` extra)
-│   ├── dsp.py io.py roles.py kit.py          shared DSP + role/kit model
-│   ├── overheads.py phase_align.py reference_match.py audition.py chain.py
-│   └── cli.py                 `drum-prep` console script
+│   ├── dsp.py io.py roles.py kit.py qc.py     shared DSP + role/kit model + QC
+│   ├── overheads.py stereo_merge.py phase_align.py reference_match.py   prep flows
+│   ├── mix.py stem_mix.py normalize.py sub_design.py tune.py audition.py chain.py   mix/finish flows
+│   └── cli.py                 `drum-prep` console script (run `drum-prep --help`)
 ├── tests/                     pipeline/CLI tests (MCP mocked) + drum_prep synth tests
 ├── projects/                  your tracks live here (gitignored contents)
 └── artifacts/                 stemmy run outputs (gitignored contents)

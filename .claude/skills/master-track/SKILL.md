@@ -58,7 +58,7 @@ a tool — every name below is verified.
    normalize → hard-clip limiter → optional resample + dither. Pass
    `high_pass_hz`, `transient_shape`, `bit_depth`, `sample_rate` only when
    the measurements/feedback called for them. Write to
-   `projects/<track>/master/`.
+   `projects/<track>/masters/`.
 8. **Verify streaming compliance** — `stemmy-gemini:check-streaming-targets
    {path: <rendered master>, platforms}`. Per-platform LUFS-I + true-peak
    compliance with recommended attenuation.
@@ -68,12 +68,13 @@ a tool — every name below is verified.
    will turn down.
 10. **Export the format matrix** — `stemmy-loops:export-deliverables {path:
     <approved master>, out_dir: projects/<track>/deliverables/, presets:
-    ["44.1/16", "48/24", "96/24"], tag: true}`. TPDF dither + metadata
+    ["distribution_44k_16", "production_48k_24", "master_96k_24"], tag: true}`
+    — the 44.1/16 + 48/24 + 96/24 formats. TPDF dither + metadata
     carry-forward.
 
 ## Outputs
 
-- Rendered master → `projects/<track>/master/`.
+- Rendered master → `projects/<track>/masters/`.
 - Final deliverable matrix → `projects/<track>/deliverables/`.
 - Keep intermediate measurement JSON in the run, but the user-facing
   artifacts are the master + the three exported formats.

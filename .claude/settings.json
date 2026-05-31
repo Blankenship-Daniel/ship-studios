@@ -1,0 +1,15 @@
+{
+  "enabledMcpjsonServers": [
+    "stemmy-loops",
+    "stemmy-gemini"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__stemmy-loops__*",
+      "mcp__stemmy-gemini__*",
+      "Bash(uv:*)",
+      "Bash(stemmy:*)",
+      "Bash(drum-prep:*)"
+    ]
+  }
+}

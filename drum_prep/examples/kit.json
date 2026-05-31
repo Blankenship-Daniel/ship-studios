@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "src_dir": ".",
+  "overhead_mode": "stereo",
+  "reference": "kissing-my-love-5-vlokl.aif",
+  "stems": [
+    {"file": "overheads - stereo.aif", "role": "overhead"},
+    {"file": "drum room.aif", "role": "room", "ambience": true},
+    {"file": "kick in.aif", "role": "kick_in", "lowpass_hz": 180},
+    {"file": "kick beater.aif", "role": "kick_beater", "partner": "kick in.aif"},
+    {"file": "snare top.aif", "role": "snare_top"},
+    {"file": "snare bottom.aif", "role": "snare_bottom", "partner": "snare top.aif"},
+    {"file": "hi-hat.aif", "role": "hihat"}
+  ]
+}

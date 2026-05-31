@@ -1,0 +1,69 @@
+"""Numeric core: delay recovery, polarity, partner composition, zero-phase EQ."""
+from __future__ import annotations
+
+import pytest
+
+np = pytest.importorskip("numpy")
+pytest.importorskip("scipy")
+
+from drum_prep import dsp  # noqa: E402
+from tests.drumkit_synth import colored_noise  # noqa: E402
+
+SR = 48000
+
+
+def test_fractional_delay_and_estimate() -> None:
+    n = SR
+    x = np.random.default_rng(0).standard_normal(n)
+    y = dsp.fractional_delay(x, 13.0)               # y lags x by 13
+    d, peak = dsp.estimate(y, x, 100)
+    assert abs(d - 13.0) < 0.1 and peak > 0
+
+
+def test_align_recovers_delay_and_polarity() -> None:
+    n = SR
+    ref = np.random.default_rng(1).standard_normal(n)
+    mic = -dsp.fractional_delay(ref, 20.0)          # inverted + lagging by 20
+    d, pol, _, post = dsp.align_to(mic, ref, 200, SR)
+    assert pol == -1.0
+    aligned = dsp.fractional_delay(mic, d) * pol
+    assert dsp.normcorr(aligned, ref) > 0.99
+
+
+def test_partner_composition() -> None:
+    n = SR
+    ref = np.random.default_rng(2).standard_normal(n)
+    anchor = dsp.fractional_delay(ref, 15.0)
+    partner = -dsp.fractional_delay(anchor, 7.0)     # inverted, vs anchor
+    d_an, pol_an, _, _ = dsp.align_to(anchor, ref, 200, SR)
+    d_pa, pol_pa, _, _ = dsp.align_to(partner, anchor, 200, SR)
+    aligned = dsp.fractional_delay(partner, d_pa + d_an) * (pol_pa * pol_an)
+    assert dsp.normcorr(aligned, ref) > 0.98
+
+
+def test_zero_phase_eq_preserves_lag() -> None:
+    n = SR
+    a = np.random.default_rng(3).standard_normal(n)
+    b = dsp.fractional_delay(a, 9.0)
+    d0, _ = dsp.estimate(b, a, 100)
+    g = np.full(len(dsp.THIRD_OCT), -3.0)            # broad cut
+    ae = dsp.zero_phase_eq(a, SR, dsp.THIRD_OCT, g)[:, 0]
+    be = dsp.zero_phase_eq(b, SR, dsp.THIRD_OCT, g)[:, 0]
+    d1, _ = dsp.estimate(be, ae, 100)
+    assert abs(d1 - d0) < 0.5
+
+
+def _measured_tilt(y: np.ndarray) -> float:
+    f, p = dsp.psd(y, SR)
+    return dsp.tilt(dsp.band_db(f, p, dsp.THIRD_OCT), dsp.THIRD_OCT)
+
+
+def test_tilt_tracks_relative_difference() -> None:
+    # Constant-Q band power adds a fixed +3 dB/oct baseline (band width grows with
+    # frequency); it cancels in a ref-vs-kit difference, which is what the match
+    # uses. So assert the tilt DIFFERENCE matches the applied amplitude-tilt gap.
+    n = SR * 4
+    t_dark = _measured_tilt(colored_noise(SR, n, -6.0, seed=5))
+    t_bright = _measured_tilt(colored_noise(SR, n, 0.0, seed=5))
+    assert abs((t_dark - t_bright) - (-6.0)) < 1.0
+    assert t_dark < t_bright

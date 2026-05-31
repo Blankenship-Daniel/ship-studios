@@ -1,0 +1,39 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Secrets / local env
+.env
+
+# Tool outputs — keep the dir, drop the contents
+artifacts/*
+!artifacts/.gitkeep
+
+# Project working files — keep the dir + per-track scaffold, drop audio
+projects/**/input/*
+projects/**/mix/*
+projects/**/master/*
+projects/**/deliverables/*
+!projects/.gitkeep
+!projects/**/.gitkeep
+
+# Audio working files (anywhere)
+*.wav
+*.aif
+*.aiff
+*.flac
+*.mp3
+*.m4a
+
+# macOS
+.DS_Store

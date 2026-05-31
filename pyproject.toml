@@ -1,0 +1,71 @@
+[project]
+name = "ship-studios"
+version = "0.1.0"
+description = "Headless orchestration hub that drives the stemmy-loops + stemmy-gemini MCP servers through fixed mix/master/loop pipelines."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    # Official MCP SDK — the hub is a *client* of the two sibling servers,
+    # so it only needs the client half (stdio_client + ClientSession). The
+    # [cli] extra is pinned to match the sibling servers' own SDK floor so
+    # all three repos negotiate the same protocol version.
+    "mcp[cli]>=1.23",
+    # The headless CLI surface. click keeps the subcommand wiring declarative
+    # and gives `ship-studios doctor` a clean --help even before the servers
+    # are reachable.
+    "click>=8.1",
+]
+
+[project.scripts]
+ship-studios = "ship_studios.cli:main"
+# Local drum-stem DSP package (opt-in via the `drum-prep` extra below). Kept a
+# separate entry point from the hub so the MCP hub itself stays DSP-free.
+drum-prep = "drum_prep.cli:main"
+
+[project.optional-dependencies]
+# Multi-mic drum stem prep (phase-align / reference-match / audition) — pure
+# local DSP, NOT needed for the MCP hub. Install with: uv sync --extra drum-prep
+drum-prep = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+    "pyloudnorm>=0.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ship_studios", "drum_prep"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[tool.pytest.ini_options]
+# Pipeline tests are async; let pytest-asyncio drive bare `async def test_*`
+# without a per-test decorator so the suite reads like the production code.
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["ship_studios", "drum_prep"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+# The MCP SDK ships partial stubs; the client surface we touch
+# (stdio_client / ClientSession / StdioServerParameters) is well understood,
+# so an untyped import here doesn't meaningfully weaken our own type check.
+[[tool.mypy.overrides]]
+module = ["mcp", "mcp.*"]
+ignore_missing_imports = true
+
+# DSP libraries used only by the optional drum_prep package ship no/partial stubs.
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*", "scipy", "scipy.*", "soundfile", "pyloudnorm"]
+ignore_missing_imports = true

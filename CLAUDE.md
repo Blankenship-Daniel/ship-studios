@@ -11,9 +11,11 @@ ship-studios is the **central MCP host** for a music *create → mix → master 
 
 Both servers are registered in `.mcp.json` and launched as stdio subprocesses via `uv --directory <rel> run <console-script>`. This file is the contract: **only use the tool names listed below, exactly as spelled (mind hyphen vs underscore).**
 
-> **Recently added (branch `claude/gemini-3-default-model`, not yet merged/pushed):** the mix/master/EQ roadmap in [`docs/mix-master-capability-roadmap.md`](docs/mix-master-capability-roadmap.md) is now **implemented** in both sibling repos and folded into the tool surface + pipelines below — `[L]` is now 43 tools, `[G]` 23. New tools are marked **(new)** in the tables; the four `[G]` critique tools are now meter-grounded + typed (see the note under §4), and `check-streaming-targets` projects asymmetric playback gain. Per-tool Gemini thinking tiers + a Files-API upload cache are internal (no surface change). **Caveat:** `suppress-resonances` / `apply-dynamic-eq` (time-varying DSP) are unit-tested only and want an ear-tuning pass on real material before you trust them on a release.
+> **Recently added (branch `claude/gemini-3-default-model`, not yet merged/pushed):** the mix/master/EQ roadmap in [`docs/mix-master-capability-roadmap.md`](docs/mix-master-capability-roadmap.md) is now **implemented** in both sibling repos and folded into the tool surface + pipelines below — `[L]` is now 43 tools (45 with the VST-hosting pair below), `[G]` 23. New tools are marked **(new)** in the tables; the four `[G]` critique tools are now meter-grounded + typed (see the note under §4), and `check-streaming-targets` projects asymmetric playback gain. Per-tool Gemini thinking tiers + a Files-API upload cache are internal (no surface change). **Caveat:** `suppress-resonances` / `apply-dynamic-eq` (time-varying DSP) are unit-tested only and want an ear-tuning pass on real material before you trust them on a release.
 
 > **Gemini audio reference:** what *every* Gemini model can do with audio — understanding (the part this repo wires up) plus speech/TTS, the Live API, and Lyria music generation, with models, pricing, SDK patterns, and limits — is documented in [`docs/gemini-audio/`](docs/gemini-audio/README.md) and surfaced as the **`[[gemini-audio]]`** skill suite (`gemini-audio` index + `gemini-audio-understanding` / `gemini-speech-generation` / `gemini-live-audio` / `gemini-music-generation`). Reach for it whenever you need to know what Gemini can/can't hear or which model/format/limit/price applies. The governing fact: Gemini downmixes to ~16 kbps mono, so **meters own loudness/peak/stereo**.
+
+> **VST plugin hosting (new):** `apply-vst-chain` + `list-vst-plugins` (`[L]`, the `vst` extra → Spotify **Pedalboard**) let the pipeline run third-party **VST3 / Audio Unit *effect*** plugins fully **offline & headless** (no DAW, no GUI, no audio device) — e.g. as a stage-5 insert before `render-mastered`. This is the **one** part of the surface that loads external, **non-deterministic** plugin binaries: opt-in, effects-only (instruments are rejected), **VST3 is cross-platform / AU is macOS-only**, and the editor GUI is never opened. Set parameters in code or, for a reproducible render, restore an opaque `dump_state` blob rather than a `.vstpreset`/`.fxp` (Pedalboard's preset loader is VST3-only and flaky). iLok/PACE-protected plugins are render-farm landmines. Discover installed plugins read-only with `list-vst-plugins` (no `vst` extra needed).
 
 ### Philosophy
 
@@ -95,7 +97,7 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 
 > Why these are meter-grounded (Gemini hears only ~16 kbps mono) and the broader Gemini audio surface → `[[gemini-audio]]` / [`docs/gemini-audio/caveats-and-limits.md`](docs/gemini-audio/caveats-and-limits.md).
 
-### 5. Corrective + render (write new WAVs — all `[L]`, pure DSP)
+### 5. Corrective + render (write new WAVs — all `[L]`; pure DSP except `apply-vst-chain`)
 
 | Capability | Tool |
 |---|---|
@@ -115,13 +117,17 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | HPF → transient → optional zero-phase EQ → normalize → limiter → resample/dither | `render-mastered` |
 | Normalize to target/reference LUFS, peak-safe (no limiting) **(new)** | `match-loudness` |
 | Loudness-matched [ref \| gap \| processed] audition | `render-ab` |
+| Run a chain of 3rd-party VST3/AU **effect** plugins, offline/headless (needs `vst` extra; non-deterministic) **(new)** | `apply-vst-chain` |
+| Discover installed VST3/AU plugins (read-only; no `vst` extra) **(new)** | `list-vst-plugins` |
+
+> **`apply-vst-chain` is the one non-pure-DSP render tool** — it loads external plugin binaries via Pedalboard, so it needs `uv sync --extra vst` and is not deterministic across plugin versions. Effects only; VST3 cross-platform, AU macOS-only. Pass `plugins=[{plugin_path, parameters?, state_path?, bypass?}]`; set `dump_state=true` to capture each plugin's opaque state next to the output for a reproducible re-render. Use `list-vst-plugins` to find plugin paths. See the **VST plugin hosting** note near the top of this file.
 
 ### 6. Deliver (tag + export — all `[L]`, pure DSP)
 
 | Capability | Tool |
 |---|---|
 | Embed BPM/key/root/bars/comment + `tags.json` sidecar | `tag-deliverable` |
-| Batch format matrix (44.1/16, 48/24, 96/24) + dither | `export-deliverables` |
+| Batch format matrix + dither — presets `distribution_44k_16` (44.1/16) · `production_48k_24` (48/24) · `master_96k_24` (96/24) | `export-deliverables` |
 
 ---
 
@@ -140,7 +146,7 @@ Each is an ordered tool-call recipe. Server prefix `[L]`/`[G]` precedes the tool
 7. `[L] render-mastered` — to chosen `target_lufs` + `ceiling_dbtp` (optional `eq_bands` for a zero-phase corrective move) → `projects/<track>/masters/`.
 8. `[G] check-streaming-targets` — re-verify the render vs Spotify/Apple/YouTube/Tidal… It also projects the **asymmetric** playback gain per platform (attenuate-only vs boost-and-attenuate, headroom-capped) so you can see what each platform will actually do to the level.
 9. If non-compliant, adjust target and re-render (back to 7).
-10. `[L] export-deliverables` — presets 44.1/16, 48/24, 96/24, `tag=true` → `projects/<track>/deliverables/`.
+10. `[L] export-deliverables` — presets `["distribution_44k_16", "production_48k_24", "master_96k_24"]` (44.1/16, 48/24, 96/24; exact allow-list — the server rejects free-form `<sr>/<bits>`), `tag=true` → `projects/<track>/deliverables/`.
 
 ### batch-master — folder of near-final mixes → consistent masters + cross-track table
 
@@ -297,15 +303,18 @@ Both servers are sibling repos using `uv`. Sync each in its own directory before
 # Minimal — MCP server + DSP mix/master measurement & render tools:
 uv sync --extra loops-mcp --extra mixing
 
-# Full — every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed):
+# VST hosting — add the `vst` extra to run third-party VST3/AU effect plugins (apply-vst-chain):
+uv sync --extra loops-mcp --extra mixing --extra vst
+
+# Full — every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed, vst):
 uv sync --extra loops-mcp --extra mixing --extra llm --extra listen \
-        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed
+        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed --extra vst
 
 # Or the convenience superset (separate + embed + classify + quantize + viz + llm + listen + beats):
 uv sync --extra loops-mcp --extra mixing --extra ml
 ```
 
-- `loops-mcp` → MCP server itself · `mixing` → loudness/render/AB tools · `llm` → `diagnose/ask/suggest/caption-loops/analyze-loops` LLM flags · `listen` → `describe-loops` (Gemini) · `separate` → `extract-drums` + `find-loops separate=true` · `classify` → hit tagging · `quantize` → `quantize-loop` · `beats` → deep beat tracker · `viz` → debug plots · `embed` → CLAP loop/bar embeddings (semantic similarity / structure clustering) · `ml` → convenience superset of all of the above.
+- `loops-mcp` → MCP server itself · `mixing` → loudness/render/AB tools · `llm` → `diagnose/ask/suggest/caption-loops/analyze-loops` LLM flags · `listen` → `describe-loops` (Gemini) · `separate` → `extract-drums` + `find-loops separate=true` · `classify` → hit tagging · `quantize` → `quantize-loop` · `beats` → deep beat tracker · `viz` → debug plots · `embed` → CLAP loop/bar embeddings (semantic similarity / structure clustering) · `vst` → `apply-vst-chain` (host external VST3/AU effect plugins via Pedalboard; `list-vst-plugins` needs no extra) · `ml` → convenience superset of all of the above.
 
 ### `../stemmy-gemini-mcp`
 

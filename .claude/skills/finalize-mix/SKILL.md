@@ -13,8 +13,10 @@ repeatedly flags "glue / density / cohesion" as belonging just before the
 limiter, which is exactly this stage; mastering loudness happens downstream.
 
 One server is in play: every corrective + render tool here lives on
-**stemmy-loops** (`[L]`), all pure DSP, no env/network. Tool names below are
-verified against the tool surface — spelled exactly (hyphen vs underscore).
+**stemmy-loops** (`[L]`), all pure DSP, no env/network — with one **optional**
+exception, a third-party VST3/AU plugin insert (step 3b) for character the
+pure-DSP tools can't give. Tool names below are verified against the tool
+surface — spelled exactly (hyphen vs underscore).
 
 ## Prerequisites
 
@@ -24,7 +26,9 @@ verified against the tool surface — spelled exactly (hyphen vs underscore).
   (pyloudnorm); the other tools here — `compress-loop`, `saturate-loop`,
   `adjust-stereo`, `measure-spectrum`, `measure-stereo` — are core DSP. Install
   `mixing` regardless, since the recipe baselines loudness. All are pure DSP
-  with **no** API key.
+  with **no** API key. The optional VST insert (step 3b) additionally needs the
+  `vst` extra (`uv sync --extra vst`, adds Pedalboard) plus your own installed
+  plugins; skip it and nothing else changes.
 - The input is a near-final **stereo** mix bus, not stems and not loops.
   Resolve the path up front. If the mix isn't clean yet (tonal/phase/balance
   problems), run [[mix-check]] first — glue can't fix a broken mix and it
@@ -44,6 +48,15 @@ verified against the tool surface — spelled exactly (hyphen vs underscore).
 3. **Density / harmonics** — `[L] saturate-loop {path, out_path, ...}`.
    Subtle oversampled tape / soft-clip for harmonic density and a touch of
    warmth. Keep drive low; this is seasoning, not distortion.
+3b. **(Optional) Character via a 3rd-party plugin** — `[L] apply-vst-chain
+   {path, out_path, plugins:[{plugin_path, parameters?}], dump_state:true}`.
+   Reach for a VST3/AU *effect* (a bus compressor, tape/console emulation, a
+   character saturator) when a plugin gives glue/color the pure-DSP steps
+   above can't. Find paths with `[L] list-vst-plugins`. Keep it subtle like
+   the rest of this stage, and `dump_state:true` writes the patch next to the
+   output so the render is reproducible. **This is the one non-deterministic,
+   opt-in step** — it loads an external binary (needs the `vst` extra), is
+   effects-only, and is VST3-everywhere / AU-macOS-only. Skip freely.
 4. **Low-end + width** — `[L] adjust-stereo {path, out_path, ...}`. Bass
    mono-maker first (mono the lows below a crossover), *then* tasteful M/S
    width on the top. Always mono before you widen so the low end stays
@@ -85,6 +98,10 @@ target hit** — and point at [[master-track]] for loudness.
   worsen mono-sum loss.
 - **Don't finalize a broken mix.** If [[mix-check]] flagged tonal/phase/
   balance issues, fix those first — glue is cohesion, not correction.
+- **A VST insert (step 3b) is non-deterministic.** If you use it, pin the
+  plugin version and keep its `dump_state` blob in the project — unlike the
+  pure-DSP steps, a VST render won't reproduce across plugin updates. Still
+  measure before/after, and know a misbehaving plugin can crash the render.
 
 ## Related
 

@@ -84,3 +84,4 @@ them what to listen for.
 - [[mix-check]] — fix problems the reference comparison surfaces (resonances, sibilance)
 - [[master-track]] — master the matched mix to a platform target
 - [[understand-audio]] — break down *what* the reference is doing before matching
+- [[gemini-audio-understanding]] — why the perceptual A/B can't judge width/loudness (Gemini hears mono) — lean on the numeric deltas for those

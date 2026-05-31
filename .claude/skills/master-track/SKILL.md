@@ -103,3 +103,4 @@ exported file paths. If you re-rendered, say what you changed and why.
 - [[reference-match]] — when "master it" really means "make it sound like <ref>"
 - [[loops-to-deliverables]] — when the deliverable is loops, not a stereo master
 - [[understand-audio]] — perceptual recon of a reference before choosing a target
+- [[gemini-audio]] — limits of the Gemini mastering read (mono-deaf to stereo/true-peak/loudness — trust the meters for those)

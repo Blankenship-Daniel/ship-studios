@@ -122,3 +122,4 @@ diagnosis options.
 - [[understand-audio]] — recon the source (events, structure) before slicing
 - [[master-track]] — stereo-track master (different deliverable shape)
 - [[new-track]] — scaffold `projects/<track>/` first if it doesn't exist
+- [[gemini-audio]] — what the optional Gemini `describe-loops` step can/can't hear

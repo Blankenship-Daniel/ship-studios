@@ -93,3 +93,4 @@ the skill to run next.
 - [[reference-match]] — after comparing references, match the mix to the winner
 - [[loops-to-deliverables]] — after finding the loopable / drop sections, slice them
 - [[master-track]] — after choosing a target from a reference, master to it
+- [[gemini-audio-understanding]] — reference for what these Gemini tools can do + their limits (Gemini hears mono — judge stereo/phase with the DSP meters)

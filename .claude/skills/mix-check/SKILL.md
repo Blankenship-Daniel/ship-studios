@@ -94,3 +94,4 @@ route to [[master-track]] once the mix is clean.
 - [[master-track]] — the downstream stage once the mix passes
 - [[reference-match]] — when the goal is "sound like <ref>", not "fix problems"
 - [[understand-audio]] — perceptual deep-dive on a specific timestamp/region
+- [[gemini-audio-understanding]] — what Gemini can/can't hear (it sums to mono; take stereo/phase from `measure-stereo` / `analyze-phase-mono`, not Gemini)

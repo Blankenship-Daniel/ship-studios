@@ -19,25 +19,34 @@ import pyloudnorm as pyln
 from drum_prep import dsp, io
 from drum_prep.kit import Kit
 
+# ITU-R BS.1770 integrates over 400 ms blocks; shorter audio yields -inf LUFS and
+# would silently skip the loudness match. Require at least one block + margin.
+_MIN_MATCH_S = 0.5
+
 
 def _kit_sum(directory: str) -> tuple[np.ndarray, int]:
     names = io.list_audio(directory)
     if not names:
         raise ValueError(f"no stems found in {directory!r}")
-    arrs, sr = [], None
+    sr = io.common_samplerate([os.path.join(directory, nm) for nm in names])
+    arrs = []
     for name in names:
-        x, sr = io.read(os.path.join(directory, name))
+        x, _ = io.read(os.path.join(directory, name))
         arrs.append(io.to_stereo(x))
     n = min(len(a) for a in arrs)
     acc = np.zeros((n, 2))
     for a in arrs:
         acc += a[:n]
-    assert sr is not None
     return acc, sr
 
 
 def _prep_pair(left: np.ndarray, right: np.ndarray, sr: int, ceil: float):
-    """Match ``right`` to ``left``'s integrated LUFS, then one common anti-clip trim."""
+    """Match ``right`` to ``left``'s integrated LUFS, then one common anti-clip trim.
+
+    Callers must pass excerpts of at least ``_MIN_MATCH_S`` (see
+    :func:`render_auditions`); a genuinely silent half still measures -inf, in
+    which case the match is skipped and the reported LUFS will show -inf.
+    """
     meter = pyln.Meter(sr)
     l_left = meter.integrated_loudness(left)
     l_right = meter.integrated_loudness(right)
@@ -87,6 +96,16 @@ def render_auditions(kit: Kit, ref_path: str | None = None, aligned_dir: str | N
     before_x, after_x = before[a:b], after[a:b]
     # reference: loudest dur-second window (handles loop or full track)
     ref_x = ref[dsp.pick_excerpt(dsp.mono(ref), rsr, dur)]
+
+    # Guard the loudness-match contract: too-short excerpts measure -inf LUFS and
+    # would emit an UNMATCHED A/B while claiming to be matched. Fail clearly.
+    min_frames = int(_MIN_MATCH_S * sr)
+    for label, seg in (("kit", before_x), ("reference", ref_x)):
+        if len(seg) < min_frames:
+            raise ValueError(
+                f"{label} excerpt is {len(seg) / sr:.2f}s — too short for "
+                f"ITU-R BS.1770 loudness matching (need >= {_MIN_MATCH_S}s); "
+                "increase --dur or use longer source audio")
 
     auditions = []
     bA, aA, lb, la = _prep_pair(before_x, after_x, sr, ceil)

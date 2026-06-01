@@ -15,9 +15,59 @@ The ``hub`` argument is any object exposing
 """
 from __future__ import annotations
 
+from pathlib import PurePosixPath
 from typing import Any, Protocol
 
 from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER
+
+#: Verified ``export-deliverables`` preset names (stemmy-loops ``_dsp/deliverables.py``
+#: ``_PRESETS``). The server raises ``ValueError("unknown preset")`` for anything
+#: else — these are NOT free-form "<sr>/<bits>" labels.
+DEFAULT_PRESETS: list[str] = [
+    "distribution_44k_16",  # 44.1 kHz / 16-bit
+    "production_48k_24",    # 48 kHz / 24-bit
+    "master_96k_24",        # 96 kHz / 24-bit
+]
+
+#: A release target ("spotify", "club", …) means two different things to the two
+#: servers, which use *disjoint* vocabularies — passing a streaming-service name
+#: to the wrong one is rejected. Keep both mappings here so a single
+#: ``target_platform`` arg drives both calls correctly:
+#:   * ``mastering-feedback`` wants a critique "mood"
+#:     (``Literal["general","streaming","club","broadcast","vinyl"]``).
+#:   * ``check-streaming-targets`` wants a streaming-service name
+#:     (``spotify``/``apple_music``/``youtube``/``tidal``).
+_FEEDBACK_MOODS: frozenset[str] = frozenset(
+    {"general", "streaming", "club", "broadcast", "vinyl"}
+)
+#: Streaming-service aliases -> the exact name ``check-streaming-targets`` expects.
+_STREAMING_SERVICES: dict[str, str] = {
+    "spotify": "spotify",
+    "apple": "apple_music",
+    "apple_music": "apple_music",
+    "youtube": "youtube",
+    "tidal": "tidal",
+}
+#: The full set the CLI ``--platform`` choice accepts (services + critique moods).
+PLATFORM_CHOICES: list[str] = sorted(_STREAMING_SERVICES) + sorted(_FEEDBACK_MOODS)
+
+
+def _feedback_mood(target_platform: str) -> str:
+    """``mastering-feedback`` mood for a release target.
+
+    Any streaming service maps to ``"streaming"``; an explicit critique mood
+    (``club``/``broadcast``/``vinyl``/``general``) passes through; anything else
+    falls back to ``"general"`` so the call is always schema-valid.
+    """
+    t = target_platform.lower()
+    if t in _FEEDBACK_MOODS:
+        return t
+    return "streaming" if t in _STREAMING_SERVICES else "general"
+
+
+def _streaming_service(target_platform: str) -> str | None:
+    """``check-streaming-targets`` service name, or ``None`` if not a service."""
+    return _STREAMING_SERVICES.get(target_platform.lower())
 
 
 class SupportsCallTool(Protocol):
@@ -78,7 +128,7 @@ async def master_track(
     await rec.run(
         GEMINI_SERVER,
         "mastering-feedback",
-        {"path": mix_path, "target_platform": target_platform},
+        {"path": mix_path, "target_platform": _feedback_mood(target_platform)},
     )
 
     render_args: dict[str, Any] = {
@@ -97,12 +147,18 @@ async def master_track(
         render_args["sample_rate"] = sample_rate
     await rec.run(LOOPS_SERVER, "render-mastered", render_args)
 
-    await rec.run(GEMINI_SERVER, "check-streaming-targets", {"path": out_path})
+    streaming_args: dict[str, Any] = {"path": out_path}
+    service = _streaming_service(target_platform)
+    if service is not None:
+        # Limit the compliance report to the actual release service; without a
+        # service (a critique-mood target like "club") check every default.
+        streaming_args["platforms"] = [service]
+    await rec.run(GEMINI_SERVER, "check-streaming-targets", streaming_args)
 
     export_args: dict[str, Any] = {
         "path": out_path,
-        "out_dir": deliverables_dir or _sibling_dir(out_path, "deliverables"),
-        "presets": presets or ["44.1/16", "48/24", "96/24"],
+        "out_dir": deliverables_dir or _deliverables_dir(out_path),
+        "presets": presets or DEFAULT_PRESETS,
         "tag": True,
     }
     await rec.run(LOOPS_SERVER, "export-deliverables", export_args)
@@ -110,11 +166,16 @@ async def master_track(
     return {"pipeline": "master-track", "input": mix_path, "steps": rec.steps}
 
 
+#: Valid ``detect-mix-issues`` severity floors (the server's Literal). "minor"
+#: is NOT one of them — it raises ValueError server-side.
+SEVERITY_CHOICES: list[str] = ["any", "moderate", "serious"]
+
+
 async def mix_check(
     hub: SupportsCallTool,
     mix_path: str,
     *,
-    severity_threshold: str = "minor",
+    severity_threshold: str = "any",
     eq_bands: list[dict[str, Any]] | None = None,
     eq_out_path: str | None = None,
     compress: bool = False,
@@ -156,7 +217,7 @@ async def mix_check(
             },
         )
     if compress:
-        comp_in = eq_out_path or _suffix_path(mix_path, "eq") if eq_bands else mix_path
+        comp_in = (eq_out_path or _suffix_path(mix_path, "eq")) if eq_bands else mix_path
         await rec.run(
             LOOPS_SERVER,
             "compress-loop",
@@ -248,14 +309,14 @@ async def loops_to_deliverables(
     presets: list[str] | None = None,
     describe: bool = False,
 ) -> dict[str, Any]:
-    """Pipeline 4 — extract loops, clean/seam, master, tag, export.
+    """Pipeline 4 — extract loops, then clean/seam/master/tag/export EACH loop.
 
-    Order (verified tools): find-loops (loops) -> per-loop clean-loop ->
-    optimize-seam -> render-mastered -> tag-deliverable -> export-deliverables
-    (all loops). Optional describe-loops (gemini-backed via the loops server)
-    attaches audible notes. This orchestrator runs the find + per-deliverable
-    chain on the *representative* loop path returned by find-loops; callers
-    that fan the chain across many loops re-enter per WAV.
+    Order (verified tools): find-loops (loops) -> for every loop in the manifest
+    (capped at top_n): clean-loop -> optimize-seam -> render-mastered ->
+    tag-deliverable -> export-deliverables. Optional describe-loops
+    (gemini-backed via the loops server) annotates the whole set once at the end.
+    If the manifest can't be parsed (e.g. a shape change) or is empty, the chain
+    falls back to running once on ``input_path``.
     """
     rec = _Recorder(hub)
 
@@ -268,62 +329,72 @@ async def loops_to_deliverables(
         find_args["out_dir"] = out_dir
     manifest = await rec.run(LOOPS_SERVER, "find-loops", find_args)
 
-    loop_in = _first_loop_path(manifest) or input_path
-    cleaned = _suffix_path(loop_in, "clean")
-    seamed = _suffix_path(loop_in, "seam")
-    mastered = _suffix_path(loop_in, "master")
-    tagged = _suffix_path(loop_in, "tagged")
+    loop_paths = _loop_paths(manifest)
+    if top_n is not None:
+        loop_paths = loop_paths[:top_n]
+    if not loop_paths:
+        loop_paths = [input_path]
+    manifest_out = manifest.get("out_dir") if isinstance(manifest, dict) else None
 
-    await rec.run(
-        LOOPS_SERVER, "clean-loop", {"path": loop_in, "out_path": cleaned}
-    )
-    await rec.run(
-        LOOPS_SERVER, "optimize-seam", {"path": cleaned, "out_path": seamed}
-    )
-    await rec.run(
-        LOOPS_SERVER,
-        "render-mastered",
-        {
-            "path": seamed,
-            "out_path": mastered,
-            "target_lufs": target_lufs,
-            "ceiling_dbtp": ceiling_dbtp,
-        },
-    )
+    deliverables: list[dict[str, Any]] = []
+    for loop_in in loop_paths:
+        cleaned = _suffix_path(loop_in, "clean")
+        seamed = _suffix_path(loop_in, "seam")
+        mastered = _suffix_path(loop_in, "master")
+        tagged = _suffix_path(loop_in, "tagged")
 
-    tag_args: dict[str, Any] = {
-        "path": mastered,
-        "out_path": tagged,
-        "bpm": bpm,
-        "originator": originator,
-    }
-    if bars is not None and len(bars) == 1:
-        tag_args["bars"] = bars[0]
-    if key is not None:
-        tag_args["key"] = key
-    if root_note is not None:
-        tag_args["root_note"] = root_note
-    await rec.run(LOOPS_SERVER, "tag-deliverable", tag_args)
+        await rec.run(
+            LOOPS_SERVER, "clean-loop", {"path": loop_in, "out_path": cleaned}
+        )
+        await rec.run(
+            LOOPS_SERVER, "optimize-seam", {"path": cleaned, "out_path": seamed}
+        )
+        await rec.run(
+            LOOPS_SERVER,
+            "render-mastered",
+            {
+                "path": seamed,
+                "out_path": mastered,
+                "target_lufs": target_lufs,
+                "ceiling_dbtp": ceiling_dbtp,
+            },
+        )
 
-    await rec.run(
-        LOOPS_SERVER,
-        "export-deliverables",
-        {
-            "path": tagged,
-            "out_dir": deliverables_dir or _sibling_dir(loop_in, "deliverables"),
-            "presets": presets or ["44.1/16", "48/24", "96/24"],
-            "tag": True,
-        },
-    )
+        tag_args: dict[str, Any] = {
+            "path": mastered,
+            "out_path": tagged,
+            "bpm": bpm,
+            "originator": originator,
+        }
+        if bars is not None and len(bars) == 1:
+            tag_args["bars"] = bars[0]
+        if key is not None:
+            tag_args["key"] = key
+        if root_note is not None:
+            tag_args["root_note"] = root_note
+        await rec.run(LOOPS_SERVER, "tag-deliverable", tag_args)
+
+        await rec.run(
+            LOOPS_SERVER,
+            "export-deliverables",
+            {
+                "path": tagged,
+                "out_dir": deliverables_dir or _deliverables_dir(loop_in),
+                "presets": presets or DEFAULT_PRESETS,
+                "tag": True,
+            },
+        )
+        deliverables.append({"loop": loop_in, "mastered": mastered, "tagged": tagged})
 
     if describe:
-        describe_target = out_dir or _parent_dir(loop_in)
+        describe_target = out_dir or manifest_out or _parent_dir(loop_paths[0])
         await rec.run(LOOPS_SERVER, "describe-loops", {"out_dir": describe_target})
 
     return {
         "pipeline": "loops-to-deliverables",
         "input": input_path,
         "bpm": bpm,
+        "loops": deliverables,
         "steps": rec.steps,
     }
 
@@ -339,12 +410,17 @@ async def understand_audio(
     labels: list[str] | None = None,
     multi_label: bool = False,
     compare_paths: list[str] | None = None,
+    compare_prompt: str | None = None,
+    compare_schema: dict[str, Any] | None = None,
+    json_prompt: str | None = None,
+    json_schema: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Pipeline 5 — Gemini perceptual analysis (no rendering).
 
     Runs only the verified gemini understanding tools the caller asks for:
     transcribe-audio, describe-audio-region, extract-audio-events,
-    classify-audio, compare-audio-files. Never mutates the audio.
+    classify-audio, compare-audio-files (with an optional prompt/schema), and
+    audio-to-json (the structured-extraction escape hatch). Never mutates audio.
     """
     rec = _Recorder(hub)
 
@@ -374,10 +450,21 @@ async def understand_audio(
             {"path": path, "labels": labels, "multi_label": multi_label},
         )
     if compare_paths is not None:
+        compare_args: dict[str, Any] = {"paths": [path, *compare_paths]}
+        if compare_prompt is not None:
+            compare_args["prompt"] = compare_prompt
+        if compare_schema is not None:
+            compare_args["schema"] = compare_schema
+        await rec.run(GEMINI_SERVER, "compare-audio-files", compare_args)
+    if json_schema is not None:
         await rec.run(
             GEMINI_SERVER,
-            "compare-audio-files",
-            {"paths": [path, *compare_paths]},
+            "audio-to-json",
+            {
+                "path": path,
+                "prompt": json_prompt or "Extract structured data from this audio.",
+                "schema": json_schema,
+            },
         )
 
     return {"pipeline": "understand-audio", "input": path, "steps": rec.steps}
@@ -388,45 +475,58 @@ async def understand_audio(
 
 def _suffix_path(path: str, suffix: str) -> str:
     """Insert ``.<suffix>`` before the extension: a/b.wav -> a/b.<suffix>.wav."""
-    from pathlib import PurePosixPath
-
     p = PurePosixPath(path)
     return str(p.with_name(f"{p.stem}.{suffix}{p.suffix}"))
 
 
-def _sibling_dir(path: str, dirname: str) -> str:
-    """Return ``<parent of path>/<dirname>`` as a string."""
-    from pathlib import PurePosixPath
+def _deliverables_dir(out_path: str) -> str:
+    """Default deliverables dir for a rendered file.
 
-    return str(PurePosixPath(path).parent / dirname)
+    The documented layout puts deliverables at ``projects/<track>/deliverables/``
+    — a *sibling* of ``masters/``, not a child. So when the file sits in a
+    ``masters/`` dir, hop up one level; otherwise fall back to a sibling
+    ``deliverables/`` next to the file.
+    """
+    parent = PurePosixPath(out_path).parent
+    base = parent.parent if parent.name == "masters" else parent
+    return str(base / "deliverables")
 
 
 def _parent_dir(path: str) -> str:
     """Return the parent directory of ``path`` as a string."""
-    from pathlib import PurePosixPath
-
     return str(PurePosixPath(path).parent)
 
 
-def _first_loop_path(manifest: Any) -> str | None:
-    """Best-effort extraction of the first loop WAV path from a find-loops result.
+def _loop_paths(manifest: Any) -> list[str]:
+    """All loop WAV paths from a find-loops result, best-effort.
 
-    find-loops returns manifest data; the manifest's exact shape is the
-    loops server's contract, so we probe a couple of likely shapes and fall
-    back to ``None`` (callers default to the original input). Kept defensive
-    so a manifest-shape change never crashes the orchestrator.
+    The real ``find-loops`` returns ``FindLoopsResponse`` →
+    ``{"out_dir": str, "manifest": {"loops": [{"wav": <name relative to out_dir>,
+    ...}], ...}}`` — the loop list is nested under ``manifest`` and each ``wav``
+    is a *basename* that must be joined to ``out_dir``. A couple of alternate
+    shapes are probed too so a manifest change degrades gracefully (callers fall
+    back to ``input_path`` when this returns ``[]``); it never raises.
     """
-    if isinstance(manifest, dict):
-        loops = manifest.get("loops")
-        if isinstance(loops, list) and loops:
-            first = loops[0]
-            if isinstance(first, dict):
-                for key in ("path", "wav", "wav_path", "file"):
-                    val = first.get(key)
-                    if isinstance(val, str):
-                        return val
-        for key in ("out_dir", "loop_path", "path"):
-            val = manifest.get(key)
-            if isinstance(val, str):
-                return val
-    return None
+    if not isinstance(manifest, dict):
+        return []
+    out_dir = manifest.get("out_dir")
+    inner = manifest.get("manifest")
+    loops = inner.get("loops") if isinstance(inner, dict) else manifest.get("loops")
+    if not isinstance(loops, list):
+        return []
+    paths: list[str] = []
+    for loop in loops:
+        if not isinstance(loop, dict):
+            continue
+        name = next(
+            (loop[k] for k in ("wav", "path", "wav_path", "file")
+             if isinstance(loop.get(k), str)),
+            None,
+        )
+        if name is None:
+            continue
+        if isinstance(out_dir, str) and not PurePosixPath(name).is_absolute():
+            paths.append(str(PurePosixPath(out_dir) / name))
+        else:
+            paths.append(name)
+    return paths

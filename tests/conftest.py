@@ -77,8 +77,13 @@ class FakeSession:
         return _FakeToolResult(structured=payload)
 
     async def list_tools(self) -> _FakeListToolsResult:
+        # Mirror the real MCP contract: Tool descriptors expose .name as an
+        # ATTRIBUTE (not a dict key), so the fake must too — otherwise a test
+        # could pass against a shape the real server never returns.
+        from types import SimpleNamespace
+
         names = sorted(self.canned)
-        return _FakeListToolsResult([{"name": n} for n in names])
+        return _FakeListToolsResult([SimpleNamespace(name=n) for n in names])
 
 
 class RecordingHub:

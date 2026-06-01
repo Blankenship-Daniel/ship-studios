@@ -19,7 +19,7 @@ import os
 from dataclasses import asdict, dataclass
 
 from drum_prep import dsp, io
-from drum_prep.kit import Kit, anchored_to_oh, ambience_stems, partner_pairs
+from drum_prep.kit import Kit, ambience_stems, anchored_to_oh, partner_pairs
 from drum_prep.overheads import resolve_overhead
 
 SOUND_CMS = 34300.0  # speed of sound, cm/s — for the distance sanity column

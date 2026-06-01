@@ -14,16 +14,61 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Awaitable
+from collections.abc import Coroutine
+from typing import Any
 
 import click
 
 from ship_studios import __version__, config
 
+# Choice lists only (pure data, no MCP SDK) so the click decorators can constrain
+# --platform/--severity at import time; `doctor` stays SDK-free (pipelines imports
+# nothing heavier than config).
+from ship_studios.pipelines import DEFAULT_PRESETS, PLATFORM_CHOICES, SEVERITY_CHOICES
 
-def _run(coro: Awaitable[dict[str, Any]]) -> None:
-    """Drive an async pipeline to completion and pretty-print its result."""
-    result: dict[str, Any] = asyncio.run(coro)  # type: ignore[arg-type]
+
+def _format_error(exc: BaseException) -> str:
+    """Flatten an exception to a single readable line for the CLI.
+
+    The MCP SDK runs sessions inside anyio task groups, so a setup/transport
+    failure can surface as a (possibly nested) ``ExceptionGroup`` rather than the
+    bare ``ToolCallError`` / ``OSError`` / ``McpError`` — peel it to the leaf
+    messages so the user sees the real cause, not ``unhandled errors in a TaskGroup``.
+    """
+    if isinstance(exc, BaseExceptionGroup):
+        leaves: list[str] = []
+
+        def _collect(group: BaseExceptionGroup) -> None:
+            for sub in group.exceptions:
+                if isinstance(sub, BaseExceptionGroup):
+                    _collect(sub)
+                else:
+                    leaves.append(str(sub) or type(sub).__name__)
+
+        _collect(exc)
+        return "; ".join(leaves) or str(exc)
+    return str(exc) or type(exc).__name__
+
+
+def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
+    """Drive an async pipeline to completion and pretty-print its result.
+
+    This is the CLI boundary: any ``Exception`` — a ``ToolCallError`` from a tool,
+    an ``OSError`` when ``uv`` is missing, an ``McpError`` when the spawned server
+    dies during the handshake, or an ``ExceptionGroup`` raised out of the SDK's
+    anyio task groups — becomes a clean one-line stderr message + exit 1 instead of
+    a Python traceback (mirroring ``drum_prep.cli._go``). A ``KeyboardInterrupt``
+    (Ctrl-C) exits 130 quietly. Other ``BaseException``\\ s (e.g. a task-group
+    ``CancelledError``) propagate — the caller asked for them.
+    """
+    try:
+        result = asyncio.run(coro)
+    except KeyboardInterrupt:
+        click.echo("Interrupted.", err=True)
+        raise SystemExit(130) from None
+    except Exception as exc:
+        click.echo(click.style(f"Error: {_format_error(exc)}", fg="red"), err=True)
+        raise SystemExit(1) from exc
     click.echo(json.dumps(result, indent=2, default=str))
 
 
@@ -33,6 +78,98 @@ def _default_out(path: str, suffix: str) -> str:
 
     p = Path(path)
     return str(p.with_name(f"{p.stem}.{suffix}{p.suffix}"))
+
+
+def _parse_bars(bars: str | None) -> list[int] | None:
+    """Parse ``--bars`` (e.g. ``1,2,4``) into validated positive ints.
+
+    Raises a clean Click error (not a traceback) on non-numeric or out-of-range
+    input so the user gets actionable feedback instead of an uncaught ValueError.
+    """
+    if not bars:
+        return None
+    out: list[int] = []
+    for tok in (t.strip() for t in bars.split(",")):
+        if not tok:
+            continue
+        try:
+            n = int(tok)
+        except ValueError:
+            raise click.BadParameter(
+                f"bar lengths must be integers; got {tok!r}", param_hint="--bars"
+            ) from None
+        if not 1 <= n <= 64:
+            raise click.BadParameter(
+                f"bar length {n} out of range (1-64)", param_hint="--bars"
+            )
+        out.append(n)
+    return out or None
+
+
+def _parse_presets(presets: str | None) -> list[str] | None:
+    """Parse ``--presets`` (comma-separated) into validated export-preset names.
+
+    Mirrors the server allow-list (``pipelines.DEFAULT_PRESETS``); an unknown name
+    is rejected up front with a clean Click error — parity with ``--platform`` /
+    ``--severity`` — instead of failing deep in ``export-deliverables`` with a
+    ``ValueError("unknown preset")``.
+    """
+    if not presets:
+        return None
+    out: list[str] = []
+    for tok in (t.strip() for t in presets.split(",")):
+        if not tok:
+            continue
+        if tok not in DEFAULT_PRESETS:
+            raise click.BadParameter(
+                f"unknown preset {tok!r}; choose from {', '.join(DEFAULT_PRESETS)}",
+                param_hint="--presets",
+            )
+        out.append(tok)
+    return out or None
+
+
+def _load_eq_bands(path: str | None) -> list[dict[str, Any]] | None:
+    """Load corrective EQ bands from a JSON file (a list of band dicts).
+
+    Lets the headless CLI reach the apply-eq branch of mix-check / reference-match
+    (otherwise unreachable). Raises a clean Click error on a missing file or a
+    payload that isn't a JSON list of objects.
+    """
+    if not path:
+        return None
+    from pathlib import Path
+
+    try:
+        data = json.loads(Path(path).read_text())
+    except FileNotFoundError:
+        raise click.BadParameter(f"file not found: {path}", param_hint="--eq-json") from None
+    except json.JSONDecodeError as exc:
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint="--eq-json") from None
+    if not (isinstance(data, list) and all(isinstance(b, dict) for b in data)):
+        raise click.BadParameter(
+            "expected a JSON list of band objects, e.g. "
+            '[{"freq_hz": 200, "gain_db": -2, "q": 1.0, "type": "bell"}]',
+            param_hint="--eq-json",
+        )
+    return data
+
+
+def _load_json_obj(path: str | None, hint: str) -> dict[str, Any] | None:
+    """Load a JSON object (e.g. a JSON Schema) from ``path``; clean error on bad input."""
+    if not path:
+        return None
+    from pathlib import Path
+
+    try:
+        data = json.loads(Path(path).read_text())
+    except FileNotFoundError:
+        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from None
+    except json.JSONDecodeError as exc:
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from None
+    if not isinstance(data, dict):
+        raise click.BadParameter("expected a JSON object", param_hint=hint)
+    return data
 
 
 @click.group()
@@ -48,7 +185,11 @@ def main() -> None:
                    "(default: <mix dir>/<stem>.master.wav).")
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
-@click.option("--platform", "target_platform", default="spotify", show_default=True)
+@click.option("--platform", "target_platform", default="spotify", show_default=True,
+              type=click.Choice(PLATFORM_CHOICES),
+              help="Release target. Streaming services (spotify/apple_music/youtube/"
+                   "tidal) drive the compliance check and map to the 'streaming' "
+                   "mastering critique; general/club/broadcast/vinyl set the critique mood.")
 @click.option("--high-pass-hz", type=float, default=None)
 @click.option("--transient-shape", type=float, default=None)
 @click.option("--bit-depth", type=int, default=None)
@@ -93,17 +234,29 @@ def master(
 
 @main.command(name="mix-check")
 @click.argument("mix_path", type=click.Path())
-@click.option("--severity", "severity_threshold", default="minor", show_default=True,
-              help="Lowest severity of mix issue to report.")
-def mix_check_cmd(mix_path: str, severity_threshold: str) -> None:
+@click.option("--severity", "severity_threshold", default="any", show_default=True,
+              type=click.Choice(SEVERITY_CHOICES),
+              help="Lowest severity floor to report (any reports everything).")
+@click.option("--eq-json", "eq_json", type=click.Path(), default=None,
+              help="JSON list of corrective EQ bands to apply after diagnosis "
+                   '(e.g. [{"freq_hz":200,"gain_db":-2,"q":1,"type":"bell"}]).')
+@click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
+              help="Where to write the EQ'd mix (with --eq-json).")
+@click.option("--compress", is_flag=True, default=False,
+              help="Also run compress-loop after EQ.")
+def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
+                  eq_out_path: str | None, compress: bool) -> None:
     """Diagnose a mix (perceptual + measurement) and surface concrete moves."""
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import mix_check
 
+    eq_bands = _load_eq_bands(eq_json)
+
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await mix_check(
-                hub, mix_path, severity_threshold=severity_threshold
+                hub, mix_path, severity_threshold=severity_threshold,
+                eq_bands=eq_bands, eq_out_path=eq_out_path, compress=compress,
             )
 
     _run(_go())
@@ -117,17 +270,26 @@ def mix_check_cmd(mix_path: str, severity_threshold: str) -> None:
               show_default=True)
 @click.option("--ab-out", "ab_out_path", type=click.Path(), default=None,
               help="Where to write the A/B audition WAV.")
+@click.option("--eq-json", "eq_json", type=click.Path(), default=None,
+              help="JSON list of corrective EQ bands to close the gap before the "
+                   "A/B (otherwise the A/B compares the RAW mix to the reference).")
+@click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
+              help="Where to write the corrected mix (with --eq-json).")
 def reference_match_cmd(
-    mix_path: str, ref_path: str, goal: str, ab_out_path: str | None
+    mix_path: str, ref_path: str, goal: str, ab_out_path: str | None,
+    eq_json: str | None, eq_out_path: str | None,
 ) -> None:
     """Match a mix to a reference and render a loudness-matched A/B audition."""
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import reference_match
 
+    eq_bands = _load_eq_bands(eq_json)
+
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await reference_match(
-                hub, mix_path, ref_path, goal=goal, ab_out_path=ab_out_path
+                hub, mix_path, ref_path, goal=goal, ab_out_path=ab_out_path,
+                eq_bands=eq_bands, eq_out_path=eq_out_path,
             )
 
     _run(_go())
@@ -148,6 +310,11 @@ def reference_match_cmd(
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
 @click.option("--originator", default="ship-studios", show_default=True)
 @click.option("--key", default=None)
+@click.option("--root-note", type=click.IntRange(0, 127), default=None,
+              help="MIDI root note (0-127) embedded in the loop tags.")
+@click.option("--presets", default=None,
+              help="Comma-separated export presets (default: distribution_44k_16,"
+                   "production_48k_24,master_96k_24).")
 @click.option("--describe", is_flag=True, default=False,
               help="Attach Gemini-backed audible descriptions to the set.")
 def loops(
@@ -162,13 +329,16 @@ def loops(
     ceiling_dbtp: float,
     originator: str,
     key: str | None,
+    root_note: int | None,
+    presets: str | None,
     describe: bool,
 ) -> None:
     """Slice a stem/mix into cleaned, mastered, tagged loop deliverables."""
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import loops_to_deliverables
 
-    bar_list = [int(b) for b in bars.split(",") if b.strip()] if bars else None
+    bar_list = _parse_bars(bars)
+    preset_list = _parse_presets(presets)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -185,6 +355,8 @@ def loops(
                 ceiling_dbtp=ceiling_dbtp,
                 originator=originator,
                 key=key,
+                root_note=root_note,
+                presets=preset_list,
                 describe=describe,
             )
 
@@ -204,6 +376,14 @@ def loops(
 @click.option("--multi-label", is_flag=True, default=False)
 @click.option("--compare", "compare_paths", multiple=True, type=click.Path(),
               help="Additional file(s) to compare against PATH.")
+@click.option("--compare-prompt", "compare_prompt", default=None,
+              help="Prompt to focus the comparison (with --compare).")
+@click.option("--compare-schema", "compare_schema_path", type=click.Path(), default=None,
+              help="JSON Schema file to structure the comparison output.")
+@click.option("--json-prompt", "json_prompt", default=None,
+              help="Prompt for audio-to-json structured extraction (with --json-schema).")
+@click.option("--json-schema", "json_schema_path", type=click.Path(), default=None,
+              help="JSON Schema file -> run audio-to-json structured extraction on PATH.")
 def understand(
     path: str,
     transcribe: bool,
@@ -213,13 +393,19 @@ def understand(
     labels: str | None,
     multi_label: bool,
     compare_paths: tuple[str, ...],
+    compare_prompt: str | None,
+    compare_schema_path: str | None,
+    json_prompt: str | None,
+    json_schema_path: str | None,
 ) -> None:
-    """Gemini perceptual analysis (transcribe/region/events/classify/compare)."""
+    """Gemini perceptual analysis (transcribe/region/events/classify/compare/json)."""
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import understand_audio
 
     label_list = [s.strip() for s in labels.split(",") if s.strip()] if labels else None
     compares = list(compare_paths) or None
+    compare_schema = _load_json_obj(compare_schema_path, "--compare-schema")
+    json_schema = _load_json_obj(json_schema_path, "--json-schema")
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -233,6 +419,10 @@ def understand(
                 labels=label_list,
                 multi_label=multi_label,
                 compare_paths=compares,
+                compare_prompt=compare_prompt,
+                compare_schema=compare_schema,
+                json_prompt=json_prompt,
+                json_schema=json_schema,
             )
 
     _run(_go())
@@ -259,13 +449,22 @@ def doctor() -> None:
         ("stemmy-gemini", config.gemini_dir(), config.GEMINI_CONSOLE_SCRIPT),
     ):
         present = directory.is_dir()
-        ok = ok and present
-        mark = "ok " if present else "MISSING"
+        # A bare directory isn't enough — flag a dir that doesn't look like the
+        # synced repo (no pyproject.toml), which would otherwise read "ok" and
+        # then fail at launch with a confusing uv error.
+        looks_synced = present and (directory / "pyproject.toml").is_file()
+        ok = ok and looks_synced
+        mark = "ok " if looks_synced else "MISSING"
         click.echo(f"  [{mark}] {label}: {directory}")
         if not present:
             click.echo(
                 f"        expected the repo here; clone it or set "
                 f"{'SHIP_STUDIOS_LOOPS_DIR' if label == 'stemmy-loops' else 'SHIP_STUDIOS_GEMINI_DIR'}"
+            )
+        elif not looks_synced:
+            click.echo(
+                "        directory exists but has no pyproject.toml — not the "
+                "synced repo? run `uv sync` in it (see CLAUDE.md setup)."
             )
         else:
             click.echo(

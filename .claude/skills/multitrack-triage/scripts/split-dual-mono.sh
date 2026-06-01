@@ -26,6 +26,7 @@ if [[ "$stem" == *_1_2 ]]; then o1="$dir/${stem%_1_2}_1.wav"; o2="$dir/${stem%_1
 else o1="$dir/${stem}_chL.wav"; o2="$dir/${stem}_chR.wav"; fi
 diff=$(ffmpeg -hide_banner -nostats -i "$f" -af "pan=mono|c0=c0-c1,astats=metadata=1" -f null - 2>&1 \
         | awk -F: '/RMS level dB/{print $2; exit}' | xargs)
+[ -n "$diff" ] || diff="?(extract failed)"   # don't print a bare "RMS=dB"
 sox "$f" "$o1" remix 1
 sox "$f" "$o2" remix 2
 echo "split: $(basename "$f") -> $(basename "$o1") + $(basename "$o2")  (L-R diff RMS=${diff}dB; -inf=identical dual-mono)"

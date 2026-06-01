@@ -60,13 +60,65 @@ GEMINI_API_KEY = "GEMINI_API_KEY"
 #: ``doctor`` and by the per-server passthrough below.
 ENV_VARS: tuple[str, ...] = (ANTHROPIC_API_KEY, GEMINI_API_KEY)
 
-#: Which secrets each server actually consumes. The loops server can reach
-#: both Anthropic (LLM critique) and Gemini (describe-loops); the gemini
-#: server only ever needs the Gemini key.
+#: Documented, non-secret behaviour overrides each server reads from its env.
+#: These are NOT inherited automatically: the MCP stdio transport spawns the
+#: server with only a minimal safe allow-list (HOME/PATH/…) merged with whatever
+#: ``StdioServerParameters.env`` carries, so anything we don't forward here is
+#: silently dropped. Keep this in sync with CLAUDE.md's env-vars table.
+#: Gemini-server overrides ([G]): model + per-call thinking tier + FS allow-list.
+GEMINI_OVERRIDE_ENV: tuple[str, ...] = (
+    "STEMMY_MCP_MODEL",
+    "STEMMY_MCP_THINKING_LEVEL",
+    "STEMMY_MCP_THINKING_BUDGET",
+    "STEMMY_MCP_ALLOWED_ROOTS",
+)
+#: Loops-server overrides ([L]): LLM model choices for its LLM-backed tools.
+LOOPS_OVERRIDE_ENV: tuple[str, ...] = (
+    "STEMMY_LLM_MODEL",
+    "STEMMY_LLM_CAPTION_MODEL",
+)
+
+#: Which env vars each server actually consumes (secrets + documented overrides).
+#: The loops server can reach both Anthropic (LLM critique) and Gemini
+#: (describe-loops); the gemini server only ever needs the Gemini key. Every var
+#: here is forwarded ONLY when set (see ``_passthrough_env``), so listing an
+#: unset override is harmless.
 _SERVER_ENV_KEYS: dict[str, tuple[str, ...]] = {
-    LOOPS_SERVER: (ANTHROPIC_API_KEY, GEMINI_API_KEY),
-    GEMINI_SERVER: (GEMINI_API_KEY,),
+    LOOPS_SERVER: (ANTHROPIC_API_KEY, GEMINI_API_KEY, *LOOPS_OVERRIDE_ENV),
+    GEMINI_SERVER: (GEMINI_API_KEY, *GEMINI_OVERRIDE_ENV),
 }
+
+
+#: Default timeouts (seconds). The first ``uv run`` of a sibling can be slow
+#: while it builds/resolves the dependency tree, so the handshake budget is
+#: generous; a tool call (esp. a Gemini perceptual call with thinking) gets more.
+#: Override via the env vars; set ``0`` to disable a timeout entirely.
+STARTUP_TIMEOUT_ENV = "SHIP_STUDIOS_STARTUP_TIMEOUT"
+CALL_TIMEOUT_ENV = "SHIP_STUDIOS_CALL_TIMEOUT"
+_DEFAULT_STARTUP_TIMEOUT_S = 120.0
+_DEFAULT_CALL_TIMEOUT_S = 600.0
+
+
+def _timeout(env: str, default: float) -> float | None:
+    """Read a timeout from ``env`` (seconds); ``None`` means no timeout (``0``)."""
+    raw = os.environ.get(env)
+    if raw is None or raw == "":
+        return default
+    try:
+        val = float(raw)
+    except ValueError:
+        return default
+    return None if val <= 0 else val
+
+
+def startup_timeout_s() -> float | None:
+    """Seconds to wait for a server's MCP handshake (``None`` = no limit)."""
+    return _timeout(STARTUP_TIMEOUT_ENV, _DEFAULT_STARTUP_TIMEOUT_S)
+
+
+def call_timeout_s() -> float | None:
+    """Seconds to wait for a single tool call (``None`` = no limit)."""
+    return _timeout(CALL_TIMEOUT_ENV, _DEFAULT_CALL_TIMEOUT_S)
 
 
 def repo_root() -> Path:
@@ -106,18 +158,20 @@ def server_dir(server_key: str) -> Path:
 
 
 def _passthrough_env(server_key: str) -> dict[str, str]:
-    """Collect the secrets this server consumes from the current process env.
+    """Collect the env vars this server consumes from the current process env.
 
-    Only keys that are actually set are forwarded — passing an empty string
-    would shadow a value the server might otherwise pick up itself, and the
-    server is responsible for raising a clear error when a key it needs is
-    genuinely absent.
+    Forwards the server's secrets *and* its documented behaviour overrides
+    (model / thinking tier / allow-list / LLM model) — the stdio transport does
+    not inherit the parent shell beyond a minimal allow-list, so an override we
+    don't forward here never reaches the subprocess. Only keys that are actually
+    set are included; an unset override is simply omitted (the server applies its
+    own default), and the server raises if a key it truly needs is absent.
     """
     keys = _SERVER_ENV_KEYS[server_key]
     return {k: os.environ[k] for k in keys if os.environ.get(k)}
 
 
-def server_parameters(server_key: str) -> "StdioServerParameters":
+def server_parameters(server_key: str) -> StdioServerParameters:
     """Build the StdioServerParameters that launch ``server_key`` via uv.
 
     Command shape mirrors the .mcp.json registration: ``uv --directory
@@ -141,7 +195,7 @@ def server_parameters(server_key: str) -> "StdioServerParameters":
     )
 
 
-def all_server_parameters() -> dict[str, "StdioServerParameters"]:
+def all_server_parameters() -> dict[str, StdioServerParameters]:
     """StdioServerParameters for both servers, keyed by server key."""
     return {
         LOOPS_SERVER: server_parameters(LOOPS_SERVER),

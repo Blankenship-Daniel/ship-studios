@@ -38,9 +38,10 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
     names = io.list_audio(src_dir)
     if not names:
         raise ValueError(f"no stems found in {src_dir!r}")
-    sr = io.info(os.path.join(src_dir, names[0]))[1]
+    sr, frames = io.summarize_inputs([os.path.join(src_dir, nm) for nm in names])
     meter = pyln.Meter(sr)
-    n = min(io.info(os.path.join(src_dir, nm))[2] for nm in names)
+    n = min(frames)
+    trunc_note = io.truncation_note(frames)
 
     mix = np.zeros((n, 2))
     rows = []
@@ -53,16 +54,18 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
         meas = io.to_stereo(x) if x.shape[1] == 2 else dsp.mono(x)
         lufs = meter.integrated_loudness(meas)
         off = float(s.get("gain_db", 0.0))
-        gain = 10 ** ((target_lufs + off - lufs) / 20.0) if np.isfinite(lufs) else 10 ** (off / 20.0)
+        # Silent/immeasurable stem (-inf LUFS) -> unity, matching mix_kit; don't
+        # boost a dead channel by its offset (that would just amplify noise).
+        gain = 10 ** ((target_lufs + off - lufs) / 20.0) if np.isfinite(lufs) else 1.0
         pan = float(s.get("pan", 0.0))
         if x.shape[1] == 2:
             ch = io.to_stereo(x)[:n] * gain
             if pan:  # balance a stereo stem toward a side
                 ch = ch * np.array([1.0 - max(0.0, pan), 1.0 - max(0.0, -pan)])
-            contrib, place = ch, ("stereo" if pan == 0 else f"stereo bal {int(pan * 100)}%")
+            contrib, place = ch, ("stereo" if pan == 0 else f"stereo bal {round(pan * 100)}%")
         else:
             contrib = _pan(x[:n, 0], pan) * gain
-            place = "center" if pan == 0 else f"pan {int(pan * 100)}%"
+            place = "center" if pan == 0 else f"pan {round(pan * 100)}%"
         mix[:len(contrib)] += contrib[:n]
         rows.append({"stem": nm, "lufs": round(float(lufs), 1), "offset_db": off,
                      "gain_db": round(_db(gain), 2), "place": place})
@@ -78,11 +81,13 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
     if dur and dur > 0:
         a, b = int(t0 * sr), int((t0 + dur) * sr)
         if b <= n:
-            excerpt = os.path.join(out_dir, out_name.replace(".wav", "-excerpt.wav"))
+            stem_name, ext = os.path.splitext(out_name)
+            excerpt = os.path.join(out_dir, f"{stem_name}-excerpt{ext or '.wav'}")
             io.write_wav24(excerpt, mix[a:b], sr)
 
     return {"flow": "stem-mix", "src_dir": src_dir, "out": out, "excerpt": excerpt,
             "target_lufs": target_lufs, "global_trim_db": round(_db(trim), 2),
             "peak_dbfs": round(_db(float(np.max(np.abs(mix)))), 2),
             "lufs": round(float(meter.integrated_loudness(mix)), 1),
-            "channels": 2, "duration_s": round(n / sr, 2), "stems": rows}
+            "channels": 2, "duration_s": round(n / sr, 2),
+            "truncation_note": trunc_note, "stems": rows}

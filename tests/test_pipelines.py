@@ -61,6 +61,7 @@ async def test_master_track_optional_render_args_omitted_by_default(
 
 
 async def test_master_track_mastering_feedback_passes_platform(recording_hub) -> None:
+    # A critique "mood" passes straight through to mastering-feedback.
     await pipelines.master_track(
         recording_hub, "m.wav", "o.wav", target_platform="club"
     )
@@ -70,16 +71,48 @@ async def test_master_track_mastering_feedback_passes_platform(recording_hub) ->
     }
 
 
+async def test_master_track_maps_streaming_service_to_valid_vocabularies(
+    recording_hub,
+) -> None:
+    # The default release target "spotify" is NOT a mastering-feedback mood; it
+    # must map to "streaming" there, and reach check-streaming-targets as the
+    # actual service name. (Regression guard for the broken default invocation.)
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", target_platform="spotify")
+    assert recording_hub.args_for("mastering-feedback")["target_platform"] == "streaming"
+    assert recording_hub.args_for("check-streaming-targets") == {
+        "path": "o.wav",
+        "platforms": ["spotify"],
+    }
+
+
+async def test_master_track_apple_alias_normalizes(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", target_platform="apple")
+    assert recording_hub.args_for("check-streaming-targets")["platforms"] == ["apple_music"]
+
+
+async def test_master_track_mood_target_skips_platform_filter(recording_hub) -> None:
+    # A non-service target (e.g. "vinyl") checks all default platforms.
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", target_platform="vinyl")
+    assert recording_hub.args_for("check-streaming-targets") == {"path": "o.wav"}
+    assert recording_hub.args_for("mastering-feedback")["target_platform"] == "vinyl"
+
+
 async def test_master_track_export_presets_and_tag(recording_hub) -> None:
     await pipelines.master_track(recording_hub, "m.wav", "o.wav")
     args = recording_hub.args_for("export-deliverables")
-    assert args["presets"] == ["44.1/16", "48/24", "96/24"]
+    # Must be the stemmy-loops verified preset names, not free-form "<sr>/<bits>".
+    assert args["presets"] == pipelines.DEFAULT_PRESETS
+    assert args["presets"] == [
+        "distribution_44k_16",
+        "production_48k_24",
+        "master_96k_24",
+    ]
     assert args["tag"] is True
     assert set(args) == {"path", "out_dir", "presets", "tag"}
 
 
 async def test_mix_check_diagnostic_sequence(recording_hub) -> None:
-    await pipelines.mix_check(recording_hub, "mix.wav", severity_threshold="major")
+    await pipelines.mix_check(recording_hub, "mix.wav", severity_threshold="serious")
     assert recording_hub.server_tool_sequence == [
         (GEMINI_SERVER, "detect-mix-issues"),
         (GEMINI_SERVER, "analyze-mix-balance"),
@@ -92,8 +125,15 @@ async def test_mix_check_diagnostic_sequence(recording_hub) -> None:
     ]
     assert recording_hub.args_for("detect-mix-issues") == {
         "path": "mix.wav",
-        "severity_threshold": "major",
+        "severity_threshold": "serious",
     }
+
+
+async def test_mix_check_default_severity_is_server_valid(recording_hub) -> None:
+    # Bare mix-check must send a floor the real detect-mix-issues accepts.
+    await pipelines.mix_check(recording_hub, "mix.wav")
+    sev = recording_hub.args_for("detect-mix-issues")["severity_threshold"]
+    assert sev in pipelines.SEVERITY_CHOICES
 
 
 async def test_mix_check_applies_eq_when_bands_supplied(recording_hub) -> None:
@@ -172,12 +212,21 @@ async def test_reference_match_eq_feeds_render_ab(recording_hub) -> None:
     assert recording_hub.args_for("render-ab")["processed"] == eq_out
 
 
+#: The real find-loops return (FindLoopsResponse): out_dir + nested manifest,
+#: each loop a basename under "wav". Mirror it so the parsing is actually tested.
+def _find_loops_canned(out_dir: str, *wavs: str) -> dict:
+    return {
+        "find-loops": {
+            "out_dir": out_dir,
+            "manifest": {"bpm": 120.0, "loops": [{"wav": w} for w in wavs]},
+        }
+    }
+
+
 async def test_loops_to_deliverables_sequence() -> None:
     from tests.conftest import RecordingHub
 
-    hub = RecordingHub(
-        canned={"find-loops": {"loops": [{"path": "out/loop_01.wav"}]}}
-    )
+    hub = RecordingHub(canned=_find_loops_canned("out", "loop_01.wav"))
     await pipelines.loops_to_deliverables(
         hub, "drums.wav", 120.0, bars=[4], key="Am", out_dir="out"
     )
@@ -189,8 +238,31 @@ async def test_loops_to_deliverables_sequence() -> None:
         "tag-deliverable",
         "export-deliverables",
     ]
-    # every step after find-loops operates on the loop path it returned.
+    # the loop "wav" basename must be joined to the manifest out_dir, and the
+    # chain operates on a real loop WAV (NOT the output directory — the C2 bug).
     assert hub.args_for("clean-loop")["path"] == "out/loop_01.wav"
+
+
+async def test_loops_to_deliverables_processes_every_loop() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(
+        canned=_find_loops_canned("out", "a.wav", "b.wav", "c.wav")
+    )
+    result = await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
+    # the per-loop chain runs once PER loop, not just the first.
+    assert hub.tool_sequence.count("render-mastered") == 3
+    assert hub.tool_sequence.count("export-deliverables") == 3
+    assert [d["loop"] for d in result["loops"]] == ["out/a.wav", "out/b.wav", "out/c.wav"]
+
+
+async def test_loops_to_deliverables_falls_back_when_manifest_unparseable() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={"find-loops": {"unexpected": "shape"}})
+    await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
+    # unknown manifest shape -> chain still runs once, on the input itself.
+    assert hub.args_for("clean-loop")["path"] == "drums.wav"
 
 
 async def test_loops_to_deliverables_find_loops_args(recording_hub) -> None:
@@ -286,6 +358,36 @@ async def test_understand_audio_can_skip_transcription(recording_hub) -> None:
     assert recording_hub.tool_sequence == ["classify-audio"]
 
 
+async def test_understand_audio_zero_steps_when_all_disabled(recording_hub) -> None:
+    # --no-transcribe with no other request -> a valid no-op (no tools called).
+    await pipelines.understand_audio(recording_hub, "ref.wav", transcribe=False)
+    assert recording_hub.tool_sequence == []
+
+
+async def test_understand_audio_compare_schema_and_prompt(recording_hub) -> None:
+    schema = {"type": "object", "properties": {"verdict": {"type": "string"}}}
+    await pipelines.understand_audio(
+        recording_hub, "a.wav", transcribe=False, compare_paths=["b.wav"],
+        compare_prompt="which is brighter?", compare_schema=schema,
+    )
+    args = recording_hub.args_for("compare-audio-files")
+    assert args == {
+        "paths": ["a.wav", "b.wav"],
+        "prompt": "which is brighter?",
+        "schema": schema,
+    }
+
+
+async def test_understand_audio_runs_audio_to_json(recording_hub) -> None:
+    schema = {"type": "object", "properties": {"bpm": {"type": "number"}}}
+    await pipelines.understand_audio(
+        recording_hub, "a.wav", transcribe=False, json_schema=schema, json_prompt="extract bpm",
+    )
+    assert recording_hub.args_for("audio-to-json") == {
+        "path": "a.wav", "prompt": "extract bpm", "schema": schema,
+    }
+
+
 @pytest.mark.parametrize(
     "pipeline_result_key, coro_factory",
     [
@@ -311,3 +413,68 @@ async def test_pipelines_return_structured_steps(
     assert result["steps"], "every pipeline should record at least one step"
     for step in result["steps"]:
         assert set(step) >= {"server", "tool", "args", "result"}
+
+
+# --- integration-contract guards (the blind spot that let the preset bug ship) ---
+
+# The stemmy-loops export-deliverables tool accepts ONLY these names and raises
+# ValueError("unknown preset") otherwise. RecordingHub can't reach the real tool,
+# so assert our outgoing presets stay inside the allow-list here.
+_VALID_EXPORT_PRESETS = {"distribution_44k_16", "production_48k_24", "master_96k_24"}
+
+
+def test_default_presets_match_server_allow_list() -> None:
+    assert set(pipelines.DEFAULT_PRESETS) <= _VALID_EXPORT_PRESETS
+
+
+async def test_master_track_presets_are_server_valid(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav")
+    presets = recording_hub.args_for("export-deliverables")["presets"]
+    assert set(presets) <= _VALID_EXPORT_PRESETS, f"invalid: {set(presets) - _VALID_EXPORT_PRESETS}"
+
+
+async def test_loops_presets_are_server_valid(recording_hub) -> None:
+    await pipelines.loops_to_deliverables(recording_hub, "d.wav", 120.0)
+    presets = recording_hub.args_for("export-deliverables")["presets"]
+    assert set(presets) <= _VALID_EXPORT_PRESETS, f"invalid: {set(presets) - _VALID_EXPORT_PRESETS}"
+
+
+# mastering-feedback / detect-mix-issues accept ONLY these Literals server-side.
+_VALID_FEEDBACK_MOODS = {"general", "streaming", "club", "broadcast", "vinyl"}
+_VALID_SEVERITIES = {"any", "moderate", "serious"}
+
+
+@pytest.mark.parametrize("platform", pipelines.PLATFORM_CHOICES)
+async def test_every_platform_choice_maps_to_valid_feedback_mood(
+    recording_hub, platform
+) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", target_platform=platform)
+    mood = recording_hub.args_for("mastering-feedback")["target_platform"]
+    assert mood in _VALID_FEEDBACK_MOODS, f"{platform!r} -> invalid mood {mood!r}"
+
+
+def test_severity_choices_are_server_valid() -> None:
+    assert set(pipelines.SEVERITY_CHOICES) <= _VALID_SEVERITIES
+
+
+def test_deliverables_dir_is_masters_sibling_not_child() -> None:
+    # Documented layout: projects/<t>/deliverables (sibling of masters/), not
+    # projects/<t>/masters/deliverables.
+    assert (
+        pipelines._deliverables_dir("projects/song/masters/song.master.wav")
+        == "projects/song/deliverables"
+    )
+    # Non-masters location: deliverables sits next to the file.
+    assert pipelines._deliverables_dir("a/b/loop.wav") == "a/b/deliverables"
+
+
+async def test_pipeline_propagates_tool_call_error() -> None:
+    """A failing tool must surface as ToolCallError, not be swallowed mid-pipeline."""
+    from ship_studios.mcp_client import ToolCallError
+
+    class _BoomHub:
+        async def call_tool(self, server_key, name, args=None):
+            raise ToolCallError(server_key, name, "boom")
+
+    with pytest.raises(ToolCallError):
+        await pipelines.master_track(_BoomHub(), "m.wav", "o.wav")

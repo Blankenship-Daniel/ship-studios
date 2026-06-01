@@ -51,7 +51,8 @@ async def test_hub_list_tools(fake_hub) -> None:
     hub = fake_hub(canned={"find-loops": {}, "measure-loudness": {}})
     async with hub:
         tools = await hub.list_tools(LOOPS_SERVER)
-    names = {t["name"] for t in tools}
+    # real MCP Tool descriptors expose .name as an attribute
+    names = {t.name for t in tools}
     assert names == {"find-loops", "measure-loudness"}
 
 
@@ -80,6 +81,41 @@ async def test_call_tool_raises_on_error_result(fake_hub, monkeypatch) -> None:
     assert "bad path" in exc.value.detail
 
 
+async def test_hub_rolls_back_first_session_when_second_fails(monkeypatch) -> None:
+    """If the 2nd server fails to open, the 1st server's context must be torn
+    down (no leaked subprocess) and the error re-raised."""
+    from ship_studios import mcp_client
+
+    closed: list[bool] = []
+
+    class _Sentinel:  # stand-in for the first server's stdio/session context
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            closed.append(True)
+
+    opened: list[str] = []
+
+    async def _open(self, server_key):
+        opened.append(server_key)
+        if len(opened) == 1:
+            await self._stack.enter_async_context(_Sentinel())
+            return object()  # a "session" for the first server
+        raise RuntimeError("second server failed to start")
+
+    monkeypatch.setattr(mcp_client.Hub, "_open_session", _open, raising=True)
+
+    hub = mcp_client.Hub()
+    with pytest.raises(RuntimeError, match="second server"):
+        async with hub:
+            pass
+
+    assert closed == [True]        # first server's context was rolled back
+    assert hub._sessions == {}     # no leaked session left behind
+    assert hub._stack is None      # exit stack released
+
+
 async def test_result_text_fallback_when_no_structured(fake_hub, monkeypatch) -> None:
     hub = fake_hub()
     async with hub:
@@ -93,3 +129,33 @@ async def test_result_text_fallback_when_no_structured(fake_hub, monkeypatch) ->
         monkeypatch.setattr(sess, "call_tool", text_only, raising=True)
         result = await hub.call_tool(GEMINI_SERVER, "transcribe-audio", {"path": "a"})
     assert result == "plain answer"
+
+
+async def test_call_tool_times_out_into_tool_call_error(fake_hub, monkeypatch) -> None:
+    """A hung tool call must surface as a clean ToolCallError, not block forever."""
+    import asyncio
+
+    from ship_studios import config
+
+    monkeypatch.setattr(config, "call_timeout_s", lambda: 0.01)
+    hub = fake_hub()
+    async with hub:
+        sess = hub.session(LOOPS_SERVER)
+
+        async def slow(name, arguments=None):
+            await asyncio.sleep(1.0)
+
+        monkeypatch.setattr(sess, "call_tool", slow, raising=True)
+        with pytest.raises(ToolCallError) as exc:
+            await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "x"})
+    assert "within" in exc.value.detail
+
+
+async def test_call_tool_no_timeout_when_disabled(fake_hub, monkeypatch) -> None:
+    from ship_studios import config
+
+    monkeypatch.setattr(config, "call_timeout_s", lambda: None)
+    hub = fake_hub(canned={"measure-loudness": {"lufs_i": -14.0}})
+    async with hub:
+        result = await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "x"})
+    assert result == {"lufs_i": -14.0}

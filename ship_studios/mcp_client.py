@@ -26,6 +26,7 @@ package is exercisable with no real subprocess, server, or audio.
 """
 from __future__ import annotations
 
+import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
@@ -49,10 +50,10 @@ class Hub:
             if server_keys is not None
             else (config.LOOPS_SERVER, config.GEMINI_SERVER)
         )
-        self._sessions: dict[str, "ClientSession"] = {}
+        self._sessions: dict[str, ClientSession] = {}
         self._stack: contextlib.AsyncExitStack | None = None
 
-    async def __aenter__(self) -> "Hub":
+    async def __aenter__(self) -> Hub:
         self._stack = contextlib.AsyncExitStack()
         try:
             for key in self.server_keys:
@@ -72,7 +73,7 @@ class Hub:
             self._stack = None
         self._sessions.clear()
 
-    async def _open_session(self, server_key: str) -> "ClientSession":
+    async def _open_session(self, server_key: str) -> ClientSession:
         """Spawn the server subprocess and return an initialized session.
 
         Isolated as its own method so tests can monkeypatch it to hand back
@@ -85,10 +86,22 @@ class Hub:
         params = config.server_parameters(server_key)
         read, write = await self._stack.enter_async_context(stdio_client(params))
         session = await self._stack.enter_async_context(ClientSession(read, write))
-        await session.initialize()
+        timeout = config.startup_timeout_s()
+        try:
+            if timeout is None:
+                await session.initialize()
+            else:
+                await asyncio.wait_for(session.initialize(), timeout)
+        except TimeoutError:
+            raise TimeoutError(
+                f"server {server_key!r} did not complete the MCP handshake within "
+                f"{timeout:g}s — is the sibling repo synced and runnable? "
+                f"(uv --directory {config.server_dir(server_key)} run …). "
+                f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
+            ) from None
         return session
 
-    def session(self, server_key: str) -> "ClientSession":
+    def session(self, server_key: str) -> ClientSession:
         """Return the live session for ``server_key`` (must be open)."""
         try:
             return self._sessions[server_key]
@@ -110,7 +123,18 @@ class Hub:
         pipeline loudly rather than feeding garbage to the next tool.
         """
         session = self.session(server_key)
-        result = await session.call_tool(name, args or {})
+        timeout = config.call_timeout_s()
+        try:
+            if timeout is None:
+                result = await session.call_tool(name, args or {})
+            else:
+                result = await asyncio.wait_for(session.call_tool(name, args or {}), timeout)
+        except TimeoutError:
+            raise ToolCallError(
+                server_key, name,
+                f"no response within {timeout:g}s "
+                f"(set {config.CALL_TIMEOUT_ENV}=0 to disable the call timeout)",
+            ) from None
         if getattr(result, "isError", False):
             raise ToolCallError(server_key, name, _result_text(result))
         return _parse_result(result)

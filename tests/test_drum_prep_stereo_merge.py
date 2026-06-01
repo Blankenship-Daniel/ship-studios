@@ -37,6 +37,17 @@ def test_find_pairs_and_merge(tmp_path) -> None:
             "likely_reverb_return"} <= set(res["merged"][0]["review"])
 
 
+def test_ambiguous_side_raises(tmp_path) -> None:
+    # Two files collapsing to the same (stem, side) must error, not silently drop one.
+    rng = np.random.default_rng(2)
+    x = (rng.standard_normal(SR) * 0.3).astype(np.float32)
+    _w(tmp_path / "oh - l.wav", x)
+    _w(tmp_path / "oh - left.wav", x)   # same stem 'oh', same side L
+    _w(tmp_path / "oh - right.wav", x)
+    with pytest.raises(ValueError, match="ambiguous"):
+        stereo_merge.find_pairs(str(tmp_path))
+
+
 def test_reverb_pair_flagged(tmp_path) -> None:
     rng = np.random.default_rng(1)
     L = (rng.standard_normal(SR * 3) * 0.3).astype(np.float32)

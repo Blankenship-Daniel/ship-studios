@@ -27,6 +27,7 @@ projects/**/masters/*
 projects/**/refs/*
 projects/**/loops/*
 projects/**/deliverables/*
+projects/**/pack/*
 !projects/.gitkeep
 !projects/**/.gitkeep
 

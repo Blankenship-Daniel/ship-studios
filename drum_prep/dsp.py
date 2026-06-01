@@ -44,6 +44,8 @@ def normcorr(a: np.ndarray, b: np.ndarray) -> float:
     shorter than the overhead excerpt window) compare over their overlap rather
     than raising on the dot product."""
     n = min(len(a), len(b))
+    if n == 0:
+        return 0.0  # empty overlap -> 0 correlation (avoids a NaN from mean([]))
     a = a[:n] - a[:n].mean()
     b = b[:n] - b[:n].mean()
     na, nb = np.linalg.norm(a), np.linalg.norm(b)
@@ -87,6 +89,11 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     b = b - b.mean()
     n = max(len(a), len(b))
     nfft = 1 << int(np.ceil(np.log2(2 * n)))
+    # Clamp the search to the available correlation range. For normal inputs
+    # nfft >> 2*max_lag so this is a no-op; it only guards pathologically short
+    # segments (n <= max_lag), where the unclamped slices below would wrap the
+    # circular correlation and return a corrupt lag.
+    max_lag = min(max_lag, nfft - 1)
     cc = np.fft.irfft(np.fft.rfft(a, nfft) * np.conj(np.fft.rfft(b, nfft)), nfft)
     cc = np.concatenate([cc[-max_lag:], cc[:max_lag + 1]])
     lags = np.arange(-max_lag, max_lag + 1)

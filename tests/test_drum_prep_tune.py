@@ -37,3 +37,21 @@ def test_retune_semitones_octave(tmp_path) -> None:
     sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
     res = retune(str(p), str(tmp_path / "oct.wav"), semitones=12)
     assert abs(res["to_hz"] - 200.0) < 8.0
+
+
+def test_retune_to_target_midi(tmp_path) -> None:
+    # MIDI 57 = A3 = 220 Hz (within the drum-range measurement band). Start from
+    # ~110 (A2) and tune up an octave.
+    p = tmp_path / "a2.wav"
+    sf.write(str(p), _tone(110.0), SR, subtype="FLOAT")
+    res = retune(str(p), str(tmp_path / "a3.wav"), target_midi=57)
+    assert abs(res["to_hz"] - 220.0) < 8.0
+    out, _ = sf.read(str(tmp_path / "a3.wav"), always_2d=True)
+    assert out.shape[1] == 1  # mono in -> mono out
+
+
+def test_retune_requires_one_target(tmp_path) -> None:
+    p = tmp_path / "tone.wav"
+    sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
+    with pytest.raises(ValueError):
+        retune(str(p), str(tmp_path / "x.wav"))  # no target given

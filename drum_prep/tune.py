@@ -50,11 +50,19 @@ def retune(path: str, out_path: str, target_hz: float | None = None,
     else:
         raise ValueError("give target_hz, target_midi, or semitones")
 
+    from fractions import Fraction
+
+    from scipy.signal import resample_poly
+
     x, sr = io.read(path)
     n = x.shape[0]
-    new_n = max(1, int(round(n / ratio)))  # higher pitch => fewer samples
-    idx = np.linspace(0, n - 1, new_n)
-    out = np.stack([np.interp(idx, np.arange(n), x[:, c]) for c in range(x.shape[1])], axis=1)
+    # Resample by ~1/ratio (higher pitch => fewer samples). resample_poly applies
+    # a proper anti-aliasing FIR, unlike a bare linear interp which aliases when
+    # pitching up. Approximate 1/ratio as a rational up/down.
+    frac = Fraction(1.0 / ratio).limit_denominator(2000)
+    up, down = (frac.numerator or 1), frac.denominator
+    out = resample_poly(x, up, down, axis=0)  # x is always 2-D (N, ch) -> (new_n, ch)
+    new_n = out.shape[0]
     io.write_wav(out_path, out, sr, subtype=io.subtype_of(path))
 
     after = measure_fundamental(out_path)

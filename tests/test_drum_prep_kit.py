@@ -6,8 +6,13 @@ import json
 import pytest
 
 from drum_prep.kit import (
-    KitError, ambience_stems, anchored_to_oh, detect_kit, overhead_reference,
-    partner_pairs, resolve_kit,
+    KitError,
+    ambience_stems,
+    anchored_to_oh,
+    detect_kit,
+    overhead_reference,
+    partner_pairs,
+    resolve_kit,
 )
 from drum_prep.roles import Role
 
@@ -79,3 +84,49 @@ def test_duplicate_singleton_fails_strict(tmp_path) -> None:
     src = _make(tmp_path, ["overheads - stereo.aif", "snare.aif", "snare top.aif"])
     with pytest.raises(KitError):
         resolve_kit(src, strict=True)
+
+
+def test_manifest_entry_missing_file_key_is_kit_error(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps({"stems": [{"role": "kick_in"}]}))
+    with pytest.raises(KitError, match="required 'file'"):
+        resolve_kit(src)
+
+
+def test_manifest_unknown_role_is_kit_error(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif", "x.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps({"stems": [{"file": "x.aif", "role": "bongo"}]}))
+    with pytest.raises(KitError, match="unknown role"):
+        resolve_kit(src)
+
+
+def test_manifest_bad_field_types_are_kit_errors(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif", "k.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "k.aif", "role": "kick_in", "lowpass_hz": "loud"}]}))
+    with pytest.raises(KitError, match="lowpass_hz"):
+        resolve_kit(src)
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "k.aif", "role": "kick_in", "polarity_lock": 2}]}))
+    with pytest.raises(KitError, match="polarity_lock"):
+        resolve_kit(src)
+    # a float 1.0 must NOT slip through the polarity_lock check (1.0 == 1 under `in`)
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "k.aif", "role": "kick_in", "polarity_lock": 1.0}]}))
+    with pytest.raises(KitError, match="polarity_lock"):
+        resolve_kit(src)
+    # ambience must be a bool, not a truthy string/int
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "k.aif", "role": "kick_in", "ambience": "yes"}]}))
+    with pytest.raises(KitError, match="ambience"):
+        resolve_kit(src)
+
+
+def test_manifest_accepts_valid_optional_fields(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif", "k.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "k.aif", "role": "kick_in",
+                    "lowpass_hz": 80, "polarity_lock": -1, "ambience": False}]}))
+    kit = resolve_kit(src)
+    ks = kit.by_name("k.aif")
+    assert ks.lowpass_hz == 80 and ks.polarity_lock == -1 and ks.ambience is False

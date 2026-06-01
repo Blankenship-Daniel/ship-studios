@@ -5,6 +5,10 @@ A sine at the kick's fundamental, amplitude-following the kick envelope so it
 tracks every hit, blended under the kick at a target level. This is the
 downstream answer to a reference-match sub residual that "won't close": that gap
 is sustain/extension, not level — generate it, don't EQ for it.
+
+The synthesized sub is mono and added identically to every channel (a fully
+correlated, dead-centre layer) — standard for kick reinforcement, and at sub
+frequencies stereo width is inaudible anyway.
 """
 from __future__ import annotations
 
@@ -33,6 +37,9 @@ def add_sub(kick_path: str, out_path: str, sub_hz: float | None = None,
         sub_hz = float(np.clip(estimate_fundamental(k, sr), 30.0, 80.0))
 
     env = dsp.envelope(k, sr, fc=env_fc)
+    # The FFT brick-wall low-pass of |k| can ring slightly negative; clamp so the
+    # amplitude follower never flips the sub sine's polarity in low-level regions.
+    env = np.maximum(env, 0.0)
     env = env / (env.max() + 1e-12)
     t = np.arange(len(k)) / sr
     sub = env * np.sin(2 * np.pi * sub_hz * t)

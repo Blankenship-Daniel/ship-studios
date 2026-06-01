@@ -12,6 +12,9 @@
 #  - A channel that reads DEAD in one song can be LOW/live in another take — always
 #    cross-check across takes before deleting (see multitrack-triage SKILL, step 6).
 set -uo pipefail
+for tool in sox soxi; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: '$tool' not on PATH — install sox; otherwise every file reads as DEAD/0ch" >&2; exit 1; }
+done
 dir="${1:?usage: scan-channels.sh <dir>}"
 printf "%-36s %8s %8s %11s %3s %8s  %s\n" FILE peak_dB rms_dB DC ch dur_s FLAG
 shopt -s nullglob

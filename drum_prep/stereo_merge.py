@@ -39,12 +39,23 @@ def _split_side(filename: str) -> tuple[str, str | None]:
 
 
 def find_pairs(directory: str) -> list[tuple[str, str, str]]:
-    """Sorted ``(stem, left_file, right_file)`` for every complete L/R pair."""
+    """Sorted ``(stem, left_file, right_file)`` for every complete L/R pair.
+
+    Raises ``ValueError`` when two files collapse to the same ``(stem, side)``
+    (e.g. ``oh - l.wav`` and ``oh - left.wav``) — silently keeping only one and
+    dropping the other would build the merge from the wrong file with no warning.
+    """
     sides: dict[str, dict[str, str]] = {}
     for f in io.list_audio(directory):
         stem, side = _split_side(f)
         if side is not None:
-            sides.setdefault(stem, {})[side] = f
+            existing = sides.setdefault(stem, {}).get(side)
+            if existing is not None:
+                raise ValueError(
+                    f"ambiguous {side} side for stem {stem!r}: {existing!r} and {f!r} "
+                    "— rename one so each side resolves to a single file"
+                )
+            sides[stem][side] = f
     return [(stem, d["L"], d["R"]) for stem, d in sorted(sides.items())
             if "L" in d and "R" in d]
 
@@ -54,14 +65,18 @@ def _best_lag(a: np.ndarray, b: np.ndarray, sr: int, max_ms: float = 50.0) -> tu
     n = len(a)
     seg = min(n, sr * 20)
     s = (n - seg) // 2
-    aa = a[s:s + seg].astype(np.float64); aa -= aa.mean()
-    bb = b[s:s + seg].astype(np.float64); bb -= bb.mean()
+    aa = a[s:s + seg].astype(np.float64)
+    aa -= aa.mean()
+    bb = b[s:s + seg].astype(np.float64)
+    bb -= bb.mean()
     na, nb = np.linalg.norm(aa), np.linalg.norm(bb)
     if na == 0 or nb == 0:
         return 0, 0.0
     xc = correlate(aa, bb, mode="full", method="fft") / (na * nb)
-    ml = int(sr * max_ms / 1000.0)
     c = len(xc) // 2
+    # Clamp the lag window to the available correlation half-width; otherwise a
+    # short excerpt makes c-ml negative and the slice wraps -> a garbage lag.
+    ml = min(int(sr * max_ms / 1000.0), c)
     win = xc[c - ml:c + ml + 1]
     k = int(np.argmax(np.abs(win)))
     return k - ml, float(win[k])
@@ -120,12 +135,19 @@ def merge_pair(left_path: str, right_path: str, out_path: str,
     if align:  # opt-in: phase-lock R to L (collapses a spaced image)
         d, pol, _, _ = dsp.align_to(R, L, max_lag, sr)
         R = dsp.fractional_delay(R, d) * pol
+    # The merged file carries ONE subtype; if L/R disagree the right channel is
+    # coerced to the left's format. That's rare for a true pair but must not be
+    # silent — surface it so a PCM_24/FLOAT mismatch is visible, not lossy-by-stealth.
     subtype = io.subtype_of(left_path)
+    right_subtype = io.subtype_of(right_path)
+    subtype_mismatch = subtype != right_subtype
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     io.write_wav(out_path, np.column_stack([L, R]), sr, subtype=subtype)
     chk, _ = io.read(out_path)
     verified = chk.shape[1] == 2 and chk.shape[0] == n
     return {"out": out_path, "sr": sr, "subtype": subtype, "frames": int(n),
+            "subtype_mismatch": subtype_mismatch,
+            "right_subtype": right_subtype if subtype_mismatch else None,
             "aligned": align, "verified": bool(verified), "review": rep}
 
 

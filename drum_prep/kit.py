@@ -86,13 +86,14 @@ def _list_audio(src_dir: str) -> list[str]:
 
 
 def _try_samplerate(src_dir: str, stems: list[KitStem]) -> int | None:
+    """Best-effort sample rate from the first readable stem (None if none read)."""
+    from drum_prep import io
+
     for s in stems:
         try:
-            from drum_prep import io
-
             return io.info(os.path.join(src_dir, s.name))[1]
         except Exception:
-            return None
+            continue  # try the next stem rather than giving up on the first failure
     return None
 
 
@@ -163,17 +164,42 @@ def _apply_manifest(kit: Kit, path: str) -> dict:
         kit.reference = data["reference"]
     on_disk = set(_list_audio(kit.src_dir))
     for entry in data.get("stems", []):
+        if "file" not in entry:
+            raise KitError(f"manifest stem entry missing required 'file' key: {entry!r}")
         name = entry["file"]
         if name not in on_disk:
             raise KitError(f"manifest references a file that is not in {kit.src_dir!r}: {name!r}")
         ks = kit.by_name(name)
-        role = Role(entry["role"]) if "role" in entry else (ks.role if ks else Role.UNKNOWN)
+        if "role" in entry:
+            try:
+                role = Role(entry["role"])
+            except ValueError:
+                valid = [r.value for r in Role]
+                raise KitError(
+                    f"{name!r}: unknown role {entry['role']!r} (valid: {valid})"
+                ) from None
+        else:
+            role = ks.role if ks else Role.UNKNOWN
         if ks is None:
             ks = KitStem(name=name, role=role)
             kit.stems.append(ks)
         else:
             ks.role = role
         ks.confidence = 1.0
+        # validate optional field types so a malformed manifest fails loud here
+        # (KitError -> clean CLI message) rather than blowing up deep in the DSP.
+        # NB: bool is a subclass of int/float in Python, so each numeric/int check
+        # excludes bool explicitly (and the bool field excludes int).
+        lp = entry.get("lowpass_hz")
+        if lp is not None and (isinstance(lp, bool) or not isinstance(lp, (int, float))):
+            raise KitError(f"{name!r}: lowpass_hz must be a number or null, got {lp!r}")
+        pol = entry.get("polarity_lock")
+        if pol is not None and (not isinstance(pol, int) or isinstance(pol, bool)
+                                or pol not in (1, -1)):
+            raise KitError(f"{name!r}: polarity_lock must be 1, -1, or null, got {pol!r}")
+        amb = entry.get("ambience")
+        if amb is not None and not isinstance(amb, bool):
+            raise KitError(f"{name!r}: ambience must be true, false, or null, got {amb!r}")
         for fld in ("label", "partner", "lowpass_hz", "ambience", "polarity_lock"):
             if fld in entry:
                 setattr(ks, fld, entry[fld])
@@ -198,6 +224,9 @@ def _validate(kit: Kit, strict: bool) -> None:
             problems.append(f"could not detect a role for {s.name!r} — set it in kit.json (roles: {valid})")
         if s.partner and kit.by_name(s.partner) is None:
             problems.append(f"{s.name!r} names partner {s.partner!r}, which is not in the kit")
+        if s.partner and (s.ambience or s.role == Role.ROOM):
+            problems.append(f"{s.name!r} is ambience/room but names a partner "
+                            f"{s.partner!r} — room mics are polarity-only and must not be partnered")
     if problems:
         if strict:
             raise KitError("kit resolution problems:\n  - " + "\n  - ".join(problems))
@@ -241,9 +270,17 @@ def ambience_stems(kit: Kit) -> list[KitStem]:
 
 
 def partner_pairs(kit: Kit) -> list[tuple[KitStem, KitStem]]:
-    """(partner, anchor) pairs — partner aligns to anchor, then composes onto OH."""
+    """(partner, anchor) pairs — partner aligns to anchor, then composes onto OH.
+
+    Ambience/room stems are skipped even if mis-tagged with a ``partner``: they
+    are polarity-only (timing kept), so partnering them would both apply an
+    alignment delay AND get them re-processed by the ambience pass (double write,
+    wrong recorded delay). ``_validate`` flags the misconfiguration separately.
+    """
     out = []
     for s in kit.stems:
+        if s.ambience or s.role == Role.ROOM:
+            continue
         anchor = kit.by_name(s.partner)
         if anchor is not None:
             out.append((s, anchor))

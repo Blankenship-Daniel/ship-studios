@@ -1,8 +1,11 @@
 """Audio I/O for drum_prep — thin wrappers over soundfile.
 
-Stems are read/written as 24-bit AIFF (matching the source DAW stems); auditions
-are 24-bit WAV (matching ship-studios' render-ab convention). Everything is
-float64 in memory.
+The alignment/match flows read/write 24-bit AIFF via :func:`write_aiff24`
+(matching the source DAW stems); auditions/mixes use 24-bit WAV via
+:func:`write_wav24` (matching ship-studios' render-ab convention).
+:func:`write_wav` is the generic, *format-preserving* writer (default subtype
+FLOAT) used by the normalize/stereo-merge flows that carry the source format
+through. Everything is float64 in memory.
 """
 from __future__ import annotations
 
@@ -37,6 +40,56 @@ def info(path: str) -> tuple[int, int, int]:
     """(channels, samplerate, frames) without loading the audio."""
     i = sf.info(path)
     return i.channels, i.samplerate, i.frames
+
+
+def common_samplerate(paths: list[str]) -> int:
+    """Shared sample rate of ``paths``; raise ``ValueError`` if they disagree.
+
+    The summing/mixing flows read every input at one rate and add them in the
+    time domain — a stray off-SR file would sum *time-misaligned* into silent
+    corruption. Validate the whole set up front instead. Reads headers only.
+    """
+    if not paths:
+        raise ValueError("no inputs to check sample rate")
+    srs = {p: info(p)[1] for p in paths}
+    if len(set(srs.values())) > 1:
+        detail = ", ".join(f"{os.path.basename(p)}={s}" for p, s in srs.items())
+        raise ValueError(f"sample-rate mismatch across inputs (resample first): {detail}")
+    return next(iter(srs.values()))
+
+
+def summarize_inputs(paths: list[str]) -> tuple[int, list[int]]:
+    """``(shared_samplerate, [frames_per_path])`` from a SINGLE header pass.
+
+    The summing flows need both the common SR (they add in the time domain — a
+    stray off-SR file would sum *time-misaligned*) and each file's frame count
+    (to find the common length). Doing it here reads each header once instead of
+    calling :func:`common_samplerate` and then a separate ``info`` loop. Raises
+    ``ValueError`` on a sample-rate mismatch, same as :func:`common_samplerate`.
+    """
+    if not paths:
+        raise ValueError("no inputs to summarize")
+    meta = {p: info(p) for p in paths}  # one info() per path
+    srs = {p: m[1] for p, m in meta.items()}
+    if len(set(srs.values())) > 1:
+        detail = ", ".join(f"{os.path.basename(p)}={s}" for p, s in srs.items())
+        raise ValueError(f"sample-rate mismatch across inputs (resample first): {detail}")
+    sr = next(iter(srs.values()))
+    return sr, [meta[p][2] for p in paths]
+
+
+def truncation_note(frames: list[int]) -> str | None:
+    """Note when summing over the common length will drop trailing audio.
+
+    Returns ``None`` for a trivial (<= 1 frame) difference so 1-sample rounding
+    between otherwise-identical stems doesn't raise a false alarm.
+    """
+    if not frames:
+        return None
+    n, longest = min(frames), max(frames)
+    if longest - n <= 1:
+        return None
+    return f"stems truncated to the shortest ({n} frames); longest was {longest}"
 
 
 def to_stereo(x: np.ndarray) -> np.ndarray:

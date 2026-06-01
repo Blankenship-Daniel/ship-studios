@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import click
 
@@ -20,6 +21,13 @@ from drum_prep.kit import KitError
 
 def _echo(result: dict[str, Any]) -> None:
     click.echo(json.dumps(result, indent=2, default=str))
+
+
+#: soundfile raises ``LibsndfileError`` (MRO: …RuntimeError, NOT ValueError) on a
+#: missing/non-audio file. Match by class name so _go can surface it cleanly
+#: without importing soundfile (the --help/detect paths must work without the
+#: drum-prep extra installed).
+_SOUNDFILE_ERRORS = {"LibsndfileError", "SoundFileError", "SoundFileRuntimeError"}
 
 
 def _go(thunk: Callable[[], dict[str, Any]]) -> None:
@@ -32,13 +40,19 @@ def _go(thunk: Callable[[], dict[str, Any]]) -> None:
         ) from exc
     except (KitError, ValueError, FileNotFoundError) as exc:
         raise click.ClickException(str(exc)) from exc
+    except Exception as exc:
+        # a bad/non-audio --reference/--plate/--include path reaches soundfile;
+        # turn that into a clean CLI error too, not a raw traceback.
+        if type(exc).__name__ in _SOUNDFILE_ERRORS:
+            raise click.ClickException(f"could not read audio: {exc}") from exc
+        raise
 
 
 _SRC = click.argument("src", type=click.Path(exists=True, file_okay=False))
 _MANIFEST = click.option("--manifest", type=click.Path(), default=None,
                          help="kit.json (default: <SRC>/kit.json if present).")
-_REF = click.option("--reference", "reference", type=click.Path(), default=None,
-                    help="Reference audio (overrides kit.json 'reference').")
+_REF = click.option("--reference", "reference", type=click.Path(exists=True, dir_okay=False),
+                    default=None, help="Reference audio (overrides kit.json 'reference').")
 
 
 @click.group()
@@ -109,7 +123,7 @@ def stereo_merge_cmd(src: str, out_dir: str | None, align: bool) -> None:
 @click.option("--mode", type=click.Choice(["global", "per-file"]), default="global",
               show_default=True,
               help="global preserves kit balance; per-file maximizes each stem (changes balance).")
-@click.option("--include", "include", multiple=True, type=click.Path(),
+@click.option("--include", "include", multiple=True, type=click.Path(exists=True, dir_okay=False),
               help="Extra file(s) folded into the SAME global gain (e.g. an fx return). Repeatable.")
 def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
               include: tuple[str, ...]) -> None:
@@ -131,7 +145,7 @@ def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
               show_default=True)
 @click.option("--perspective", type=click.Choice(["audience", "drummer"]), default="audience",
               show_default=True)
-@click.option("--plate", type=click.Path(), default=None,
+@click.option("--plate", type=click.Path(exists=True, dir_okay=False), default=None,
               help="Optional FX/plate return file to fold in as a reverb return.")
 @click.option("--plate-offset", default=-19.0, show_default=True, type=float)
 @click.option("--flat", is_flag=True, default=False,
@@ -168,7 +182,11 @@ def stem_mix_cmd(src: str, out_dir: str | None, target_lufs: float, spec: str | 
     def run() -> dict[str, Any]:
         from drum_prep.stem_mix import mix_stems
 
-        sp = json.load(open(spec)) if spec else None
+        if spec:
+            with open(spec) as fh:
+                sp = json.load(fh)
+        else:
+            sp = None
         return mix_stems(src, out_dir, target_lufs, sp, t0=t0, dur=dur)
     _go(run)
 
@@ -297,11 +315,13 @@ def reference_match_cmd(src: str, reference: str | None, manifest: str | None,
 @click.option("--t0", default=44.0, show_default=True, type=float, help="Excerpt start (s).")
 @click.option("--dur", default=12.0, show_default=True, type=float, help="Excerpt length (s).")
 @click.option("--gap", default=0.6, show_default=True, type=float, help="A/B gap (s).")
+@click.option("--ceil", default=0.95, show_default=True, type=float,
+              help="Anti-clip peak ceiling (linear, 0-1) applied after loudness match.")
 @click.option("--emit-halves/--no-emit-halves", default=True, show_default=True,
               help="Also write standalone loudness-matched halves for compare-to-reference.")
 def audition(src: str, reference: str | None, manifest: str | None, aligned_dir: str | None,
              matched_dir: str | None, out_dir: str | None, t0: float, dur: float, gap: float,
-             emit_halves: bool) -> None:
+             ceil: float, emit_halves: bool) -> None:
     """Render loudness-matched stereo A/B auditions."""
     def run() -> dict[str, Any]:
         from drum_prep.audition import render_auditions
@@ -310,14 +330,14 @@ def audition(src: str, reference: str | None, manifest: str | None, aligned_dir:
         kit = resolve_kit(src, manifest, strict=False)
         return render_auditions(kit, reference, aligned_dir=aligned_dir,
                                 matched_dir=matched_dir, out_dir=out_dir,
-                                t0=t0, dur=dur, gap=gap, emit_halves=emit_halves)
+                                t0=t0, dur=dur, gap=gap, ceil=ceil, emit_halves=emit_halves)
     _go(run)
 
 
 @main.command()
 @_SRC
-@click.option("--reference", "reference", type=click.Path(), required=True,
-              help="Reference audio to match the kit to.")
+@click.option("--reference", "reference", type=click.Path(exists=True, dir_okay=False),
+              required=True, help="Reference audio to match the kit to.")
 @_MANIFEST
 @click.option("--out-root", type=click.Path(), default=None,
               help="Root for outputs (default: SRC). Subdirs phase-aligned/ ref-matched/ auditions/.")

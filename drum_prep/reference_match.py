@@ -31,12 +31,17 @@ def _measure(aligned_dir: str, ref_path: str, nperseg: int) -> dict:
     names = io.list_audio(aligned_dir)
     if not names:
         raise ValueError(f"no aligned stems found in {aligned_dir!r}")
+    # All stems must share one SR (the coherent sum below is time-domain), and
+    # that SR must match the reference — validate the whole set, not just the
+    # last file read.
+    sr = io.common_samplerate([os.path.join(aligned_dir, nm) for nm in names])
+    if sr != rsr:
+        raise ValueError(f"reference sr {rsr} differs from stems sr {sr} — resample first")
     raw: list[tuple[str, np.ndarray]] = []
     powr: list[np.ndarray] = []
     cur = None
-    sr = rsr
     for name in names:
-        x, sr = io.read(os.path.join(aligned_dir, name))
+        x, _ = io.read(os.path.join(aligned_dir, name))
         m = dsp.mono(x)
         f, p = dsp.psd(m, sr, nperseg)
         powr.append(dsp.band_power(f, p, THIRD))
@@ -46,8 +51,6 @@ def _measure(aligned_dir: str, ref_path: str, nperseg: int) -> dict:
         else:
             n = min(len(cur), len(m))
             cur = cur[:n] + m[:n]
-    if sr != rsr:
-        raise ValueError(f"reference sr {rsr} differs from stems sr {sr} — resample first")
     assert cur is not None
     fc, pc = dsp.psd(cur, sr, nperseg)
     cur_db = dsp.band_db(fc, pc, THIRD)
@@ -124,7 +127,7 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
 
     eq_sig = None
     per_stem_eq = {}
-    for (name, _), out in zip(raw, outs):
+    for (name, _), out in zip(raw, outs, strict=True):  # one EQ'd output per stem
         out = out * trim
         io.write_aiff24(os.path.join(out_dir, name), out, sr)
         per_stem_eq[name] = {k: round(v, 1) for k, v in

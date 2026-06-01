@@ -33,6 +33,17 @@ def test_balances_and_sums_to_stereo(tmp_path) -> None:
     assert g["keys.wav"] > g["bass.wav"]
 
 
+def test_mixed_samplerate_raises(tmp_path) -> None:
+    """A stem at a different SR must error clearly, not sum time-misaligned."""
+    rng = np.random.default_rng(2)
+    sf.write(str(tmp_path / "a.wav"),
+             (rng.standard_normal(SR * 2) * 0.3).astype(np.float32), SR, subtype="FLOAT")
+    sf.write(str(tmp_path / "b.wav"),
+             (rng.standard_normal(44100 * 2) * 0.3).astype(np.float32), 44100, subtype="FLOAT")
+    with pytest.raises(ValueError, match="sample-rate mismatch"):
+        mix_stems(str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+
+
 def test_spec_overrides(tmp_path) -> None:
     rng = np.random.default_rng(1)
     n = SR * 8

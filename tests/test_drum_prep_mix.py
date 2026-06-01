@@ -50,3 +50,43 @@ def test_flat_mode_unity_bounce(tmp_path) -> None:
     assert res["flat"] is True and res["feel"] is None
     y, _ = sf.read(res["out"], always_2d=True)
     assert y.shape[1] == 2 and np.max(np.abs(y)) <= CEIL + 1e-3
+    # "unity bounce" means NO per-stem loudness offset or panning was applied —
+    # assert the defining behaviour, not just shape/ceiling.
+    for row in res["balance"]:
+        assert row["gain_db"] == 0.0, row
+        assert row["offset_db"] is None, row
+    places = {r["role"]: r["place"] for r in res["balance"]}
+    assert places["overhead"] == "stereo"          # stereo mic kept stereo, not flipped/panned
+    assert places["kick_in"] == "center (unity)"    # mono mic centred, not panned
+
+
+def test_lr_pair_overhead_refused_with_guidance(tmp_path) -> None:
+    # A raw L/R overhead pair (no merged stereo overhead) must be refused with a
+    # clear message rather than silently mono-collapsed / mis-anchored.
+    rng = np.random.default_rng(1)
+    n = SR * 4
+    _w(tmp_path / "overhead L.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "overhead R.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "kick in.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    kit = resolve_kit(str(tmp_path), strict=False)
+    with pytest.raises(ValueError, match="overhead"):
+        mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+
+
+def test_merged_overhead_drops_redundant_raw_sides(tmp_path) -> None:
+    # A merged stereo overhead PLUS leftover raw L/R sides must NOT triple-count
+    # the overheads: the raw sides are dropped in favour of the merge, and the
+    # exclusion is reported (not silent).
+    rng = np.random.default_rng(3)
+    n = SR * 4
+    _w(tmp_path / "overhead.wav",
+       np.column_stack([rng.standard_normal(n), rng.standard_normal(n)]).astype(np.float32) * 0.3)
+    _w(tmp_path / "overhead L.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "overhead R.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "kick in.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    kit = resolve_kit(str(tmp_path), strict=False)
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+    assert set(res["excluded_overhead_sides"]) == {"overhead L.wav", "overhead R.wav"}
+    roles = {r["role"] for r in res["balance"]}
+    assert "overhead" in roles
+    assert "overhead_l" not in roles and "overhead_r" not in roles

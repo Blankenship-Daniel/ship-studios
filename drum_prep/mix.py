@@ -14,6 +14,7 @@ No bus compression/limiting — glue and loudness stay with master-track. Writes
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import numpy as np
 
@@ -75,7 +76,7 @@ def _balance_channels(x: np.ndarray) -> np.ndarray:
     """Even out a spaced stereo pair's L/R level asymmetry to equal RMS."""
     rms = np.sqrt(np.mean(x.astype(np.float64) ** 2, axis=0))
     tgt = float(rms.mean())
-    g = np.where(rms > 0, tgt / np.where(rms > 0, rms, 1.0), 1.0)
+    g = np.where(rms > 0, tgt / np.where(rms > 0, rms, 1.0), 1.0)  # inner where avoids 0-div warning
     return x * g
 
 
@@ -98,7 +99,37 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
     stems = [s for s in kit.stems if os.path.exists(os.path.join(stems_dir, s.name))]
     if not stems:
         raise ValueError(f"no kit stems found in {stems_dir!r}")
-    sr = io.info(os.path.join(stems_dir, stems[0].name))[1]
+
+    # mix_kit balances against a STEREO overhead anchor and only treats the
+    # pre-merged OVERHEAD role as stereo. A raw L/R overhead pair (overhead_l +
+    # overhead_r, no merged OH) would otherwise (1) pick a kick/snare as the
+    # anchor, mis-referencing every loudness offset, and (2) sum each OH side as
+    # a dead-centre mono mic, collapsing the image. Refuse with guidance rather
+    # than print a silently wrong mix — the merge is a documented prior step.
+    has_oh = any(s.role == Role.OVERHEAD for s in stems)
+    has_lr = (any(s.role == Role.OVERHEAD_L for s in stems)
+              and any(s.role == Role.OVERHEAD_R for s in stems))
+    if not has_oh and has_lr:
+        raise ValueError(
+            "found a raw L/R overhead pair (overhead_l + overhead_r) but no merged "
+            "stereo overhead — mixing them as-is would collapse the overhead image "
+            "and mis-anchor the balance. Merge first: `drum-prep overheads` (or run "
+            "`drum-prep phase-align`, which merges the overheads into its output), "
+            "then mix that stem set."
+        )
+    # When a merged OVERHEAD is present, any leftover raw overhead_l/overhead_r are
+    # the SAME mics already captured by the merge. Summing all three would double-
+    # (or triple-) count the overhead energy, and the raw sides would be treated as
+    # mono mics and panned. Drop them in favour of the merged stereo OH, and report
+    # what was excluded so the choice isn't silent.
+    excluded_oh_sides: list[str] = []
+    if has_oh and has_lr:
+        excluded_oh_sides = [s.name for s in stems
+                             if s.role in (Role.OVERHEAD_L, Role.OVERHEAD_R)]
+        stems = [s for s in stems
+                 if s.role not in (Role.OVERHEAD_L, Role.OVERHEAD_R)]
+
+    sr, frames = io.summarize_inputs([os.path.join(stems_dir, s.name) for s in stems])
     meter = pyln.Meter(sr)
 
     anchor = next((s for s in stems if s.role == Role.OVERHEAD), None) or stems[0]
@@ -110,9 +141,12 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
     for s in stems:
         role_counts[s.role] = role_counts.get(s.role, 0) + 1
 
-    n = min(io.info(os.path.join(stems_dir, s.name))[2] for s in stems)
+    n = min(frames)
+    # Stems are summed over their common length; flag if a longer stem is being
+    # truncated so the trailing audio loss isn't silent.
+    trunc_note = io.truncation_note(frames)
     mix = np.zeros((n, 2))
-    rows = []
+    rows: list[dict[str, Any]] = []
     for s in stems:
         x, _ = io.read(os.path.join(stems_dir, s.name))
         if flat:
@@ -138,13 +172,13 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
                 role_idx[s.role.value] = i + 1
                 theta = _role_pan(s.role, perspective, i, role_counts[s.role])
                 contrib = _pan(x[:n, 0], theta) * gain
-                place = "center" if theta == 0 else f"pan {int(theta * 100)}%"
+                place = "center" if theta == 0 else f"pan {round(theta * 100)}%"
         mix[:len(contrib)] += contrib[:n]
         rows.append({"stem": s.name, "role": s.role.value,
                      "offset_db": None if flat else offsets.get(s.role.value, _DEFAULT_OFFSET),
                      "gain_db": round(gain_db, 2), "place": place})
 
-    plate_row = None
+    plate_row: dict[str, Any] | None = None
     if plate and not flat:
         px, psr = io.read(plate)
         if psr != sr:
@@ -173,7 +207,8 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
     if dur and dur > 0:
         a, b = int(t0 * sr), int((t0 + dur) * sr)
         if b <= n:
-            excerpt_path = os.path.join(out_dir, name.replace(".wav", "-excerpt.wav"))
+            stem_name, ext = os.path.splitext(name)
+            excerpt_path = os.path.join(out_dir, f"{stem_name}-excerpt{ext or '.wav'}")
             io.write_wav24(excerpt_path, mix[a:b], sr)
 
     final_peak = round(_db(float(np.max(np.abs(mix)))), 2)
@@ -184,5 +219,7 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
         "global_trim_db": round(_db(trim), 2),
         "peak_dbfs": final_peak, "lufs": round(float(meter.integrated_loudness(mix)), 1),
         "channels": 2, "duration_s": round(n / sr, 2),
+        "truncation_note": trunc_note,
+        "excluded_overhead_sides": excluded_oh_sides or None,
         "plate": plate_row, "balance": rows,
     }

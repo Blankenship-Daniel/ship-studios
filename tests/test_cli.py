@@ -91,13 +91,27 @@ def test_master_defaults_out_path_next_to_mix(
 
 def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:
     result = runner.invoke(
-        cli.main, ["mix-check", "mix.wav", "--severity", "major"]
+        cli.main, ["mix-check", "mix.wav", "--severity", "serious"]
     )
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "mix_check"
     assert args == ("mix.wav",)
-    assert kwargs["severity_threshold"] == "major"
+    assert kwargs["severity_threshold"] == "serious"
+
+
+def test_mix_check_rejects_invalid_severity(runner: CliRunner, patched_pipelines) -> None:
+    # "minor"/"major" are NOT valid detect-mix-issues floors; the CLI must reject
+    # them up front (Choice) rather than fail at the server.
+    result = runner.invoke(cli.main, ["mix-check", "mix.wav", "--severity", "minor"])
+    assert result.exit_code == 2
+    assert "is not one of" in result.output
+
+
+def test_master_rejects_invalid_platform(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["master", "mix.wav", "--platform", "soundcloud"])
+    assert result.exit_code == 2
+    assert "is not one of" in result.output
 
 
 def test_reference_match_dispatch(runner: CliRunner, patched_pipelines) -> None:
@@ -127,6 +141,45 @@ def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> Non
     assert kwargs["top_n"] == 5
     assert kwargs["separate"] is True
     assert kwargs["key"] == "Am"
+
+
+def test_loops_rejects_non_integer_bars(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["loops", "d.wav", "--bpm", "120", "--bars", "1,x,4"])
+    assert result.exit_code == 2
+    assert "integers" in result.output
+
+
+def test_loops_rejects_out_of_range_bars(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["loops", "d.wav", "--bpm", "120", "--bars", "999"])
+    assert result.exit_code == 2
+    assert "out of range" in result.output
+
+
+def test_loops_rejects_out_of_range_root_note(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["loops", "d.wav", "--bpm", "120", "--root-note", "200"]
+    )
+    assert result.exit_code == 2
+
+
+def test_loops_rejects_unknown_preset(runner: CliRunner, patched_pipelines) -> None:
+    # The old free-form "<sr>/<bits>" labels are rejected up front (parity with
+    # --platform/--severity), not deep at export-deliverables.
+    result = runner.invoke(
+        cli.main, ["loops", "d.wav", "--bpm", "120", "--presets", "44.1/16"]
+    )
+    assert result.exit_code == 2
+    assert "unknown preset" in result.output
+
+
+def test_loops_parses_valid_presets(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main,
+        ["loops", "d.wav", "--bpm", "120", "--presets", "distribution_44k_16,master_96k_24"],
+    )
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["presets"] == ["distribution_44k_16", "master_96k_24"]
 
 
 def test_understand_dispatch_parses_labels_and_compare(
@@ -198,6 +251,10 @@ def test_doctor_passes_when_siblings_present(
     gemini = tmp_path / "stemmy-gemini-mcp"
     loops.mkdir()
     gemini.mkdir()
+    # doctor now requires a pyproject.toml to consider a sibling "synced", not
+    # just a present directory.
+    (loops / "pyproject.toml").write_text("[project]\nname='x'\n")
+    (gemini / "pyproject.toml").write_text("[project]\nname='y'\n")
     monkeypatch.setenv("SHIP_STUDIOS_LOOPS_DIR", str(loops))
     monkeypatch.setenv("SHIP_STUDIOS_GEMINI_DIR", str(gemini))
 
@@ -206,6 +263,21 @@ def test_doctor_passes_when_siblings_present(
     # asserted here; the sibling repos are present and reported as ok.
     assert "[ok ] stemmy-loops" in result.output
     assert "[ok ] stemmy-gemini" in result.output
+
+
+def test_doctor_flags_present_but_unsynced_sibling(
+    runner: CliRunner, monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    # A directory with no pyproject.toml is present but not the synced repo.
+    loops = tmp_path / "stemmy-loops-mcp"
+    gemini = tmp_path / "stemmy-gemini-mcp"
+    loops.mkdir()
+    gemini.mkdir()  # both exist but neither has a pyproject.toml
+    monkeypatch.setenv("SHIP_STUDIOS_LOOPS_DIR", str(loops))
+    monkeypatch.setenv("SHIP_STUDIOS_GEMINI_DIR", str(gemini))
+    result = runner.invoke(cli.main, ["doctor"])
+    assert result.exit_code == 1
+    assert "no pyproject.toml" in result.output
 
 
 def test_main_group_has_all_subcommands() -> None:
@@ -217,3 +289,46 @@ def test_main_group_has_all_subcommands() -> None:
         "understand",
         "doctor",
     }
+
+
+def test_run_turns_any_error_into_clean_exit() -> None:
+    # The CLI boundary must convert ANY failure into a one-line error + exit 1,
+    # never a traceback (covers McpError/OSError/ToolCallError uniformly).
+    async def boom() -> dict[str, Any]:
+        raise RuntimeError("kaboom")
+
+    with pytest.raises(SystemExit) as exc:
+        cli._run(boom())
+    assert exc.value.code == 1
+
+
+def test_format_error_flattens_exception_group() -> None:
+    # anyio task groups wrap failures in an ExceptionGroup; the leaf messages
+    # must survive into the user-facing line.
+    eg = ExceptionGroup("grp", [OSError("uv not found"), RuntimeError("boom")])
+    msg = cli._format_error(eg)
+    assert "uv not found" in msg
+    assert "boom" in msg
+
+
+def test_run_reports_exception_group_leaf(capsys) -> None:
+    async def boom() -> dict[str, Any]:
+        raise ExceptionGroup("grp", [RuntimeError("connection closed")])
+
+    with pytest.raises(SystemExit):
+        cli._run(boom())
+    err = capsys.readouterr().err
+    assert "connection closed" in err
+
+
+def test_run_exits_130_on_keyboard_interrupt(capsys) -> None:
+    # Ctrl-C must exit 130 quietly, not dump a traceback or print "Error:".
+    async def interrupted() -> dict[str, Any]:
+        raise KeyboardInterrupt
+
+    with pytest.raises(SystemExit) as exc:
+        cli._run(interrupted())
+    assert exc.value.code == 130
+    out = capsys.readouterr()
+    assert "Interrupted" in out.err
+    assert "Error:" not in out.err

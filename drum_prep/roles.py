@@ -10,7 +10,7 @@ import re
 from enum import Enum
 
 
-class Role(str, Enum):
+class Role(str, Enum):  # noqa: UP042 - keep (str, Enum); StrEnum.__str__ differs (value vs "Role.X")
     OVERHEAD = "overhead"          # pre-merged stereo OH (the fixed reference)
     OVERHEAD_L = "overhead_l"      # mono OH left  (merged with R before use)
     OVERHEAD_R = "overhead_r"      # mono OH right

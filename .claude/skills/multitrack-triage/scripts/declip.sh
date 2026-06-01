@@ -12,8 +12,8 @@
 set -uo pipefail
 in="${1:?usage: declip.sh <in> <out> [hpf_hz]}"; out="${2:?out path}"; hpf="${3:-30}"
 tmp="$(dirname "$out")/.declip_tmp_$$.wav"
+trap 'rm -f "$tmp"' EXIT          # clean the temp even if ffmpeg/sox fail or we're interrupted
 ffmpeg -hide_banner -loglevel error -y -i "$in" -af "adeclip,highpass=f=${hpf}:poles=2" -c:a pcm_f32le "$tmp"
 sox "$tmp" -e float -b 32 "$out" gain -n -1
-rm -f "$tmp"
 pk=$(sox "$out" -n stat 2>&1 | awk -F: '/Maximum amplitude/{print $2}' | xargs)
 echo "declipped: $(basename "$in") -> $(basename "$out")  (HPF ${hpf}Hz, normalized -1dBFS, peak=$pk)"

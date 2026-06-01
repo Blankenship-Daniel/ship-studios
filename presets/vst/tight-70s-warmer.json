@@ -1,0 +1,17 @@
+{
+  "name": "tight-70s-warmer",
+  "description": "Warmer pass of tight-70s-warm: same de-harshed Neve (mid 0 / air 0) + dbx 160, but the Studer A800 is pushed DARKER — 30 IPS (measured -517 centroid vs 15 IPS) and repro_hf_eq rolled 3.5 -> 2.5 to soften the playback-head top. Pair with a punch step whose HIGH band is softened (gain +0.5 -> 0, transient +0.4 -> +0.2) so cymbal/hat attacks aren't sharpened. Built 2026-05-31.",
+  "intended_for": "the measured-balanced bus re-punched with a softened high band (bus_70s_punched_warm.wav) — when tight-70s-warm still read a touch bright",
+  "plugin_build": "uaudio_*.vst3 (UADx native — renders headless)",
+  "recipe": {
+    "input_gain_db": 10,
+    "output_peak_dbfs": -1.0,
+    "width": 0.88,
+    "chain": [
+      {"file": "uaudio_neve_1073.vst3",  "params": {"eql": "In", "hp_filt": "80 Hz", "lf_freq": "60 Hz", "lf_gain": 2.0, "mf_freq": "3.2 kHz", "mf_gain": 0.0, "hf_gain": 0.0}},
+      {"file": "uaudio_dbx_160.vst3",     "params": {"thresh": -24.0, "compress": " 4.0:1", "gain": 2.0}},
+      {"file": "uaudio_studer_a800.vst3", "params": {"ips": "30 IPS", "tape_type": "456", "auto_cal": false, "input_level": 6.0, "repro_hf_eq": 2.5}}
+    ]
+  },
+  "notes": ["Tape darkened via IPS + repro_hf_eq, NOT by re-cutting the Neve mid. If still bright, drop repro_hf_eq toward 1.5 (measured -1364 at 0) or reduce the dbx drive (it opens the top)."]
+}

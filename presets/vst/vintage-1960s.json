@@ -1,0 +1,32 @@
+{
+  "name": "vintage-1960s",
+  "description": "Authentic 1960s drum-bus tone — UADx Pultec EQP-1A low girth + tamed top, Fairchild 670 tube glue, Ampex ATR-102 15 IPS tape, narrowed toward period-mono. Winner of a 4-lens adversarial judge panel (33.5/40), refined per the panel (relaxed over-narrowing + a touch more air). Built & verified 2026-05-31.",
+  "intended_for": "a stereo drum bus / drum mix (also gives a full mix a convincing vintage vibe)",
+  "plugin_build": "uaudio_*.vst3 (UADx native build — the one that renders headless; the UAD *.component twins pass audio through unprocessed offline, do NOT use them)",
+  "target_signature": {
+    "comment": "measured dry -> 1960s on the reference drum bus; use to sanity-check a re-apply",
+    "lufs_i": -18.5, "centroid_hz": 2229, "tilt_db_per_oct": -2.80,
+    "band_high": 0.0042, "band_low": 0.52, "crest_db": 22.55, "correlation": 0.83
+  },
+  "recipe": {
+    "input_gain_db": 18,
+    "output_peak_dbfs": -1.0,
+    "width": 0.72,
+    "chain": [
+      {"file": "uaudio_pultec_eqp-1a.vst3",      "params": {"low_freq": "60 CPS", "lf_boost": 5.0, "hf_atten": 2.5}},
+      {"file": "uaudio_fairchild_670.vst3",      "params": {}},
+      {"file": "uaudio_ampex_atr-102_tape.vst3", "params": {}}
+    ]
+  },
+  "notes": [
+    "The +18 dB input gain-stage is integral — it drives the Fairchild/Ampex (which compress/saturate the hot signal) at default settings; without it they barely engage.",
+    "Fairchild 670 and Ampex ATR-102 run at DEFAULT params on the gained-up bus (that is how the winner rendered).",
+    "Byte-exact plugin states are in vintage-1960s.states/ (restore via apply-vst-chain state_path); the recipe params reproduce the same result and are the portable form.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/vintage-1960s.json <in.wav> <out.wav>"
+  ],
+  "states": [
+    "vintage-1960s.states/0_pultec_eqp-1a.state",
+    "vintage-1960s.states/1_fairchild_670.state",
+    "vintage-1960s.states/2_ampex_atr-102.state"
+  ]
+}

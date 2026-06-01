@@ -1,0 +1,18 @@
+{
+  "name": "tight-70s-dry",
+  "description": "Punch-preserving variant of tight-70s for a dry/focused/punchy 1970s drum bus — same Neve 1073 → dbx 160 → Studer A800 chain, but the tape is driven LESS (input +6 vs +10) so transients/punch survive, and the image is slightly tighter (width 0.88). Apply to a measured-balanced, transient-punched, dry bus (room out, snare bleed gated, overheads de-hatted). Built 2026-05-31.",
+  "intended_for": "a dry, measured-balanced, transient-punched drum bus (see scripts/mix/balance_stems.py + shape_bands)",
+  "plugin_build": "uaudio_*.vst3 (UADx native — renders headless)",
+  "target_signature": {"comment": "filled after render", "lufs_i": null, "centroid_hz": null, "tilt_db_per_oct": null, "crest_db": null, "band_low": null, "band_high": null, "correlation": null},
+  "recipe": {
+    "input_gain_db": 10,
+    "output_peak_dbfs": -1.0,
+    "width": 0.88,
+    "chain": [
+      {"file": "uaudio_neve_1073.vst3",  "params": {"eql": "In", "hp_filt": "80 Hz", "lf_freq": "60 Hz", "lf_gain": 2.0, "mf_freq": "3.2 kHz", "mf_gain": 2.0, "hf_gain": 1.0}},
+      {"file": "uaudio_dbx_160.vst3",     "params": {"thresh": -24.0, "compress": " 4.0:1", "gain": 2.0}},
+      {"file": "uaudio_studer_a800.vst3", "params": {"ips": "15 IPS", "tape_type": "456", "auto_cal": false, "input_level": 6.0}}
+    ]
+  },
+  "notes": ["Less tape drive than tight-70s (input 6 vs 10) keeps punch for a dry/punchy mix; pair with the dry measured balance + shape_bands punch upstream."]
+}

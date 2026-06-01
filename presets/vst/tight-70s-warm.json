@@ -1,0 +1,17 @@
+{
+  "name": "tight-70s-warm",
+  "description": "De-harshed variant of tight-70s-dry. Empirical isolation showed the hi-mid edge came from the Neve 1073's mf +2 dB @ 3.2 kHz (+ hf shelf), NOT the tape — so the Neve EQ is neutralized to mid 0 / air 0 (keeps only the low warmth + 80 Hz HPF + its transformer color) and the Studer A800 supplies the warmth (it measurably DARKENS: centroid -341 on this bus). Same Neve 1073 -> dbx 160 -> Studer A800 chain, gentle tape (input +6, 15 IPS, 456) for a low-end head-bump without upper-mid harshness. Apply to the measured-balanced, transient-punched dry bus. Built 2026-05-31.",
+  "intended_for": "a dry, measured-balanced, transient-punched drum bus — when tight-70s-dry read too bright/harsh in the 2-5 kHz hi-mid",
+  "plugin_build": "uaudio_*.vst3 (UADx native — renders headless)",
+  "recipe": {
+    "input_gain_db": 10,
+    "output_peak_dbfs": -1.0,
+    "width": 0.88,
+    "chain": [
+      {"file": "uaudio_neve_1073.vst3",  "params": {"eql": "In", "hp_filt": "80 Hz", "lf_freq": "60 Hz", "lf_gain": 2.0, "mf_freq": "3.2 kHz", "mf_gain": 0.0, "hf_gain": 0.0}},
+      {"file": "uaudio_dbx_160.vst3",     "params": {"thresh": -24.0, "compress": " 4.0:1", "gain": 2.0}},
+      {"file": "uaudio_studer_a800.vst3", "params": {"ips": "15 IPS", "tape_type": "456", "auto_cal": false, "input_level": 6.0}}
+    ]
+  },
+  "notes": ["mf_gain 0 + hf_gain 0 removes the 3.2 kHz harshness the isolation probe pinned on the Neve; the tape (not the EQ) provides 70s warmth. If too dull, add hf_gain ~0.5 (12 kHz air, above the harsh band) rather than re-boosting the mid."]
+}

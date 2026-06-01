@@ -1,0 +1,27 @@
+{
+  "name": "tight-70s",
+  "description": "Tight 1970s drum-bus tone — Neve 1073 (80 Hz HPF + 3.2 kHz snare-crack presence + 60 Hz kick weight) → dbx 160 (fast VCA punch, 6:1) → Studer A800 30 IPS tape (tight low end, less head-bump). Built on a close-mic-forward / room-low (dry) bus with a shape-bands transient pre-pass. Moderate stereo (70s, not mono). Built & verified 2026-05-31.",
+  "intended_for": "a stereo drum bus — for max tightness, transient-emphasize first (shape-bands: attack up, low-mid tamed), then apply this",
+  "plugin_build": "uaudio_*.vst3 (UADx native — the build that renders headless; not the UAD ….component twins)",
+  "target_signature": {
+    "comment": "measured tight-70s output on the reference drum bus; sanity-check a re-apply",
+    "lufs_i": -22.3, "centroid_hz": 4420, "tilt_db_per_oct": -1.2,
+    "crest_db": 27.2, "band_low": 0.306, "band_high": 0.0216, "correlation": 0.882
+  },
+  "recipe": {
+    "input_gain_db": 10,
+    "output_peak_dbfs": -1.0,
+    "width": 0.90,
+    "chain": [
+      {"file": "uaudio_neve_1073.vst3",      "params": {"eql": "In", "hp_filt": "80 Hz", "lf_freq": "60 Hz", "lf_gain": 2.0, "mf_freq": "3.2 kHz", "mf_gain": 2.0, "hf_gain": 1.0}},
+      {"file": "uaudio_dbx_160.vst3",         "params": {"thresh": -24.0, "compress": " 4.0:1", "gain": 2.0}},
+      {"file": "uaudio_studer_a800.vst3",     "params": {"ips": "15 IPS", "tape_type": "456", "auto_cal": false, "input_level": 10.0}}
+    ]
+  },
+  "notes": [
+    "Neve EQ is OFF by default — eql='In' engages it. hp_filt/lf_freq/mf_freq are enum strings; dbx compress is an enum string (' 6.0:1', leading space); studer ips/tape_type are enum strings, auto_cal is a bool — all set via the preset harness (apply-vst-chain's float dict can't).",
+    "The +16 dB gain-stage drives the Neve/dbx/Studer (the bus is quiet); without it they barely engage.",
+    "Pairs with a shape-bands transient pass for the 'tight' attack; apply this preset to that shaped bus.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/tight-70s.json <in.wav> <out.wav>"
+  ]
+}

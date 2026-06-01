@@ -35,11 +35,23 @@ Goal: add **harmonic density, warmth, or grit** via a real tape/saturation plugi
 
 ## Pitfalls
 
+- **Verify it renders, gain-stage, use `uaudio_*`.** Loads ≠ renders — confirm added HF/harmonics landed
+  (a 0.00 change = passthrough → run `[[vst-verify]]`). Tape/console need a hot input (~+18 dB) to saturate
+  — `apply-vst-chain` can't gain-stage, so use `[[vst-preset]]`; tape controls (ips, tape_type, auto_cal)
+  are enum/bool and need the preset harness too. For UADx (Ampex/Studer) use the `uaudio_*.vst3` build —
+  for the **Studer A800** specifically, [[studer-a800]] is the measured, plugin-specific deep-dive
+  (real param surface, the warm-vs-harsh levers, decision table).
+
+- **Tape DARKENS — it doesn't add "even-order warmth."** Its harmonics are odd/3rd-order (can read harsh
+  when over-driven); the real warmth is the LF head bump + gentle compression. If a tape chain sounds harsh,
+  the cause is almost always **upstream EQ/drive**, not the tape — isolate & measure (see [[studer-a800]]).
+
 - **Level-matched judgement** — saturation adds loudness; compare at matched level or you'll over-drive.
 - **Tape adds HF rolloff + wow/flutter** — fine for glue, not if you need pristine transients.
 - Subtle is the point; heavy drive belongs on a creative track, not the 2-bus.
 
 ## Related
 
+- `[[studer-a800]]` — measured deep-dive for the UAD Studer A800 tape machine (the plugin-specific version of this skill)
 - `[[vst-chain]]` · `[[finalize-mix]]` (its optional VST step 3b is exactly this) · `[[vst-amp]]` (heavier distortion)
 - `[L] saturate-loop` (pure-DSP) · `[[vst]]` — index/doctrine

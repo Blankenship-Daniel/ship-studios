@@ -1,0 +1,22 @@
+{
+  "name": "tight-70s-api",
+  "description": "Tight/dry/punchy 1970s drum bus from the UAD API Vision Channel Strip (uaudio_api_vision_channel_strip.vst3) alone — the forward American-console counterpart to the Neve/Studer tight-70s chain. Won a measured 3-variant EQ shootout: highest crest (28.1), highest correlation (0.975, tight), smallest centroid rise (+244, neutral top = no hi-mid harshness). The punch is the API 225 comp (crest 25.0 -> 28.1); 215 HPF @50 Hz tightens sub; 550 EQ adds low thump + cleans box; NO top boost (that's what kept it un-harsh). Feed it a measured-balanced, dry bus (room out, snare gated, OH de-hatted). Built 2026-05-31.",
+  "intended_for": "a dry, measured-balanced drum bus (bus_70s_balanced.wav) — the API strip supplies tighten + punch + 70s console color in one box",
+  "plugin_build": "uaudio_*.vst3 (UADx native — renders headless)",
+  "recipe": {
+    "input_gain_db": 6,
+    "output_peak_dbfs": -1.0,
+    "width": 0.92,
+    "chain": [
+      {"file": "uaudio_api_vision_channel_strip.vst3", "params": {
+        "input_select": "Line",
+        "215_on": true, "215_hp_filter": 50.0,
+        "225_on": true, "225_thresh": -10.0, "225_ratio": 4.0, "225_attack": "Slow", "225_release": "0.10 s", "225_knee": "Hard", "225_type": "Old (FB)",
+        "eq_on": true, "eq_type": "550L",
+        "550_lf_freq": 100.0, "550_lf_gain": 3.0, "550_lf_filter": "Peak",
+        "550_lmf_freq": 500.0, "550_lmf_gain": -2.0
+      }}
+    ]
+  },
+  "notes": ["Punch is from the 225 SLOW attack (transients pass before the comp grabs → crest RISES). Keep the 550 top flat: boosting hmf 5k / hf re-introduces the 2-5 kHz harshness (see v1/v3 in the shootout, centroid +535/+714). For more snap without harshness, raise 225 ratio or lower thresh, don't EQ the top. 225 'Old (FB)' = the smoother feedback topology."]
+}

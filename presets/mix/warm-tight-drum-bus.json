@@ -1,0 +1,29 @@
+{
+  "name": "warm-tight-drum-bus",
+  "description": "USER-PREFERRED drum bus: WARM with a TIGHT, controlled bottom end. Approved 2026-06-01 on the artifacts/drums multi-mic kit (full 10.5 min). The warmth comes from a tilt EQ + Studer A800 tape (NOT brightness/EQ boosts); the tight bottom from an HPF + low-band multiband control + 30 IPS tape (head-bump up ~100 Hz, no sub bloom). Reproduce the whole pipeline below.",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems (drum-prep phase-align on the raw kit -> <kit>/phase-aligned/). 7 mics: overhead(st), drum room(st), kick in, kick beater, snare top, snare bottom, hi hat.",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/drums-stem-process.plans.json (declick OFF; role-aware clean/de-box/de-harsh/transient + conservative API Vision Channel Strip color, 550 tops kept flat) -> <kit>/processed/.",
+    "3. WARM BALANCE: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS; bright stems DOWN, body/room UP) -> bus_warm_pre.wav.",
+    "4. WARM+TIGHT CHAIN: scripts/mix/warm_bus.py bus_warm_pre.wav bus_warm.wav (the exact tone chain; params encoded in that script)."
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem)",
+    "kick in": {"target_lufs": -16.0, "pan": 0.0},
+    "kick beater": {"target_lufs": -26.0, "pan": 0.0},
+    "snare top": {"target_lufs": -18.0, "pan": -0.05},
+    "snare bottom": {"target_lufs": -32.0, "pan": -0.05},
+    "overhead": {"target_lufs": -22.0, "pan": 0.0},
+    "hi hat": {"target_lufs": -28.0, "pan": -0.25},
+    "drum room": {"target_lufs": -26.0, "pan": 0.0},
+    "_note": "snare-bottom/hat/beater pulled DOWN (they carry the brightness), room/body UP for warmth"
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/warm_bus.py — authoritative; values mirrored here for reference",
+    "1_eq_zero_phase": ["high_pass 35 Hz", "low_shelf +1.5 dB @ 180", "bell -1.5 dB @ 2500 q0.9", "high_shelf -4.0 dB @ 6000"],
+    "2_multiband_low_control": {"crossovers_hz": [110, 3000], "threshold_db": [-24, -34, -34], "ratio": [3.0, 1.3, 1.3], "attack_ms": [18, 30, 30], "release_ms": [140, 150, 150], "_intent": "compress the LOW band so the bottom is tight/even"},
+    "3_studer_a800_tape": {"plugin": "uaudio_studer_a800.vst3", "input_gain_db": 5.0, "path_select": "Repro", "ips": "30 IPS", "tape_type": "456", "auto_cal": true, "input_level": 4.0, "repro_hf_eq": 2.0, "emphasis_eq": "NAB", "output_peak_dbfs": -1.0, "_intent": "warmth + glue; 30 IPS keeps lows tight (no sub-bloom head bump)"}
+  },
+  "approved_signature_full_kit": {"centroid_hz": 2880, "tilt_db_per_oct": -2.65, "crest_db": 21.0, "correlation": 0.973, "lufs_i": -19.7, "_note": "centroid is content-dependent; the 60s opening measured ~3990 (brighter passage). If a brighter source over-darkens, ease high_shelf -4 -> -2 @6k and repro_hf_eq 2 -> 3."},
+  "notes": ["Warmth is tape + tilt, never a bright EQ boost. Tight bottom = HPF + low multiband + 30 IPS (NOT 15 IPS, whose bigger ~60 Hz head bump blooms the low end). This is a MIX bus (peak -1, not mastered) — hand to master-track for loudness."]
+}

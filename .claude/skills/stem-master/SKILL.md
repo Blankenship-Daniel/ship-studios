@@ -82,6 +82,7 @@ masking-overlap read, the summed-bus path, and an explicit "now run
 ## Related
 
 - [[unmask-stems]] — the masking-only subset, when that's all you need
+- [[stem-process]] — batch per-stem corrective + console/tape COLOR (with a reusable executor + re-sum A/B); this skill is the MCP corrective→sum→master path, stem-process is the standalone per-stem treatment stage
 - [[de-ess]] / [[de-harsh]] / [[dynamic-eq]] / [[multiband-compress]] — the per-stem corrective skills step 4–5 hand off to
 - [[master-track]] — the downstream stage that masters the summed bus
 - [[song-mix]] / [[drum-mix]] — balance-and-sum stems (no correction)

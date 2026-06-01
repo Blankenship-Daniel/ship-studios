@@ -105,11 +105,17 @@ target hit** — and point at [[master-track]] for loudness.
   plugin version and keep its `dump_state` blob in the project — unlike the
   pure-DSP steps, a VST render won't reproduce across plugin updates. Still
   measure before/after, and know a misbehaving plugin can crash the render.
+- **Calibrate tone on a REPRESENTATIVE section, not a short excerpt.** A chain
+  dialed on one bright/quiet passage over- or under-processes the whole track
+  (e.g. a warm tilt tuned on a bright intro over-darkened the full mix — centroid
+  dropped much further over 10 min than on the opening 60 s). Verify on the full
+  render or a representative window and re-measure; adjust if the signature drifts.
 
 ## Related
 
 - [[mix-check]] — run first if the mix isn't clean; finalize is downstream of it
 - [[master-track]] — the next stage; loudness + limiting + delivery live there
 - [[drum-mix]] — when the bus you're gluing is a drum kit, not the full mix
+- [[warm-drum-bus]] — a specific warm/tight drum-bus tone chain (tape + tilt + low-band control)
 - [[song-mix]] — full-song balancing before this finalize/glue pass
 - [[vst-saturate]] / [[vst-channel-strip]] — the plugin form of step 3b's glue/color (your own tape/console)

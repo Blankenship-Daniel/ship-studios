@@ -83,7 +83,9 @@ re-run with the other fork.
 ## Related
 
 - [[drum-prep]] — prep the kit (phase-align + reference-match) before mixing
+- [[stem-process]] — per-stem corrective + console/tape color before the sum
 - [[drum-reference-match]] — per-stem tonal match, the usual upstream step
 - [[drum-audition]] — loudness-matched A/B of the kit before/after
+- [[warm-drum-bus]] — warm/tight drum-bus tone chain after the sum (tape + tilt + low control)
 - [[master-track]] — glue, loudness, and platform-ready master of the bus
 - [[mix-check]] — MCP perceptual/measurement diagnosis of a finished mix

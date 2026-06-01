@@ -1,0 +1,694 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/kick in.wav",
+  "role": "kick (inside mic): LF thump + beater body; tighten sub, cut 250-500 box, modest 4 kHz click, no harsh top",
+  "measured": {
+   "lufs_i": -25.19,
+   "sample_peak_dbfs": -2.77,
+   "inter_sample_peak_dbtp": -2.76,
+   "crest_db": 21.25,
+   "centroid_hz": 2865,
+   "tilt_db_per_oct": -5.59,
+   "dominant_peak_hz": 58.6,
+   "channels": 1,
+   "is_mono": true,
+   "sample_rate": 48000,
+   "clipped_samples": 0,
+   "dc_offset": -1.1e-07,
+   "polarity_inverted": true,
+   "band0_0_120hz_punch_db": 31.06,
+   "band1_120_2k_punch_db": 34.32,
+   "key_thirdoct_db": {
+    "50": -3.23,
+    "63": 0,
+    "80": -9.12,
+    "100": -9.81,
+    "125": -7.34,
+    "250": -16.37,
+    "315": -24.22,
+    "400": -23.52,
+    "500": -26.01,
+    "4000": -32.75,
+    "5000": -33.17,
+    "6300": -38.12,
+    "8000": -47.03,
+    "31.5": -6.78
+   },
+   "read": "Mono kick-in, lots of clean headroom (-2.77 peak, crest 21). Energy centered at 58-63 Hz with a hot 31.5 Hz sub-rumble shelf; thump lump at 125 Hz; box descends 250-500 (315-400 worst); beater click peaks ~4 kHz; top rolls off hard above 6 kHz (no harsh top, hiss lives up there). polarity_inverted=true is the phase-align result, NOT a defect - leave it."
+  },
+  "clean": {
+   "hpf_hz": 30,
+   "denoise": false
+  },
+  "eq_bands": [
+   {
+    "type": "high_pass",
+    "freq_hz": 30,
+    "gain_db": 0,
+    "q": 0.707
+   },
+   {
+    "type": "bell",
+    "freq_hz": 31.5,
+    "gain_db": -3,
+    "q": 1.2
+   },
+   {
+    "type": "bell",
+    "freq_hz": 350,
+    "gain_db": -3.5,
+    "q": 1.1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 125,
+    "gain_db": -1.5,
+    "q": 1.4
+   },
+   {
+    "type": "bell",
+    "freq_hz": 4000,
+    "gain_db": 2,
+    "q": 1
+   }
+  ],
+  "de_harsh": null,
+  "dynamic_eq": null,
+  "transient": null,
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "ratio": 3,
+    "thresh": -4,
+    "attack": "Medium",
+    "release_s": 0.18
+   },
+   "eq": {
+    "lf_freq": 60,
+    "lf_gain": 1,
+    "lmf_freq": 350,
+    "lmf_gain": -2,
+    "hmf_freq": 4000,
+    "hmf_gain": 1,
+    "hf_freq": 5000,
+    "hf_gain": 0
+   },
+   "line_gain_db": 0,
+   "output_peak_dbfs": -2
+  },
+  "rationale": "Mono kick-in mic with lots of clean headroom and a textbook kick-close profile: fundamental at 58-63 Hz, a hot 31.5 Hz sub-rumble shelf, a 125 Hz thump lump, box descending through 250-500 (315-400 worst), and the beater click peaking ~4 kHz before a hard rolloff above 6 kHz. Plan follows the brief and the kit's hiss caveat. CLEAN: gentle 30 Hz HPF (12 dB/oct) to shed sub-30 rumble without touching the 58 Hz fundamental; declick forced off (percussive); denoise off - the hiss lives above 6 kHz and we add no air, so no need to risk smearing transients. EQ (zero-phase): -3 dB bell at 31.5 Hz Q1.2 to tighten the sub shelf the meter flagged (cut, don't roll the whole bottom); -3.5 dB bell at 350 Hz Q1.1 - the box/mud center between the 315/400 troughs (this is the 250-500 cut the brief asks for, placed where the spectrum says box actually sits); a small -1.5 dB at 125 Hz Q1.4 to trim the secondary thump lump so it doesn't double the fundamental; one modest +2 dB at 4 kHz Q1.0 for beater click (4 kHz is the measured click peak, well below the harsh 5-7 kHz zone and below the hiss region - safe). No high-shelf, no excite, no de-harsh (nothing rings up top here), no dynamic EQ (box is constant, not level-dependent), no transient stage (punch comes from the API comp per the brief). API COLOR: HPF 40 Hz as a console-side safety below the HPF'd EQ. Comp ON, New (FF), 3:1, Medium attack (measured punchiest) with a moderate -4 thresh and 0.18 s release to grab body and add slam without choking the attack - punch from the 225, not EQ. 550 EQ kept conservative and the TOP FLAT: tiny +1 LF at 60 Hz for weight, -2 LMF at 350 reinforcing the box cut, +1 HMF at 4 kHz for a touch more click, and HF at 5 kHz held at 0 so 5 kHz is never stacked across hmf+hf (no harshness). Output peaked to -2 dBFS for safe downstream gain. Polarity inversion left intact - it is the phase-align result, not a defect."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic \u2014 owns attack & beater click; the \"in\" mic owns thump. HPF the lows, bring out click/transient, tame brittle 5-7 kHz.",
+  "measured": {
+   "lufs_i": -23.42,
+   "sample_peak_dbfs": -2.38,
+   "inter_sample_peak_dbtp": -2.36,
+   "crest_db": 20.61,
+   "centroid_hz": 3300,
+   "tilt_db_per_oct": -2.3,
+   "dominant_peak_hz": 70.3,
+   "clipped_samples": 0,
+   "dc_offset": -1.1e-07,
+   "polarity_inverted": false,
+   "channels": 1,
+   "sample_rate": 48000,
+   "third_octave_notes": "63Hz=0dB ref (LF-dominant), 50/80Hz hot, box at 315-400Hz (-12 to -13), click hump 2.5kHz(-17), brittle hump 5-6.3kHz(-15.2/-15.0), 16k/20k roll off to -31/-42",
+   "band_punch_ratio_db": {
+    "low_0_120": 28,
+    "mid_120_2k": 35.4,
+    "hi_2k_8k": 34,
+    "air_8k_24k": 33.1
+   },
+   "read": "Very transient mono beater mic (crest 20.6). LF-dominant (it's hearing the 'in' mic's thump it shouldn't own) plus a 315-400Hz cardboard box and a brittle 5-6.3kHz hump that overlaps the kit's known 5-7k harshness. No clipping/DC; preamp hiss present (no air/excite). Job: HPF the thump away, lift the 2.5-3.5kHz click, tame the brittle top, sharpen the attack \u2014 let the 225 comp do the punch."
+  },
+  "clean": {
+   "hpf_hz": 90,
+   "denoise": true,
+   "denoise_db": 6
+  },
+  "eq_bands": [
+   {
+    "type": "high_pass",
+    "freq_hz": 90,
+    "gain_db": 0,
+    "q": 0.707
+   },
+   {
+    "type": "bell",
+    "freq_hz": 200,
+    "gain_db": -2.5,
+    "q": 1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 340,
+    "gain_db": -3.5,
+    "q": 1.2
+   },
+   {
+    "type": "bell",
+    "freq_hz": 3000,
+    "gain_db": 2.5,
+    "q": 1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 6000,
+    "gain_db": -2.5,
+    "q": 1.8
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.4,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 5000,
+   "focus_hi_hz": 7000
+  },
+  "dynamic_eq": null,
+  "transient": {
+   "crossovers_hz": [
+    120,
+    2000,
+    8000
+   ],
+   "bands": [
+    {
+     "transient": 0.1,
+     "gain_db": -1
+    },
+    {
+     "transient": 0.25,
+     "gain_db": 0
+    },
+    {
+     "transient": 0.5,
+     "gain_db": 1
+    },
+    {
+     "transient": 0.2,
+     "gain_db": 0
+    }
+   ]
+  },
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "line_gain_db": 0,
+   "output_peak_dbfs": -3,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "attack": "Medium",
+    "ratio": 4,
+    "thresh": -6,
+    "release_s": 0.12
+   },
+   "eq": {
+    "lmf_freq": 350,
+    "lmf_gain": -2,
+    "hmf_freq": 3000,
+    "hmf_gain": 1,
+    "hf_freq": 5000,
+    "hf_gain": 0
+   }
+  },
+  "rationale": "Mono beater/click mic, crest 20.6, LF-dominant with dominant peak at 70 Hz that belongs to the \"in\" mic \u2014 so clean HPF=90 Hz hands the thump back to \"in\", with a matching EQ high_pass at 90 Hz. Preamp hiss is present so denoise=6 dB (gentle, before any top work) and NO excite/air shelf (would lift the hiss floor); 16k/20k already roll off naturally. Corrective EQ is cuts-first: -2.5 @ 200 and -3.5 @ 340 kill the boxy/cardboard zone the third-octave shows at 315-400 Hz, a modest +2.5 @ 3 kHz brings out the beater click (centroid 3300, click hump sits 2.5-4k, BELOW the harsh zone), and -2.5 @ 6 kHz trims the brittle 5-6.3 kHz hump that overlaps the kit's known 5-7k harshness. de_harsh is a gentle level-triggered suppressor over 5-7 kHz (depth 0.4, max 4 dB) so the click stays but the brittle ring only ducks when it spikes \u2014 safer than a bigger static cut. shape_bands sharpens the attack where it matters: transient +0.5/+1 dB in the 2-8 kHz click band, +0.1/-1 dB in the lows (de-emphasize the thump tail), neutral elsewhere. dynamic_eq null (the box is static, not level-dependent). API color: HPF 80 on the strip, Medium-attack New-FF 225 comp (measured punchiest) at 4:1 / thresh -6 / 0.12 s for the punch instead of EQ; 550 TOP KEPT FLAT \u2014 hmf only +1 @ 3 kHz, hf 0 @ 5 kHz (5 kHz lives in both bands, never stacked), and a small lmf -2 @ 350 to reinforce the de-box. Output peak target -3 dBFS leaves headroom."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/snare top.wav",
+  "role": "snare top \u2014 crack + body close mic (mono, 48k, polarity-inverted, quiet at -30.5 LUFS, very peaky crest 28.8 dB)",
+  "measured": {
+   "lufs_i": -30.52,
+   "sample_peak_dbfs": -4.64,
+   "inter_sample_peak_dbtp": -4.58,
+   "crest_db": 28.84,
+   "centroid_hz": 5716,
+   "tilt": -0.76,
+   "dominant_peak_hz": 199,
+   "channels": 1,
+   "is_mono": true,
+   "polarity_inverted": true,
+   "clipped_samples": 0,
+   "band_peaks_db": {
+    "160": -6.1,
+    "200": 0,
+    "250": -8.7,
+    "400": -11.8,
+    "500": -15.7,
+    "1000": -20.7,
+    "2500": -22.4,
+    "3150": -20.6,
+    "5000": -20.4,
+    "6300": -21.7,
+    "8000": -24.1,
+    "10000": -29.7,
+    "12500": -24.4,
+    "16000": -23.7,
+    "300_est": -10
+   },
+   "read": "Body fundamental dominates at ~200 Hz (160-250 lump = the boxy tail); 1-5 kHz is flat with a small 3.1-5 kHz harsh nub; HF rolls off after 6.3k then 12.5-16k creeps back up = preamp hiss. Snap exists but isn't loud \u2014 add it via transient, not a hiss-raising HF boost."
+  },
+  "clean": {
+   "hpf_hz": 70,
+   "denoise": true,
+   "denoise_db": 4
+  },
+  "eq_bands": [
+   {
+    "type": "bell",
+    "freq_hz": 300,
+    "gain_db": -2.5,
+    "q": 1.1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 5000,
+    "gain_db": -2,
+    "q": 1.6
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.45,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 3500,
+   "focus_hi_hz": 6500
+  },
+  "dynamic_eq": null,
+  "transient": {
+   "crossovers_hz": [
+    200,
+    2000,
+    8000
+   ],
+   "bands": [
+    {
+     "transient": 0.1,
+     "gain_db": 0
+    },
+    {
+     "transient": 0.25,
+     "gain_db": 0
+    },
+    {
+     "transient": 0.4,
+     "gain_db": 0
+    },
+    {
+     "transient": 0.15,
+     "gain_db": -1
+    }
+   ]
+  },
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "line_gain_db": 0,
+   "output_peak_dbfs": -4,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "attack": "Medium",
+    "ratio": 3,
+    "thresh": -10,
+    "release_s": 0.18
+   },
+   "eq": {
+    "lf_freq": 100,
+    "lf_gain": 0,
+    "lmf_freq": 300,
+    "lmf_gain": -2,
+    "hmf_freq": 5000,
+    "hmf_gain": 0,
+    "hf_freq": 10000,
+    "hf_gain": 0
+   }
+  },
+  "rationale": "Snare top is quiet (-30.5 LUFS) and very peaky (crest 28.8) with a body-dominant spectrum (peak ~200 Hz) and a hiss-carrying 12.5-16k creep. Plan: (1) clean \u2014 HPF 70 Hz removes sub rumble/bleed below the snare body; gentle 4 dB denoise BEFORE any brightening to keep the preamp hiss down (no excite, no HF shelf boost \u2014 both would lift the hiss floor). declick OFF (forced). (2) Static EQ \u2014 small 300 Hz bell cut (-2.5, Q1.1) tames the boxy 160-250 lump tail; small 5 kHz bell cut (-2.0, Q1.6) de-spits the harsh nub. Cuts only, modest. (3) de_harsh \u2014 Soothe-style dynamic suppressor over 3.5-6.5 kHz (depth 0.45, max -4 dB) ducks the 1-5 kHz harsh ring ONLY when it rings, leaving the crack intact between hits. (4) transient \u2014 add snap in the crack/attack bands (mid +0.25, presence +0.4) and lightly tighten the 8k+ band sustain (-1 dB gain, low hiss tail) \u2014 snap comes from transient shaping, not a hiss-raising boost. dynamic_eq null (box is static, the static cut handles it). (5) API color \u2014 KEEP THE 550 TOP FLAT: hmf/hf gain 0 (5 kHz lives in both bands; stacking = harsh). Punch comes from the 225 comp (New FF, Medium attack \u2248 punchiest, ratio 3, thresh -10). Only a -2 dB LMF box cut at 300 and flat LF \u2014 conservative, role-appropriate console tone. Polarity is inverted (flagged) but the kit was already phase-aligned, so leave it."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires mic) \u2014 buzz/snap character; HPF the LF junk, present 6\u20139 kHz wire buzz while guarding 5 kHz harshness",
+  "measured": {
+   "lufs_i": -28.79,
+   "sample_peak_dbfs": -5.3,
+   "inter_sample_peak_dbtp": -5.28,
+   "crest_db": 27.55,
+   "centroid_hz": 4685,
+   "tilt_db_per_oct": -0.27,
+   "dominant_peak_hz": 199,
+   "clipped_samples": 0,
+   "dc_offset": -1.5e-07,
+   "polarity_inverted": true,
+   "channels": 1,
+   "is_mono": true,
+   "third_octave_notables": {
+    "200hz": 0,
+    "160hz": -5.9,
+    "250hz": -5.6,
+    "400hz": -4.5,
+    "500hz": -10.5,
+    "1khz": -14.85,
+    "4khz": -8,
+    "5khz": -7.3,
+    "6.3khz": -8,
+    "8khz": -11.1,
+    "10khz": -15.4
+   },
+   "read": "Very dynamic mono bottom-snare mic (crest 27.6, peak -5.3, no clip). Energy lump 160-400 Hz peaking at 200 Hz is shell ring/box (junk on a wires mic), scooped mids 500-1k, then a 4-6.3 kHz wire-buzz plateau (5 kHz is the harshness edge). Top rolls off above 8k so no air is needed \u2014 and excite would only lift the preamp hiss."
+  },
+  "clean": {
+   "hpf_hz": 150,
+   "denoise": true,
+   "denoise_db": 4
+  },
+  "eq_bands": [
+   {
+    "type": "high_pass",
+    "freq_hz": 150,
+    "gain_db": 0,
+    "q": 0.707
+   },
+   {
+    "type": "bell",
+    "freq_hz": 200,
+    "gain_db": -4.5,
+    "q": 1.4
+   },
+   {
+    "type": "bell",
+    "freq_hz": 400,
+    "gain_db": -2.5,
+    "q": 1.6
+   },
+   {
+    "type": "bell",
+    "freq_hz": 7000,
+    "gain_db": 2.5,
+    "q": 1.2
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.45,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 4800,
+   "focus_hi_hz": 6800
+  },
+  "dynamic_eq": null,
+  "transient": null,
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "ratio": 3,
+    "thresh": -6,
+    "attack": "Medium",
+    "release_s": 0.18
+   },
+   "eq": {
+    "lf_freq": 200,
+    "lf_gain": -1.5,
+    "lmf_freq": 400,
+    "lmf_gain": -2,
+    "hmf_freq": 7000,
+    "hmf_gain": 1.5,
+    "hf_freq": 10000,
+    "hf_gain": 0
+   },
+   "line_gain_db": 0,
+   "output_peak_dbfs": -6
+  },
+  "rationale": "Bottom-snare wires mic: all the useful character is the 6-9 kHz buzz/snap, not the low end. (1) clean: HPF 150 Hz to kill the shell-ring/box LF junk (dompeak 199 Hz is box, not body on a bottom mic), gentle 4 dB denoise AFTER the HPF to keep the known preamp hiss in check before any presence move; declick stays OFF (percussive). (2) apply-eq (phase=zero, keeps the phase-align intact): redundant safety HPF at 150, a -4.5 dB bell at 200 Hz on the box peak and a -2.5 dB bell at 400 Hz on the secondary box (cut the problem, don't boost around it), plus a modest +2.5 dB bell at 7 kHz \u2014 deliberately ABOVE the 5 kHz harsh edge \u2014 to present the wire buzz. (3) suppress-resonances 4.8-6.8 kHz, depth 0.45 / 4 dB max, to dynamically tame the harsh edge of that same wire plateau only when it rings, so the 7 kHz lift doesn't read brittle. No dynamic-eq (the box is constant, not level-dependent), no transient design (crest is already 27.6 dB \u2014 huge snap), no excite (top rolls off above 8k and excite would lift the hiss). (4) API color: HP 80 stacks under the clean HPF; New(FF) 225 comp at 3:1, Medium attack (measured punchiest) for wire snap, ~0.18 s release; 550 EQ does only small complementary cuts (LF -1.5, LMF -2) and a tiny HMF +1.5 \u2014 TOP KEPT FLAT (HF 0) so 5 kHz is never stacked across hmf/hf."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) \u2014 salt-shaker hat, mono, 48 kHz",
+  "measured": {
+   "lufs_i": -18.25,
+   "sample_peak_dbfs": 0,
+   "inter_sample_peak_dbtp": 0.62,
+   "crest_db": 20.46,
+   "centroid_hz": 4048,
+   "tilt_db_per_oct": -0.14,
+   "dominant_peak_hz": 199,
+   "clipped_samples": 22,
+   "polarity_inverted": true,
+   "is_mono": true,
+   "key_bands_db": {
+    "63": -8.6,
+    "80": -9.8,
+    "160": -5.7,
+    "200": 0,
+    "315": -2.1,
+    "400": -0.4,
+    "500": -6,
+    "5000": -6.7,
+    "6300": -8.3,
+    "8000": -13.2,
+    "10000": -15.1,
+    "16000": -18,
+    "20000": -23.4
+   },
+   "read": "Close hat with a fat 160-400 Hz whoosh/spill bulge (200 Hz is the single loudest band, 0.0 dB ref) and LF rumble at 63-80 Hz that has no business in a close hat; a 5 kHz harsh poke sits above its 4k/6.3k neighbors (brittleness zone); air rolls off above 8 kHz. Flat tilt = already bright/whooshy, not dull. +0.62 dBTP and 22 clipped samples are minor inter-sample overs cleaned by the HPF + headroom from cuts."
+  },
+  "clean": {
+   "hpf_hz": 110,
+   "denoise": true,
+   "denoise_db": 6
+  },
+  "eq_bands": [
+   {
+    "type": "high_pass",
+    "freq_hz": 110,
+    "gain_db": 0,
+    "q": 0.707
+   },
+   {
+    "type": "bell",
+    "freq_hz": 200,
+    "gain_db": -4.5,
+    "q": 1.1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 400,
+    "gain_db": -3,
+    "q": 1.4
+   },
+   {
+    "type": "high_shelf",
+    "freq_hz": 11000,
+    "gain_db": 2,
+    "q": 0.7
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.45,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 5000,
+   "focus_hi_hz": 7000
+  },
+  "dynamic_eq": null,
+  "transient": null,
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "line_gain_db": 0,
+   "output_peak_dbfs": -1,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "attack": "Medium",
+    "ratio": 3,
+    "thresh": -8,
+    "release_s": 0.1
+   },
+   "eq": {
+    "lmf_freq": 200,
+    "lmf_gain": -2,
+    "hmf_freq": 10000,
+    "hmf_gain": 1,
+    "hf_freq": 12000,
+    "hf_gain": 0
+   }
+  },
+  "rationale": "Measure-grounded close-hat cleanup. (1) clean: HPF 110 Hz kills the 63-80 Hz rumble/spill (no hat fundamental lives there) and trims the inter-sample overs; gentle 6 dB denoise tackles the known preamp hiss BEFORE any top lift so the air shelf doesn't amplify it. (2) apply-eq (zero-phase, attacks intact): the 200 Hz bell -4.5 dB is the headline move \u2014 200 Hz is the single loudest band (0.0 ref) and is pure whoosh/spill; 400 Hz -3 dB clears the box; HPF mirrored in the EQ stage; one modest 11 kHz high-shelf +2 dB for air, kept small precisely because the floor is hissy. CUT the problem (whoosh/box), don't boost around it; air boost stays conservative. (3) de-harsh focused 5-7 kHz, depth 0.45 / max -4 dB \u2014 dynamic so it only ducks the 5 kHz poke when it rings, preserving the salt-shaker sizzle while killing the brittle edge the brief warns about. No static cut there because the harshness is transient, not constant. (4) No dynamic-eq: the 200 Hz whoosh is constant, so static EQ is the right tool. No transient design: this is a wash/sizzle source, not a punch stem. No excite: the floor is hissy and air excitement would raise it \u2014 the modest shelf is enough. (5) API color: 225 comp ON, New (FF), Medium attack (measured punchiest, and FF medium adds gentle density without grabbing the hat tail), ratio 3, thresh -8, release 0.1 s \u2014 punch from the comp not the EQ. 550 TOP KEPT FLAT: lmf -2 dB at 200 Hz reinforces the whoosh cut, hmf only +1 dB at 10k, hf 0 at 12k so 5 kHz is never stacked across hmf+hf (avoids re-introducing the harshness we just dynamically tamed). Output -1 dBFS for headroom into the next stage."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) \u2014 cymbals + whole-kit image; carries the hi-hat",
+  "measured": {
+   "lufs_i": -13.63,
+   "sample_peak_dbfs": -1,
+   "inter_sample_peak_dbtp": 0.18,
+   "crest_db": 18.49,
+   "centroid_hz": 2601,
+   "tilt": -1.71,
+   "dominant_peak_hz": 70.3,
+   "correlation": 0.449,
+   "stereo_width_db": -4.01,
+   "worst_mono_sum_loss_db": 3.93,
+   "polarity_inverted": true,
+   "samples_over_minus1_dbtp": 237481,
+   "read": "Bright OH (centroid 2601, healthy 18.5 dB crest) but it carries a fat kick/tom mud + box lump: 63-80 Hz hump and a low-mid plateau peaking at 200 Hz (loudest band, 0.0 dB) thru 400 Hz. Harshness sits 3.15-6.3 kHz (3150/4000 proud against the slope). Air rolls off hard above 8 kHz; preamp hiss means no aggressive top boosts. True peak already +0.18 dBTP so the top is hot."
+  },
+  "clean": {
+   "hpf_hz": 140,
+   "denoise": true,
+   "denoise_db": 4
+  },
+  "eq_bands": [
+   {
+    "type": "bell",
+    "freq_hz": 200,
+    "gain_db": -3.5,
+    "q": 1.1
+   },
+   {
+    "type": "bell",
+    "freq_hz": 400,
+    "gain_db": -1.5,
+    "q": 1.4
+   },
+   {
+    "type": "high_shelf",
+    "freq_hz": 12000,
+    "gain_db": 1.5,
+    "q": 0.7
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.5,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 3150,
+   "focus_hi_hz": 6300
+  },
+  "dynamic_eq": null,
+  "transient": null,
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 100,
+   "comp": {
+    "on": true,
+    "type": "New (FF)",
+    "attack": "Medium",
+    "ratio": 2.5,
+    "thresh": -8,
+    "release_s": 0.25
+   },
+   "eq": {
+    "lf_freq": 100,
+    "lf_gain": -2,
+    "lmf_freq": 200,
+    "lmf_gain": -2,
+    "hmf_freq": 5000,
+    "hmf_gain": 0,
+    "hf_freq": 12500,
+    "hf_gain": 1
+   },
+   "line_gain_db": 0,
+   "output_peak_dbfs": -1
+  },
+  "rationale": "OH carries kick/tom mud + box, harsh 3-6k, thin top with audible preamp hiss. Order: clean first (HPF 140 to dump the 63-80 Hz kick lump and below the kit's dedicated kick mic; light denoise -4 dB to tame hiss BEFORE any air). Static EQ: -3.5 dB bell at 200 Hz (the single loudest band, the box) + a gentle -1.5 at 400 Hz, both modest cuts not gouges; a small +1.5 high-shelf at 12k for air that the gentle denoise keeps from amplifying hiss too far. De-harsh (suppress_resonances) focused 3.15-6.3k, depth 0.5 / max 4 dB \u2014 dynamic, ducks the cymbal/hat harshness only when it rings rather than dulling the whole top. No dynamic_eq (the mud is constant, static handles it). No transient shaping (18.5 dB crest is already healthy; punch comes from the API 225 comp). No excite \u2014 top is thin AND hissy, exciting air would raise the noise floor. API color stays conservative: console HPF 100 (under the corrective 140), 225 comp New(FF)/Medium-attack/2.5:1 for punch per the shootout, 550 TOP KEPT FLAT (hmf 5k = 0, hf 12.5k = +1 only) so 5 kHz is never stacked across hmf+hf; small lf/lmf trims (-2/-2) reinforce the de-mud. Output ceiling -1 dBFS since true peak is already hot at +0.18 dBTP.\""
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/normalized/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) \u2014 the kit \"vibe\" mic; very dynamic (crest 34.6), boxy low-mid hump, audible preamp hiss in the 6\u201313 kHz plateau, polarity already flipped by phase-align.",
+  "measured": {
+   "lufs_i": -29.32,
+   "sample_peak_dbfs": -1,
+   "inter_sample_peak_dbtp": -0.98,
+   "crest_db": 34.61,
+   "centroid_hz": 4005,
+   "tilt_db_per_oct": -1.06,
+   "dominant_peak_hz": 210.9,
+   "correlation": 0.655,
+   "stereo_width_db": -5.55,
+   "worst_mono_sum_loss_db": 6.73,
+   "low_band_width_db": -14.16,
+   "clipped_samples": 0,
+   "dc_offset": -9.6e-08,
+   "polarity_inverted": true,
+   "key_third_octave_db": {
+    "63": -3.82,
+    "80": -7.73,
+    "160": -5.93,
+    "200": 0,
+    "250": -7.1,
+    "315": -5.45,
+    "400": -2,
+    "500": -11.68,
+    "5000": -21.02,
+    "6300": -20.46,
+    "8000": -19.76,
+    "10000": -22.38,
+    "12500": -23.92
+   },
+   "read": "Natural, very dynamic room with a clear boxy 200\u2013400 Hz hump (peak 210 Hz) and a noisy preamp-hiss plateau that lifts 6.3\u20138 kHz above the 4\u20135 kHz region; lows are decorrelated (low-band width \u221214 dB) so HPF the sub before anything. Polarity already inverted by phase-align \u2014 do NOT re-flip."
+  },
+  "clean": {
+   "hpf_hz": 50,
+   "denoise": true,
+   "denoise_db": 5
+  },
+  "eq_bands": [
+   {
+    "type": "high_pass",
+    "freq_hz": 50,
+    "gain_db": 0,
+    "q": 0.707
+   },
+   {
+    "type": "bell",
+    "freq_hz": 210,
+    "gain_db": -3.5,
+    "q": 1.4
+   },
+   {
+    "type": "bell",
+    "freq_hz": 400,
+    "gain_db": -2,
+    "q": 1.6
+   }
+  ],
+  "de_harsh": {
+   "depth": 0.4,
+   "max_reduction_db": 4,
+   "focus_lo_hz": 2500,
+   "focus_hi_hz": 6000
+  },
+  "dynamic_eq": null,
+  "transient": null,
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 50,
+   "line_gain_db": 0,
+   "output_peak_dbfs": -1,
+   "comp": {
+    "on": true,
+    "type": "Old (FB)",
+    "attack": "Medium",
+    "ratio": 2,
+    "thresh": -6,
+    "release_s": 0.3
+   },
+   "eq": {
+    "lf_freq": 200,
+    "lf_gain": -2,
+    "lmf_freq": 315,
+    "lmf_gain": -2,
+    "hmf_freq": 5000,
+    "hmf_gain": 0,
+    "hf_freq": 10000,
+    "hf_gain": 0
+   }
+  },
+  "rationale": "Room/ambience mic: HPF 50 Hz first to drop the decorrelated sub-rumble (low-band width \u221214 dB, worst mono-sum loss in the lows) before any processing, plus a gentle 5 dB denoise for the audible preamp hiss \u2014 done BEFORE any top-end work since air/excite would raise that hiss (excite=null for the same reason). Corrective EQ targets the real boxy hump: \u22123.5 dB bell at 210 Hz (the dominant peak / third-octave mountain) and \u22122 dB at 400 Hz to open the low-mids, plus the HPF mirrored. de-harsh is a conservative dynamic suppressor over 2.5\u20136 kHz (depth 0.4, \u22644 dB) to tame ring/harshness only when it pokes above the envelope \u2014 no static high cut, so the room stays alive. No transient design (room wants its natural 34.6 dB crest, not snap) and no dynamic EQ (the boxiness is constant, a static cut handles it). For the API color: feedback (Old) comp at a soft 2:1, Medium attack for the punchiest behavior per the kit measurement, ~0.3 s release for glue/character (the role note flags this as a good comp/character candidate) without crushing the dynamics; the 550 top is kept FLAT (hmf/hf gain 0 \u2014 5 kHz lives in both bands, never stack), with only small LF/LMF trims at 200/315 reinforcing the box cut. Polarity is left inverted \u2014 it was set by phase-align; flipping would break alignment with the overheads."
+ }
+]

@@ -104,3 +104,4 @@ exported file paths. If you re-rendered, say what you changed and why.
 - [[loops-to-deliverables]] — when the deliverable is loops, not a stereo master
 - [[understand-audio]] — perceptual recon of a reference before choosing a target
 - [[gemini-audio]] — limits of the Gemini mastering read (mono-deaf to stereo/true-peak/loudness — trust the meters for those)
+- [[vst-master]] — the opt-in VST alternative: master with your own plugin chain (EQ→comp→limiter) instead of the pure-DSP render

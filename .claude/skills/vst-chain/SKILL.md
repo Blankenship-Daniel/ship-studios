@@ -1,0 +1,58 @@
+---
+name: vst-chain
+description: "Use when the user wants to run an arbitrary chain of their own VST3/AU effect plugins on an audio file — 'run these plugins on my mix', 'apply Pultec then Black 76 to this stem', 'process this through a VST chain', 'insert my plugin on this loop'. The generic, headless, measured apply-vst-chain workflow that every other vst-* skill is a preset of. Stemmy MCP, the `vst` extra."
+---
+
+# vst-chain — apply a headless VST3/AU effect chain to a WAV
+
+Goal: process one WAV through an **ordered chain of headless-safe effect plugins**, offline and
+headless, with a measured before/after so the change is proven and reproducible. This is the
+backbone of the `[[vst]]` suite — the per-task skills just preset the category and which meters
+to read.
+
+## Prerequisites
+
+- `[L] apply-vst-chain` + `[L] list-vst-plugins` (needs `uv sync --extra vst` in `../stemmy-loops-mcp`).
+- A stereo/mono **WAV** (stem, bus, loop). Resolve the path up front.
+- Plugins installed **and authorized** on this Mac. Only headless-safe titles — see
+  [`docs/vst/README.md`](../../../docs/vst/README.md). No `GEMINI_API_KEY` needed unless you add a
+  `[G]` measurement step.
+
+## Recipe (ordered — the canonical VST recipe)
+
+1. **Baseline** — `[L] measure-loudness {path}` + `[L] measure-spectrum {path}` (add
+   `[L] measure-stereo` if width/space matters). This is the "before" column.
+2. **Choose plugins** — pick candidates from the inventory ([`docs/vst/README.md`](../../../docs/vst/README.md));
+   confirm each on-disk path with `[L] list-vst-plugins {name_contains:"<name>"}`. **Never pass a
+   plugin that isn't in the headless-safe list.** Confirm ambiguous picks with the user.
+3. **Apply** — `[L] apply-vst-chain {path, out_path:"projects/<track>/mix/<name>_vst.wav",
+   plugins:[{plugin_path, parameters?}, …], dump_state:true}`. Order = signal flow. Set `parameters`
+   in the plugin's native range (often 0..1); for a precise patch, restore a prior `state_path` blob.
+4. **Verify** — re-run `[L] measure-loudness` + `[L] measure-spectrum` on the output. Confirm the
+   result's `changed:true`. If `changed:false` or the output reads silent/demo, the plugin is likely
+   unlicensed — **stop and flag it**, don't ship a demo render.
+5. Write to `projects/<track>/mix/` (loops → `projects/<track>/loops/`).
+
+## Outputs
+
+- Processed WAV in `projects/<track>/mix/`.
+- One `.state` blob per plugin beside it (from `dump_state:true`) → reproducible re-render via `state_path`.
+
+## Reporting to the user
+
+- The chain (plugins, order, key params), before→after **LUFS / peak / tilt** deltas, the `changed`
+  flag, and the dumped `.state` path(s). State plainly that it ran headless (no GUI).
+
+## Pitfalls
+
+- **Demo-mode silence** — a clean load isn't a licensed render; always re-measure (step 4).
+- **Order matters** — EQ-before-comp vs comp-before-EQ are different results; mirror intended signal flow.
+- **Non-deterministic** — pin plugin versions and keep the `.state` blob in the project; a VST render
+  won't reproduce across plugin updates the way the pure-DSP tools do.
+- **AU is macOS-only** — prefer the VST3 path for portability.
+
+## Related
+
+- `[[vst]]` — suite index + doctrine · `[[vst-browse]]` — find plugin paths
+- `[[vst-channel-strip]]` / `[[vst-eq]]` / `[[vst-compress]]` / `[[vst-saturate]]` / `[[vst-reverb]]` / `[[vst-delay]]` / `[[vst-de-ess]]` / `[[vst-master]]` / `[[vst-amp]]` — task presets of this recipe
+- `[[finalize-mix]]` — the pure-DSP glue stage where a VST insert (step 3b) lives

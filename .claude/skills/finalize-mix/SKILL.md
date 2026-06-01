@@ -109,3 +109,4 @@ target hit** — and point at [[master-track]] for loudness.
 - [[master-track]] — the next stage; loudness + limiting + delivery live there
 - [[drum-mix]] — when the bus you're gluing is a drum kit, not the full mix
 - [[song-mix]] — full-song balancing before this finalize/glue pass
+- [[vst-saturate]] / [[vst-channel-strip]] — the plugin form of step 3b's glue/color (your own tape/console)

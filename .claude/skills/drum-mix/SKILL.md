@@ -65,6 +65,11 @@ re-run with the other fork.
 
 ## Pitfalls
 
+- **Balance by measured loudness — keep the overhead UNDER the close mics.** This skill sets per-role
+  levels vs the OH anchor; if the OH leads, the cymbals/hi-hat dominate (set it a few LU under kick/snare).
+  De-spill spill-heavy close mics with `[[bleed-gate]]` before raising them. The general measure-driven
+  method (+ ad-hoc stem sets) is `[[mix-balance]]`. Never eyeball gains or peak-normalize the sum — a
+  balance problem is not an EQ problem.
 - **It's a flat unity sum, not a fader/automation mix.** No moves over time, no
   bus comp. For finer or section-by-section balance, mix from the stems in a DAW.
 - **An FX return must be passed via `--plate`** — it lives outside the

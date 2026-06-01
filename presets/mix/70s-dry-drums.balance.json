@@ -1,0 +1,22 @@
+{
+  "_doc": "Reproducible measured-LUFS balance for a tight/focused/DRY/punchy 1970s drum bus from the phase-aligned multi-mic kit. Fully dry = room mic OUT, snare-top bleed-gated, overheads hat-cancelled, no plate. Levels are set by integrated LUFS (NOT eyeballed/RMS/peak-normalized) — overhead sits ~7 LU UNDER the kick so cymbals/hat don't dominate. Feed this to scripts/mix/balance_stems.py, then shape_bands (punch), then presets/vst/tight-70s-dry.json (tone). Built 2026-05-31.",
+  "upstream_despill": {
+    "snare_top": "scripts/mix/debleed.py gate '<phase-aligned>/snare top.wav' snare_top_gated.wav -14 50   (closed ~68%)",
+    "overhead":  "scripts/mix/debleed.py cancel '<phase-aligned>/overhead.wav' '<phase-aligned>/hi hat.wav' overhead_dehat.wav 0.45   (bus<->hat corr 0.65 -> 0.43)"
+  },
+  "out": "projects/drums-kit/mix/bus_70s_balanced.wav",
+  "headroom_db": -6.0,
+  "duration_s": 60,
+  "stems": [
+    {"file": "projects/drums-kit/mix/overhead_dehat.wav", "target_lufs": -23.0, "pan": 0.0,  "_role": "overhead (de-hatted) — UNDER the close mics"},
+    {"file": "artifacts/drums/normalized/phase-aligned/kick in.wav",     "target_lufs": -16.0, "pan": 0.0,  "_role": "kick in — forward anchor"},
+    {"file": "artifacts/drums/normalized/phase-aligned/kick beater.wav", "target_lufs": -24.0, "pan": 0.0,  "_role": "kick beater — attack support"},
+    {"file": "projects/drums-kit/mix/snare_top_gated.wav", "target_lufs": -18.0, "pan": -0.05, "_role": "snare top (gated) — forward"},
+    {"file": "artifacts/drums/normalized/phase-aligned/snare bottom.wav", "target_lufs": -28.0, "pan": -0.05, "_role": "snare bottom — buzz/snap support"}
+  ],
+  "excluded_for_dry": ["drum room.wav", "hi hat.wav (close mic)", "snare plate.wav (FX return)"],
+  "downstream": {
+    "punch": "shape_bands crossovers [120,2500]; low transient +0.4, mid transient +0.5 gain -1, high transient +0.4 gain +0.5",
+    "tone":  "presets/vst/apply_vst_preset.py presets/vst/tight-70s-dry.json"
+  }
+}

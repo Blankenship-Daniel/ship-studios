@@ -56,6 +56,9 @@ user can re-run, and point them at the spec for the next pass.
 
 ## Pitfalls
 
+- **Balance by measured loudness, not by eye.** Set levels off integrated LUFS (this skill does), never
+  eyeballed dB or RMS, and never by peak-normalizing the sum. The general method (+ the overhead-under-
+  close-mics rule for kits) is `[[mix-balance]]`. A balance problem is not an EQ problem — levels before tone.
 - **Equal-loudness is a scaffold, not a finished mix.** A -18 LUFS bass and -18
   LUFS vocal are *measured*-equal, not *perceived*-balanced — use `--spec` to
   taste; the first pass is only a starting line.

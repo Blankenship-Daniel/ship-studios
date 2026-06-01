@@ -79,6 +79,9 @@ route to [[master-track]] once the mix is clean.
 
 ## Pitfalls
 
+- **Balance the LEVELS first — many "tonal" problems are balance.** Too much hi-hat = overhead too loud;
+  mud/boom = an element over-level. Fix volumes with `[[mix-balance]]` (measured loudness) before
+  prescribing EQ — don't EQ-fix a balance problem.
 - **Don't master here.** No `render-mastered`, no loudness-normalize. That's
   [[master-track]]. Mixing and mastering stay separate stages.
 - **Believe the measurement over the vibe when they conflict.** "Too bright"

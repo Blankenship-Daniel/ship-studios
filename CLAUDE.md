@@ -288,6 +288,7 @@ Always master into `masters/`, never overwrite `mix/`. Deliverable exports land 
 - **Never hardcode API keys.** Use `${ANTHROPIC_API_KEY}` / `${GEMINI_API_KEY}` env expansion (already wired in `.mcp.json`); `.env.example` holds placeholders only.
 - **Only use verified tool names** from the surface above, spelled exactly (hyphen vs underscore matters).
 - **Measure before and after** any corrective/render step so changes are quantified.
+- **Balance volumes before EQ.** When summing stems/mics, set levels by **measured integrated LUFS** (`[[mix-balance]]` / `[[drum-mix]]` / `[[song-mix]]`), never eyeballed dB, never RMS (overheads read hot in LUFS and carry the hi-hat/cymbals → put them *under* the close mics), and never by peak-normalizing the sum. A balance problem (e.g. "too much hi-hat" = overhead too loud) is **not** an EQ problem; de-spill forward close mics with `[[bleed-gate]]` first.
 - BPM is required for `find-loops` / `analyze-loops` / `quantize-loop` / `extract-drums` — never guess; ask or read `track.md`.
 - **Capability docs are discoverable via skills.** The `[[gemini-audio]]` suite links to `docs/gemini-audio/*.md`; these reference skills link directly to their doc file — a deliberate extension of the usual skill→skill wikilink convention — so an agent can pull a Gemini audio capability doc on demand.
 

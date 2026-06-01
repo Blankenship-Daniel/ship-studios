@@ -87,6 +87,9 @@ target hit** — and point at [[master-track]] for loudness.
 
 ## Pitfalls
 
+- **Glue a properly-balanced bus only.** If elements sit wrong (too much hat/cymbal, a buried or over-loud
+  part), fix the LEVELS with `[[mix-balance]]` first — bus EQ/comp/glue can't fix a balance problem and
+  bakes it in.
 - **This is glue, not loudness.** Do **not** limit and do **not** render to a
   LUFS target here — that is [[master-track]]'s job. Hitting loudness at this
   stage double-processes the master and can't be undone.

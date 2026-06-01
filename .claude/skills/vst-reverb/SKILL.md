@@ -37,6 +37,11 @@ transient survives.
 
 ## Pitfalls
 
+- **Verify it renders + use `uaudio_*`.** Loads ≠ renders — confirm the wet pass actually changed the
+  signal (a 0.00 change = passthrough → run `[[vst-verify]]`). For UADx reverbs (EMT 140, AKG BX 20,
+  Capitol/Hitsville chambers) use the `uaudio_*.vst3` build, not the `UAD ….component` twins. Enum/bool
+  params (decay range, mode) need `[[vst-preset]]` rather than the float-only `apply-vst-chain` dict.
+
 - **Reverb decorrelates** — always check mono-sum loss; long wide tails can hollow out in mono.
 - **Insert vs send** — a 100% wet insert buries the dry; prefer a parallel blend for transient material.
 - HPF the reverb return (low-mud) — many reverbs have an input/return filter; use it.

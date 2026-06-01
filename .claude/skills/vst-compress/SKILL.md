@@ -36,6 +36,11 @@ Goal: apply a real **compressor** — FET (1176-style: `Black 76`, `Comp FET-76`
 
 ## Pitfalls
 
+- **Verify it renders, gain-stage, use `uaudio_*`.** Loads ≠ renders — confirm crest actually *dropped*
+  (a flat crest = passthrough → run `[[vst-verify]]`). Tube/opto comps need a healthy input level (~+18 dB)
+  to grab — `apply-vst-chain` can't gain-stage, so use `[[vst-preset]]`; many comp controls (input/threshold
+  enums) are non-float and also need the preset harness. For UADx (Fairchild/LA-2A/1176) use `uaudio_*.vst3`.
+
 - **Louder ≠ better** — makeup gain can disguise over-compression; judge by crest, not level.
 - **Attack sets punch** — too-fast attack kills transients on drums; verify with microdynamics.
 - Parallel feel? Some comps have built-in mix/blend; otherwise this is fully-wet (no parallel here).

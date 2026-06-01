@@ -1,0 +1,779 @@
+Abbey Road RS127 Box
+Abbey Road RS127 Rack
+Abbey Road RS135
+Active Equalizer
+ADPTR MetricAB
+Airwindows Consolidated
+American Class A
+Augmented VOICES
+Augmented WOODWINDS
+Augmented YANGTZE
+AutoAlign2
+B-3 V2
+Bass One
+Black 76
+Brickwall Limiter
+British Channel
+Buchla Easel V
+Bus Compressor
+Bus EXCITER-104
+Bus FORCE
+Bus PEAK
+bx_cleansweep V2
+bx_console AMEK 200
+bx_console AMEK 9099
+bx_console Focusrite SC
+bx_console N
+bx_console SSL 4000 E
+bx_console SSL 4000 G
+bx_console SSL 9000 J
+bx_masterdesk Classic
+bx_rockrack V3 Player
+bx_solo
+bx_subfilter
+Chandler Limited Curve Bender
+Chandler Limited Zener Limiter
+Chandler Limited Zener-Bender
+Channel Strip X
+Chorus DIMENSION-D
+Chorus JUN-6
+Classic Clipper
+Classic Comp
+Classic EQ
+Classic Multi Band Limiter
+Clavinet V
+Clipper
+CMI V
+Comp DIODE-609
+Comp FET-76
+Comp TUBE-STA
+Comp VCA-65
+Comprexxor
+Console Recall
+CORE Comp
+CP-70 V
+CS-80 V4
+CSR Hall
+CSR Inverse
+CSR Plate
+CSR Room
+CZ V
+De Esser
+Delay BRIGADE
+Delay ETERNITY
+Delay Lab
+Delay TAPE-201
+Dist COLDFIRE
+Dist OPAMP-21
+Dist TUBE-CULTURE
+DrumLeveler
+DrumsSSX
+Dual Spring
+DX7 V
+Dyna-Mu
+Efx FRAGMENTS
+Efx MOTIONS
+Efx REFRACT
+elysia niveau filter
+Empirical Labs Mike-E Comp
+Emulator II V
+EQ SITRAL-295
+EQ-73
+EQ-81
+EQ-PA
+EQ-PB
+EQ-PG
+EQP-1A
+EQual
+EZbass
+FabFilter Micro
+FabFilter Pro-C 2
+FabFilter Pro-DS
+FabFilter Pro-G
+FabFilter Pro-L 2
+FabFilter Pro-MB
+FabFilter Pro-Q 3
+FabFilter Pro-Q 4
+FabFilter Pro-R 2
+FabFilter Saturn 2
+FabFilter Simplon
+FabFilter Timeless 3
+FabFilter Twin 3
+FabFilter Volcano 3
+Fame Studio Reverb
+Farfisa V
+FET Compressor Mk II
+Filter Fusion
+Filter M12
+Filter MINI
+Filter MS-20
+Filter SEM
+Flanger BL-20
+Focusing Equalizer
+Fuchs Overdrive Supreme 50
+Fuchs Train II
+Ghz CanOpener Studio 3
+Ghz DC19 3
+Ghz DC19 3 B1
+Ghz Faraday Limiter 3
+Ghz Good Dither 3
+Ghz Lohi 3
+Ghz Lossy 3
+Ghz Loudness 3
+Ghz Megaverb 3
+Ghz Midside 3
+Ghz Midside Matrix 3
+Ghz Panpot 3
+Ghz Tiltshift 3
+Ghz Tone Control 3
+Ghz Trem Control 3
+Ghz Tupe 3
+Ghz Tupe Wow 3 B1
+Ghz VCME 3
+Ghz VCME Soft Clip 3
+Ghz Vulf Compressor 3
+Ghz Wow Control 3
+Harmonics Analog Saturation Processor
+Harrison DeNoiser
+Harrison_32Bus
+Harrison_32ClassicChannelStrip
+Harrison_BassFlow
+Harrison_De-Esser
+Harrison_DrumFlow
+Harrison_DynoMite
+Harrison_FasTrack
+Harrison_LegacyEQ
+Harrison_LookaheadCompressor
+Harrison_MasteringEQ
+Harrison_MicroGlide
+Harrison_MPCChannelStrip
+Harrison_MPCCompressor
+Harrison_MPCSpectralCompressor
+Harrison_MultiBandCompressor
+Harrison_SpectralGate
+Harrison_StunningPhaser
+Harrison_TremoloPanner
+Harrison_VocalFlow
+Harrison_VocalIntensityProcessor
+HoRNetAutoGainProMK2
+HoRNetLUMeterMK2
+HoRNetTheNormalizer
+HoRNetVUMeterMK4
+iZNeoverbAUHook
+iZNeutron4VisualMixerAUHook
+iZOzone10AUHook
+iZOzone10DynamicEQAUHook
+iZOzone10DynamicsAUHook
+iZOzone10EqualizerAUHook
+iZOzone10ExciterAUHook
+iZOzone10ImagerAUHook
+iZOzone10ImpactAUHook
+iZOzone10LowEndFocusAUHook
+iZOzone10MasterRebalanceAUHook
+iZOzone10MatchEQAUHook
+iZOzone10MaximizerAUHook
+iZOzone10SpectralShaperAUHook
+iZOzone10StabilizerAUHook
+iZOzone10VintageCompressorAUHook
+iZOzone10VintageEQAUHook
+iZOzone10VintageLimiterAUHook
+iZOzone10VintageTapeAUHook
+iZOzone11EqualizerAUHook
+iZRX10BreathControlAUHook
+iZRX10ConnectAUHook
+iZRX10De-clickAUHook
+iZRX10De-clipAUHook
+iZRX10De-crackleAUHook
+iZRX10De-essAUHook
+iZRX10De-humAUHook
+iZRX10De-plosiveAUHook
+iZRX10De-reverbAUHook
+iZRX10GuitarDe-noiseAUHook
+iZRX10MouthDe-clickAUHook
+iZRX10MusicRebalanceARAAUHook
+iZRX10RepairAssistantAUHook
+iZRX10SpectralDe-noiseAUHook
+iZRX10SpectralEditorAUHook
+iZRX10VoiceDe-noiseAUHook
+iZRX8BreathControlAUHook
+iZTonalBalanceControl2AUHook
+Joe Chiccarelli Vocal Strip
+kHs
+kHs 3-Band EQ
+kHs Bitcrush
+kHs Channel Mixer
+kHs Chorus
+kHs Comb Filter
+kHs Compressor
+kHs Delay
+kHs Distortion
+kHs Dual Delay
+kHs Dynamics
+kHs Ensemble
+kHs Filter
+kHs Flanger
+kHs Formant Filter
+kHs Frequency Shifter
+kHs Gain
+kHs Gate
+kHs Haas
+kHs Ladder Filter
+kHs Limiter
+kHs Nonlinear Filter
+kHs Phase Distortion
+kHs Phaser
+kHs Pitch Shifter
+kHs Resonator
+kHs Reverb
+kHs Reverser
+kHs Ring Mod
+kHs Shaper
+kHs Tape Stop
+kHs Trance Gate
+kHs Transient Shaper
+KIT BB A5
+KIT BB N105 V2
+KIT BB N73
+KORG MS-20 V
+Leslie
+Lindell 254E
+Lindell 354E
+Lindell 50 Buss
+Lindell 50 Channel
+Lindell 69 Buss
+Lindell 69 Channel
+Lindell 6X-500
+Lindell 7X-500
+Lindell 80 Bus
+Lindell 80 Channel
+Lindell 902 De-esser
+Lindell ChannelX
+Lindell MBC
+Lindell MU-66
+Lindell PEX-500
+Lindell SBC
+Lindell TE-100
+Linear Phase EQ
+Lo-Fi Punch
+Looptrotter SA2RATE2
+Maag EQ4
+Maag MAGNUM-K
+Master EQ-432
+Master Match X
+Mellotron V
+Melodyne
+Metering
+Mic Room
+Mini V3
+Mini V4
+MiniBrute V
+MiniFreak V
+Mir
+Mix DRUMS
+MixBox
+Modular V3
+Morgan Amps Suite
+Nectar 3
+NEOLD BIG AL
+NEOLD U17
+NEOLD U2A
+NEOLD V76U73
+NEOLD WARBLE
+NEOLD WUNDERLICH
+Neoverb
+NeuralAmpModeler
+Neutron 4
+Neutron 4 Compressor
+Neutron 4 Equalizer
+Neutron 4 Exciter
+Neutron 4 Gate
+Neutron 4 Sculptor
+Neutron 4 Transient Shaper
+Neutron 4 Unmask
+Neutron 4 Visual Mixer
+One
+OP-Xa V
+Opto Comp
+Overstayer M-A-S
+Overstayer M-A-S Extended
+Ozone 10
+Ozone 10 Dynamic EQ
+Ozone 10 Dynamics
+Ozone 10 Equalizer
+Ozone 10 Exciter
+Ozone 10 Imager
+Ozone 10 Impact
+Ozone 10 Low End Focus
+Ozone 10 Master Rebalance
+Ozone 10 Match EQ
+Ozone 10 Maximizer
+Ozone 10 Spectral Shaper
+Ozone 10 Stabilizer
+Ozone 10 Vintage Compressor
+Ozone 10 Vintage EQ
+Ozone 10 Vintage Limiter
+Ozone 10 Vintage Tape
+Ozone 11 Equalizer
+Passive Equalizer
+Phaser BI-TRON
+PluginDoctor
+Precision Comp-Limiter
+Pusher
+Quad Compressor
+Quad Image
+Quad Limiter
+Relay
+Rev INTENSITY
+Rev LX-24
+Rev PLATE-140
+Rev SPRING-636
+Rotary CLS-222
+RX 10 Breath Control
+RX 10 Connect
+RX 10 De-click
+RX 10 De-clip
+RX 10 De-crackle
+RX 10 De-ess
+RX 10 De-hum
+RX 10 De-plosive
+RX 10 De-reverb
+RX 10 Guitar De-noise
+RX 10 Monitor
+RX 10 Mouth De-click
+RX 10 Repair Assistant
+RX 10 Spectral De-noise
+RX 10 Voice De-noise
+RX 8 Breath Control
+Saturation Knob
+Saturator X
+SEM V2
+SEM V3
+Shadow Hills Class A Mastering Comp
+Shadow Hills Mastering Compressor
+Silencer
+SKY_Keys
+smartEQ4
+Solina V2
+SoundID Reference VST3 Plugin
+Space Delay
+Sphere Mic Collection
+Sphere Mic Collection 180
+SPL Free Ranger
+SplitEQ
+SQ80 V
+SSL 360 Link
+SSL 360 Link Bus Compressor
+SSL 4K B
+SSL 4K E
+SSL 4K G
+SSL Acoustifier
+SSL Blitzer
+SSL DeEss
+SSL Digicrush
+SSL Fusion HF Compressor
+SSL Fusion Stereo Image
+SSL Fusion Transformer
+SSL Fusion Vintage Drive
+SSL Fusion Violet EQ
+SSL G3 MultiBusComp
+SSL GateVerb
+SSL Guitarstrip
+SSL LMC+
+SSL Meter
+SSL Meter Pro
+SSL Module8
+SSL Native Bus Compressor 2
+SSL Native Channel Strip 2
+SSL Native Drumstrip v6
+SSL Native FlexVerb
+SSL Native Vocalstrip 2
+SSL Native X-Comp v6
+SSL Native X-Echo
+SSL Native X-EQ 2
+SSL Native X-Phase v6
+SSL Native X-Saturator v6
+SSL Native X-ValveComp v6
+SSL PlateVerb
+SSL Sourcerer
+SSL SubGen
+SSL X-Delay
+SSL X-DynEQ
+SSL X-Gate
+SSL X-Limit
+Stage-73 V2
+Stealth Limiter
+Summit Audio EQF-100
+Summit Audio Grand Channel
+Summit Audio TLA-100A
+Sunset Sound Studio Reverb
+Synclavier V
+Synthi V
+Synthx V
+T-RackS 6
+Tape
+Tape Echo
+Tape J-37
+Tape Machine 24
+Tape Machine 440
+Tape Machine 80
+Tape Machine 99
+Tape MELLO-FI
+TASCAM 388
+TASCAM PORTA ONE
+TEAC A-3340S
+TEAC A-6100 MKII
+The Farm Stone Room
+Tonal Balance Control 2
+Tone King Imperial MKII
+TONEX
+Toontrack Audio Sender
+TR5 Black 76
+TR5 Brickwall Limiter
+TR5 British Channel
+TR5 Bus Compressor
+TR5 Classic Clipper
+TR5 Classic Comp
+TR5 Classic EQ
+TR5 Classic Multi Band Limiter
+TR5 Comprexxor
+TR5 CSR Hall
+TR5 CSR Inverse
+TR5 CSR Plate
+TR5 CSR Room
+TR5 De Esser
+TR5 Dyna-Mu
+TR5 EQ-73
+TR5 EQ-81
+TR5 EQ-PA
+TR5 EQ-PB
+TR5 EQ-PG
+TR5 EQP-1A
+TR5 EQual
+TR5 Fame Studio Reverb
+TR5 Joe Chiccarelli Vocal Strip
+TR5 Leslie
+TR5 Linear Phase EQ
+TR5 Master EQ-432
+TR5 Master Match
+TR5 Metering
+TR5 Mic Room
+TR5 One
+TR5 Opto Comp
+TR5 Precision Comp-Limiter
+TR5 Quad Compressor
+TR5 Quad Image
+TR5 Quad Limiter
+TR5 Saturator X
+TR5 Space Delay
+TR5 Stealth Limiter
+TR5 Suite
+TR5 Sunset Sound Studio Reverb
+TR5 Tape Echo
+TR5 Tape Machine 24
+TR5 Tape Machine 440
+TR5 Tape Machine 80
+TR5 Tape Machine 99
+TR5 TASCAM 388
+TR5 TASCAM PORTA ONE
+TR5 TEAC A-3340S
+TR5 TEAC A-6100 MKII
+TR5 The Farm Stone Room
+TR5 VC-670
+TR5 White 2A
+TR5 White Channel
+Transient Shaper
+Trigger_2
+UAD 4K Buss Compressor
+UAD 4K Channel Strip
+UAD A-Type Multiband Enhancer
+UAD ADA Flanger
+UAD ADA STD-1 Stereo Tapped Delay
+UAD AKG BX 20
+UAD Ampeg B15N
+UAD Ampeg SVT3Pro
+UAD Ampeg SVTVR
+UAD Ampeg SVTVR Classic
+UAD Ampex ATR-102
+UAD AMS DMX 15-80 S
+UAD AMS Neve DFC Channel Strip
+UAD AMS RMX16
+UAD AMS RMX16 Expanded
+UAD API 2500
+UAD API 550A
+UAD API 560
+UAD API Preamp
+UAD API Vision Channel Strip
+UAD API Vision Channel Strip Legacy
+UAD Auto-Tune Realtime Access
+UAD Auto-Tune Realtime Advanced
+UAD Auto-Tune Realtime X
+UAD Avalon VT-737sp
+UAD Bermuda Triangle
+UAD Brigade Chorus
+UAD bx_digital V2
+UAD bx_digital V3
+UAD bx_digital V3 mix
+UAD bx_masterdesk
+UAD bx_masterdesk Classic
+UAD bx_refinement
+UAD bx_saturator V2
+UAD bx_subsynth
+UAD bx_tuner
+UAD C-Suite C-Axe
+UAD C-Suite C-Max
+UAD C-Suite C-Vox
+UAD Cambridge
+UAD Capitol Chambers
+UAD Century Tube Channel Strip
+UAD Chandler GAV19T
+UAD Chandler Limited Curve Bender
+UAD Chandler Limited Zener Limiter
+UAD Cooper Time Cube
+UAD CS-1
+UAD Dangerous BAX EQ Master
+UAD Dangerous BAX EQ Mix
+UAD dbx 160
+UAD Diezel Herbert
+UAD Diezel VH4
+UAD DreamVerb
+UAD Dytronics Cyclosonic Panner
+UAD Dytronics Tri-Stereo Chorus
+UAD Eden WT800
+UAD elysia alpha compressor V2
+UAD elysia alpha master
+UAD elysia alpha mix
+UAD elysia mpressor
+UAD Empirical Labs Distressor
+UAD Empirical Labs FATSO Jr
+UAD Empirical Labs FATSO Sr
+UAD EMT 140
+UAD EMT 250
+UAD ENGL E646 VS
+UAD ENGL E765 RT
+UAD ENGL Savage 120
+UAD EP-34 Tape Echo
+UAD Eventide H910 Harmonizer
+UAD Fairchild 660
+UAD Fairchild 670
+UAD Fairchild 670 Legacy
+UAD Fender 55 Tweed Deluxe
+UAD Friedman BE100
+UAD Friedman Buxom Betty
+UAD Friedman DS40
+UAD Fuchs Overdrive Supreme 50
+UAD Fuchs Train II
+UAD Galaxy Tape Echo
+UAD Gallien Krueger 800RB
+UAD Harrison 32C
+UAD Harrison 32C SE
+UAD Helios Type 69
+UAD Helios Type 69 Legacy
+UAD Hemisphere Mic Collection
+UAD Hitsville EQ
+UAD Hitsville EQ Mastering
+UAD Hitsville Reverb Chambers
+UAD Ibanez Tube Screamer TS808
+UAD Korg SDD-3000
+UAD LA-6176 Channel Strip
+UAD Lexicon 224
+UAD Lexicon 480L
+UAD Little Labs IBP
+UAD Little Labs VOG
+UAD Maag EQ4
+UAD Maag EQ4 MS
+UAD Manley Massive Passive
+UAD Manley Massive Passive MST
+UAD Manley Reference Mic Preamp
+UAD Manley Variable Mu
+UAD Manley VOXBOX
+UAD Marshall Bluesbreaker 1962
+UAD Marshall JMP 2203
+UAD Marshall Plexi Classic
+UAD Marshall Plexi Super Lead 1959
+UAD Marshall Silver Jubilee 2555
+UAD MDWEQ5-3B
+UAD MDWEQ5-5B
+UAD Millennia NSEQ-2
+UAD Moog Multimode Filter
+UAD Moog Multimode Filter SE
+UAD Moog Multimode Filter XL
+UAD MXR Flanger-Doubler
+UAD Neve 1073
+UAD Neve 1073 Legacy
+UAD Neve 1073SE Legacy
+UAD Neve 1081
+UAD Neve 1081SE
+UAD Neve 1084
+UAD Neve 2254 E
+UAD Neve 2254 E Dual
+UAD Neve 31102
+UAD Neve 31102SE
+UAD Neve 33609 C
+UAD Neve 33609SE
+UAD Neve 88RS
+UAD Neve 88RS Legacy
+UAD Neve Preamp
+UAD Ocean Way Mic Collection
+UAD Ocean Way Mic Collection 180
+UAD OTO Biscuit 8-bit Effects
+UAD Oxford Dynamic EQ
+UAD Oxford Envolution
+UAD Oxford EQ
+UAD Oxford Inflator
+UAD Oxford Limiter
+UAD Oxford SuprEsser DS
+UAD Oxide Tape
+UAD Precision Buss Compressor
+UAD Precision Channel Strip
+UAD Precision De-Esser
+UAD Precision Delay Mod
+UAD Precision Delay Mod L
+UAD Precision Enhancer Hz
+UAD Precision Enhancer kHz
+UAD Precision Equalizer
+UAD Precision K-Stereo
+UAD Precision Limiter
+UAD Precision Maximizer
+UAD Precision Multiband
+UAD Precision Reflection Engine
+UAD Pultec EQP-1A
+UAD Pultec EQP-1A Legacy
+UAD Pultec HLF-3C
+UAD Pultec MEQ-5
+UAD Pultec-Pro Legacy
+UAD Pure Plate
+UAD Putnam Mic Collection
+UAD Putnam Mic Collection 180
+UAD Raw
+UAD RealVerb-Pro
+UAD Roland CE-1
+UAD Roland Dimension D
+UAD Roland RE-201
+UAD Shadow Hills Class A Mastering Comp
+UAD Shadow Hills Mastering Compressor
+UAD Softube Amp Room Half-Stack
+UAD Softube Bass Amp Room
+UAD Softube Bass Amp Room 8x10
+UAD Softube Metal Amp Room
+UAD Softube Vintage Amp Room
+UAD Softube Vocoder
+UAD Sound Machine Wood Works
+UAD Sphere Mic Collection
+UAD Sphere Mic Collection 180
+UAD SPL Transient Designer
+UAD SPL TwinTube
+UAD SPL Vitalizer MK2-T
+UAD SPL Vitalizer MK3-T
+UAD SSL E Channel Strip
+UAD SSL E Channel Strip Legacy
+UAD SSL G Bus Compressor
+UAD SSL G Bus Compressor Legacy
+UAD Studer A800
+UAD Studio D Chorus
+UAD Suhr PT100
+UAD Suhr SE100
+UAD Summit Audio TLA-100A
+UAD Teletronix LA-2
+UAD Teletronix LA-2A Gray
+UAD Teletronix LA-2A Legacy
+UAD Teletronix LA-2A Silver
+UAD Teletronix LA-3A
+UAD Thermionic Culture Vulture
+UAD Tonelux Tilt
+UAD Tonelux Tilt Live
+UAD Trident A-Range
+UAD TS Overdrive
+UAD Tube-Tech CL 1B
+UAD Tube-Tech CL 1B mk II
+UAD Tube-Tech ME 1B
+UAD Tube-Tech PE 1C
+UAD UA 1176 Rev A
+UAD UA 1176AE
+UAD UA 1176LN Legacy
+UAD UA 1176LN Rev E
+UAD UA 1176SE Legacy
+UAD UA 175-B
+UAD UA 176
+UAD UA 610-A
+UAD UA 610-B
+UAD V76 Preamp
+UAD Valley People Dyna-mite
+UAD Vertigo VSC-2
+UAD Vertigo VSM-3
+uaudio_175_b
+uaudio_176
+uaudio_610_a
+uaudio_610_b
+uaudio_a_type_multiband
+uaudio_ampex_atr-102_tape
+uaudio_anthem
+uaudio_api_2500
+uaudio_api_vision_channel_strip
+uaudio_avalon_vt-737sp
+uaudio_brigade_chorus
+uaudio_capitol_chambers
+uaudio_capitol_compressor
+uaudio_century_channel_strip
+uaudio_dbx_160
+uaudio_distressor
+uaudio_dream_amp
+uaudio_enigmatic_amp
+uaudio_fairchild_660
+uaudio_fairchild_670
+uaudio_galaxy_tape_echo
+uaudio_helios_type_69
+uaudio_hitsville_chambers
+uaudio_hitsville_eq
+uaudio_hitsville_eq_mastering
+uaudio_la3a
+uaudio_la_6176
+uaudio_lexicon_224
+uaudio_lion_amp
+uaudio_little_labs_vog
+uaudio_manley_massive_passive
+uaudio_manley_massive_passive_m
+uaudio_manley_preamp
+uaudio_manley_variable_mu
+uaudio_manley_voxbox
+uaudio_minimoog
+uaudio_neve_1073
+uaudio_ocean_way_studios_deluxe
+uaudio_opal
+uaudio_oxide_tape
+uaudio_paradise_guitar_studio
+uaudio_polymax
+uaudio_pultec_eqp-1a
+uaudio_pultec_hlf-3c
+uaudio_pultec_meq-5
+uaudio_pure_plate
+uaudio_ruby_amp
+uaudio_showtime_amp
+uaudio_sound_city_studios
+uaudio_ssl_e_channel_strip
+uaudio_ssl_g_bus_compressor
+uaudio_studer_a800
+uaudio_studio_d_chorus
+uaudio_teletronix_la-2
+uaudio_teletronix_la-2a_gray
+uaudio_teletronix_la-2a_silver
+uaudio_topline_key_finder
+uaudio_topline_vocal_suite
+uaudio_ua_1176_rev_a
+uaudio_ua_1176ae
+uaudio_ua_1176ln_rev_e
+uaudio_verve
+uaudio_verve_essentials
+uaudio_waterfall_b3
+uaudio_waterfall_rotary_speaker
+uaudio_woodrow_amp
+ValhallaPlate
+ValhallaShimmer
+ValhallaShimmerAU64
+VC-670
+Vertigo VSC-2
+Vocoder V
+Wasted Space
+White 2A
+White Channel
+Wurli V2
+Wurli V3

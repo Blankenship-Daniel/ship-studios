@@ -20,13 +20,15 @@ Goal: answer "what can I actually use?" — search the installed VST3/AU plugins
 1. **Live scan** — `[L] list-vst-plugins` (optionally `{name_contains}` to narrow, e.g. a vendor or
    "comp"/"verb"/"eq"). Returns name · path · format for everything installed.
 2. **Filter to headless-safe** — keep only titles present in
-   [`demo/headless-safe-titles.txt`](../../../demo/headless-safe-titles.txt). Flag anything installed
-   but *not* in that list as **blocked** (iLok/UAD/unauthorized — won't render unattended) so the
-   user isn't tempted to use it.
+   [`demo/headless-safe-titles.txt`](../../../demo/headless-safe-titles.txt). **That list is a *load*
+   probe — loads ≠ renders**; for UADx prefer the `uaudio_*.vst3` build (the `UAD ….component` twins
+   passthrough), and re-verify anything recently installed with `[[vst-verify]]`. Flag installed-but-not-listed
+   plugins as **blocked** (iLok/UAD/unauthorized) so the user isn't tempted to use them.
 3. **Group by task** — bucket the safe matches using the category map in
    [`docs/vst/README.md`](../../../docs/vst/README.md) (EQ, comp, reverb, tape, channel-strip, …).
-4. Optionally **probe** a specific title's loadability live by handing it to `[[vst-chain]]` on a
-   short test WAV (the definitive check if the snapshot is stale).
+4. **Confirm it renders** — for any pick (or a recently installed/updated plugin), run `[[vst-verify]]`:
+   it pushes a param and proves the plugin processes vs passes through — the definitive check the load
+   list can't give.
 
 ## Outputs
 
@@ -39,10 +41,11 @@ Goal: answer "what can I actually use?" — search the installed VST3/AU plugins
 
 ## Pitfalls
 
-- **Snapshot drift** — `demo/headless-safe-titles.txt` is a point-in-time load-probe. If the user
-  just installed/authorized something, re-probe live (step 4) rather than trusting the snapshot.
+- **Loads ≠ renders.** The list is a load-probe; a listed title can still passthrough (UAD `.component`,
+  unauthorized). Confirm a pick with `[[vst-verify]]`.
+- **UAD two builds** — `uaudio_*.vst3` renders; `UAD ….component`/`.vst3` passthrough → always steer to `uaudio_*`.
 - **Format dupes** — the same plugin appears as VST3 + AU; prefer the VST3 path. AU is macOS-only.
-- Don't suggest a blocked plugin to any downstream skill.
+- Don't suggest a blocked/passthrough plugin to any downstream skill.
 
 ## Related
 

@@ -36,6 +36,10 @@ BBD/analog (`Delay BRIGADE`), or flexible/tempo (`FabFilter Timeless 3`). A task
 
 ## Pitfalls
 
+- **Verify it renders + use `uaudio_*`.** Loads ≠ renders — confirm the repeats actually appear (a 0.00
+  change = passthrough → run `[[vst-verify]]`). For UADx (EP-34, Galaxy, Cooper Time Cube) use the
+  `uaudio_*.vst3` build, not the `UAD ….component` twin. Enum/bool controls (sync, mode) need `[[vst-preset]]`.
+
 - **BPM required for sync** — get it from `track.md`; a guessed time smears the groove.
 - **Feedback runaway** — high feedback on a self-oscillating tape echo can build up; keep it bounded.
 - Filter the repeats (darker = further back) so the delay supports rather than clutters.

@@ -39,6 +39,11 @@ Room`). A task preset of `[[vst-chain]]` aimed at tracking / reamping, not the 2
 
 ## Pitfalls
 
+- **Verify it renders, gain-stage, use `uaudio_*`.** Loads ≠ renders — confirm the tone actually shifted
+  (a 0.00 change = passthrough → run `[[vst-verify]]`). Amp sims want a healthy DI level in — drive it via
+  `[[vst-preset]]` if quiet. NAM/TONEX capture files + amp enum controls aren't floats; restore them via a
+  saved `state_path`/preset, not `apply-vst-chain`'s dict. For UADx amps use the `uaudio_*.vst3` build.
+
 - **DI in, not amped** — feeding an already-amped signal double-amps it; use the direct track.
 - **Capture files** — NAM/TONEX tones live in a loaded model file; capture it into `dump_state` so the
   render reproduces (parameters alone won't restore the model).

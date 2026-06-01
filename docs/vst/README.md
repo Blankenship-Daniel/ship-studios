@@ -12,23 +12,34 @@ so `apply-vst-chain` can load and render through it without a window, a dialog, 
 established empirically: every installed VST3/AU was load-tested via Pedalboard in an isolated,
 timeout-guarded subprocess. **779 of 944 loadable titles passed.**
 
+⚠️ **This is a *load* probe — loads ≠ renders.** A title can load yet pass audio through unprocessed
+(notably the UAD `.component` build) or ignore its parameters. Before trusting a plugin, confirm it
+actually *processes* with `[[vst-verify]]` (a parameter-response probe). The list below over-counts.
+
 - Full raw list: [`../../demo/headless-safe-titles.txt`](../../demo/headless-safe-titles.txt) (779 titles)
 - Full table + the blocked set with reasons: [`../../demo/installed-plugins-headless-safe.md`](../../demo/installed-plugins-headless-safe.md)
 
 **Skills must only ever suggest a plugin that appears in that list.** Confirm the on-disk path at
-run time with `[L] list-vst-plugins {name_contains}` before calling `apply-vst-chain`.
+run time with `[L] list-vst-plugins {name_contains}` before calling `apply-vst-chain` — and for UADx
+prefer the `uaudio_*.vst3` build. When in doubt a plugin renders (vs just loads), screen it with `[[vst-verify]]`.
 
 ## Caveats (carry these into every skill)
 
 - **Non-deterministic & opt-in.** Unlike the pure-DSP tools, this loads an external binary whose
   output isn't reproducible across plugin versions. Pin versions; persist `dump_state` blobs.
-- **A clean load ≠ a valid render.** An *installed but unlicensed* plugin can instantiate in
-  demo/silent mode. Most of the 779 are machine-licensed (so they render normally), but always
-  **re-measure** after applying — if `changed:false` or the output is silent/nagged, flag it.
+- **A clean load ≠ a valid render.** A plugin can instantiate yet pass audio through or ignore its
+  params (demo/unlicensed, or the UAD `.component` build). Always **re-measure detail** after applying —
+  spectrum / crest / tilt, not just `changed:true`/LUFS; a **0.00 change = passthrough**. Screen with `[[vst-verify]]`.
+- **UAD has two builds (critical).** `/Library/Audio/Plug-Ins/VST3/uaudio_*.vst3` (UADx native) **renders
+  headless**; the `/Components/UAD ….component` and `/VST3/Universal Audio/UAD ….vst3` twins **pass audio
+  through unprocessed** offline — they ignore params even when authorized. **Always load the `uaudio_*.vst3`
+  path.** Candidate names below written `UAD …` mean the `uaudio_*` build.
+- **Gain-stage analog units.** Tube comps / tape / consoles need ~+18 dB into the chain to engage;
+  `apply-vst-chain` has no gain-stage → use `[[vst-preset]]` for chains that need drive.
 - **Format/OS.** VST3 is cross-platform; **AU (`.component`) is macOS-only**. Prefer VST3 paths.
 - **Blocked classes** (will *not* render unattended here): iLok-gated vendors not machine-authorized
   (**Slate Digital**, **Eiosis**, part of **iZotope**), **UAD-2 DSP** (needs Apollo hardware), and
-  **UAD Spark** subscriptions (cloud/dongle). UA *perpetual native UADx* are fine (machine-licensed).
+  **UAD Spark** subscriptions (cloud/dongle). UA *perpetual native UADx* are fine — via `uaudio_*.vst3`.
 
 ## Strong candidates by task (all confirmed headless-safe on this Mac)
 
@@ -47,7 +58,16 @@ Pick from these first; fall back to the raw list. Names are exact (feed to `list
 | **Amp / pedal (guitar/bass)** | `TONEX`, `NeuralAmpModeler`, `UAD Softube Bass Amp Room`, `UAD Softube Metal Amp Room` | `[[vst-amp]]` |
 
 > Avoid (blocked here): `AIR Studios Reverb`, anything `Slate …`, `Eiosis …`, the clean `Ozone 11 …`
-> VST3 entries (use FabFilter/SSL for mastering instead). When unsure, grep the raw list.
+> VST3 entries (use FabFilter/SSL for mastering instead), and the `UAD ….component` build — load the
+> `uaudio_*.vst3` twin instead. When unsure it renders, screen with `[[vst-verify]]`; grep the raw list.
+
+## Presets
+
+Saved, reusable chains live in [`presets/vst/`](../../presets/vst/README.md) — a portable recipe
+(gain-stage → chain → narrow → trim) + byte-exact `.state` blobs, re-applicable to any file via
+`presets/vst/apply_vst_preset.py`. Available: **`vintage-1960s`** (UADx Pultec → Fairchild 670 →
+Ampex tape → period-mono; warm/dark/glued 1960s drums) and **`tight-70s`** (UADx Neve 1073 → dbx 160
+→ Studer A800 @15 IPS; punchy/dry/present 1970s drums). Presets use the `uaudio_*.vst3` UADx build.
 
 ## Refresh
 

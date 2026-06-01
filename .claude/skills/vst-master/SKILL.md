@@ -45,6 +45,11 @@ reach here when the user specifically wants their own mastering plugins.
 
 ## Pitfalls
 
+- **Verify each stage renders + use `uaudio_*`.** Loads ≠ renders — confirm every stage moves the
+  *detail* (a 0.00 change = passthrough → run `[[vst-verify]]`). If a stage needs gain-staging or
+  enum/bool params (e.g. a tube/tape master unit), drive it via `[[vst-preset]]` — `apply-vst-chain`
+  can't. For any UADx unit use the `uaudio_*.vst3` build (the `UAD ….component` twins passthrough).
+
 - **Non-deterministic & opt-in** — a plugin master won't reproduce across plugin updates; keep the
   `.state` blobs. For a deterministic, dependency-free master use `[[master-track]]`.
 - **True-peak overshoot** — verify dBTP after the limiter; inter-sample peaks can exceed sample peaks.

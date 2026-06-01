@@ -36,6 +36,11 @@ plugin's curve/character.
 
 ## Pitfalls
 
+- **Verify it renders + use `uaudio_*`.** Loads ≠ renders — confirm the tilt/band actually moved (a
+  0.00 spectrum change = passthrough → run `[[vst-verify]]`). For UADx (Pultec/Neve) pick the
+  `uaudio_*.vst3` build, never the `UAD ….component` twins (they ignore params). If a unit needs
+  gain-staging or enum params, drive it via `[[vst-preset]]`.
+
 - **Vintage EQs aren't surgical** — Pultecs/Neves have fixed/stepped freqs and their own curves; use
   Pro-Q for precise notches.
 - **Pultec low-end trick** — boosting + attenuating the same low band is a feature, not a mistake.

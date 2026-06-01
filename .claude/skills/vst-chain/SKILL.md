@@ -23,14 +23,18 @@ to read.
 1. **Baseline** — `[L] measure-loudness {path}` + `[L] measure-spectrum {path}` (add
    `[L] measure-stereo` if width/space matters). This is the "before" column.
 2. **Choose plugins** — pick candidates from the inventory ([`docs/vst/README.md`](../../../docs/vst/README.md));
-   confirm each on-disk path with `[L] list-vst-plugins {name_contains:"<name>"}`. **Never pass a
-   plugin that isn't in the headless-safe list.** Confirm ambiguous picks with the user.
+   confirm each on-disk path with `[L] list-vst-plugins {name_contains:"<name>"}`. **Prefer the build that
+   renders** — for UADx use `uaudio_*.vst3`, never the `UAD ….component` twins (they passthrough). If unsure a
+   plugin actually processes, pre-screen with `[[vst-verify]]` (loads ≠ renders). Confirm ambiguous picks with the user.
 3. **Apply** — `[L] apply-vst-chain {path, out_path:"projects/<track>/mix/<name>_vst.wav",
    plugins:[{plugin_path, parameters?}, …], dump_state:true}`. Order = signal flow. Set `parameters`
    in the plugin's native range (often 0..1); for a precise patch, restore a prior `state_path` blob.
-4. **Verify** — re-run `[L] measure-loudness` + `[L] measure-spectrum` on the output. Confirm the
-   result's `changed:true`. If `changed:false` or the output reads silent/demo, the plugin is likely
-   unlicensed — **stop and flag it**, don't ship a demo render.
+   **Two things apply-vst-chain can't do** → hand off to `[[vst-preset]]`: (a) a **gain-stage** (analog
+   units need ~+18 dB to engage), and (b) **enum/string/bool params** (its `parameters` is float-only).
+4. **Verify — processing probe, not just `changed`.** Re-run `[L] measure-spectrum` (+ `measure-loudness`/
+   `measure-microdynamics`) and confirm the move landed in the *detail*. A **0.00 change in spectrum/crest/tilt
+   = passthrough** even when `changed:true` — stop, run `[[vst-verify]]` / switch to the `uaudio_*` build.
+   Don't ship a passthrough/demo render.
 5. Write to `projects/<track>/mix/` (loops → `projects/<track>/loops/`).
 
 ## Outputs
@@ -45,10 +49,16 @@ to read.
 
 ## Pitfalls
 
-- **Demo-mode silence** — a clean load isn't a licensed render; always re-measure (step 4).
+- **Loads ≠ renders.** A clean load (or `changed:true`) isn't proof of processing — a plugin can pass
+  audio through or ignore its params (UAD `.component` build, unauthorized/demo). Verify *detail* changed;
+  pre-screen with `[[vst-verify]]`.
+- **Gain-stage analog units.** Tube comp / tape / console barely process a quiet bus — drive the input
+  (~+18 dB) via `[[vst-preset]]`; `apply-vst-chain` has no gain-stage.
+- **Enum/bool params need `[[vst-preset]]`** — `apply-vst-chain` is float-only; `output='-6.0 dB'`,
+  `gain='Low'`, `auto_cal=False` can't go through its dict.
 - **Order matters** — EQ-before-comp vs comp-before-EQ are different results; mirror intended signal flow.
-- **Non-deterministic** — pin plugin versions and keep the `.state` blob in the project; a VST render
-  won't reproduce across plugin updates the way the pure-DSP tools do.
+- **Non-deterministic** — pin plugin versions and keep the `.state` blob / preset; a VST render won't
+  reproduce bit-exactly (tape flutter etc.) the way the pure-DSP tools do.
 - **AU is macOS-only** — prefer the VST3 path for portability.
 
 ## Related

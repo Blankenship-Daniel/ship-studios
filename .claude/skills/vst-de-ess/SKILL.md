@@ -36,6 +36,11 @@ band and threshold **grounded by `[G] find-sibilance`** rather than guessed. A t
 
 ## Pitfalls
 
+- **Verify it renders + use `uaudio_*`.** Loads ≠ renders — confirm the sibilant band actually came down
+  (a 0.00 high-band change = passthrough → run `[[vst-verify]]`). For any UADx de-esser use the
+  `uaudio_*.vst3` build, not the `UAD ….component` twin. Enum/bool params need `[[vst-preset]]`, not
+  `apply-vst-chain`'s float dict.
+
 - **Over-de-essing lisps the vocal** — aim for a few dB of GR on the peaks only; verify by ear/spectrum.
 - **Wrong band dulls everything** — use `[G] find-sibilance`, don't guess a generic 6 kHz.
 - Thin plugin category — if none of the safe de-essers fit, `[L] de-ess` (pure DSP) is always available.

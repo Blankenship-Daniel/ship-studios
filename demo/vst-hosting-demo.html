@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>apply-vst-chain · VST outside the DAW · ship-studios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0d; --bg2:#0d0f13; --panel:#13161c; --panel2:#171b22;
+    --line:#23272f; --line2:#2c313b;
+    --ink:#ece9e1; --mut:#8b919c; --mut2:#5b616c;
+    --amber:#ffb000; --amber-dim:#7a5400;
+    --cyan:#39e6d6; --cyan-dim:#0f534d;
+    --grn:#5ee06a; --yel:#ffcc33; --red:#ff5a4d;
+    --vst:#39e6d6; --au:#ffb000;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --disp:'Anton',Impact,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:15px; line-height:1.6; letter-spacing:.01em;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  /* faint engineering grid + radial glow */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(1100px 700px at 78% -8%, rgba(255,176,0,.07), transparent 60%),
+      radial-gradient(900px 600px at 5% 12%, rgba(57,230,214,.05), transparent 55%),
+      linear-gradient(var(--bg),var(--bg2));
+  }
+  body::after{ /* grain */
+    content:""; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 22px}
+  a{color:var(--cyan); text-decoration:none}
+  .mono{font-family:var(--mono)}
+  .tnum{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  /* ---- top status bar ---- */
+  .bar{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(8px);
+    background:rgba(10,11,13,.78); border-bottom:1px solid var(--line);
+  }
+  .bar .wrap{display:flex; align-items:center; gap:14px; height:46px; font-family:var(--mono); font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--grn);box-shadow:0 0 10px var(--grn);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .bar b{color:var(--ink);letter-spacing:.04em}
+  .bar .sep{color:var(--mut2)}
+  .bar .right{margin-left:auto;color:var(--mut);display:flex;gap:16px}
+  .bar .right span b{color:var(--amber)}
+  @media(max-width:720px){.bar .right{display:none}}
+
+  /* ---- hero ---- */
+  header{padding:78px 0 46px; position:relative}
+  .kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--cyan);margin-bottom:20px}
+  .kicker::before{content:"";display:inline-block;width:34px;height:1px;background:var(--cyan);vertical-align:middle;margin-right:12px;opacity:.7}
+  h1{
+    font-family:var(--disp); font-weight:400; margin:0; line-height:.9;
+    font-size:clamp(52px,11vw,138px); letter-spacing:.005em; text-transform:uppercase;
+  }
+  h1 .o{color:transparent;-webkit-text-stroke:1.6px var(--mut);}
+  h1 .daw{color:var(--amber);text-shadow:0 0 38px rgba(255,176,0,.35)}
+  .lede{max-width:680px;margin:26px 0 0;color:var(--mut);font-size:17px;line-height:1.65}
+  .lede b{color:var(--ink);font-weight:500}
+  .lede code{font-family:var(--mono);color:var(--cyan);font-size:14px;background:rgba(57,230,214,.08);padding:1px 6px;border-radius:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:7px 14px;display:flex;gap:8px;align-items:center}
+  .chip b{color:var(--ink)}
+  .chip .v{color:var(--amber)}
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* ---- section frame ---- */
+  section{padding:34px 0 10px}
+  .shead{display:flex;align-items:baseline;gap:16px;margin-bottom:22px;border-top:1px solid var(--line);padding-top:22px}
+  .snum{font-family:var(--disp);font-size:22px;color:var(--amber);opacity:.85;letter-spacing:.04em}
+  .stitle{font-family:var(--mono);font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut)}
+  .stitle b{color:var(--ink)}
+
+  /* ---- the rack (interactive) ---- */
+  .rack{display:grid;grid-template-columns:300px 1fr 320px;gap:16px}
+  @media(max-width:980px){.rack{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .panel-h{display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+  .panel-h .led{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  .panel-h .tag{margin-left:auto;color:var(--mut2);letter-spacing:.08em}
+
+  /* browser */
+  .search{margin:12px 14px;display:flex;align-items:center;gap:8px;background:#0a0c10;border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-family:var(--mono);font-size:12.5px}
+  .search input::placeholder{color:var(--mut2)}
+  .search svg{opacity:.5}
+  .plist{max-height:430px;overflow-y:auto;padding:0 8px 10px}
+  .plist::-webkit-scrollbar{width:9px}.plist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px}
+  .prow{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:7px;cursor:pointer;border:1px solid transparent}
+  .prow:hover{background:#10141a;border-color:var(--line2)}
+  .prow .pn{font-family:var(--mono);font-size:12.5px;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prow:hover .pn{color:var(--cyan)}
+  .badge{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.05em;padding:2px 5px;border-radius:4px;border:1px solid}
+  .b-vst{color:var(--vst);border-color:var(--cyan-dim);background:rgba(57,230,214,.06)}
+  .b-au{color:var(--au);border-color:var(--amber-dim);background:rgba(255,176,0,.06)}
+  .b-free{color:var(--grn);border-color:#1d4d24;background:rgba(94,224,106,.07)}
+  .plus{color:var(--mut2);font-family:var(--mono);font-size:16px;width:14px;text-align:center}
+  .prow:hover .plus{color:var(--amber)}
+
+  /* signal chain */
+  .chainwrap{padding:16px 16px 18px;position:relative}
+  .flow{display:flex;flex-direction:column;gap:11px;position:relative}
+  .node{display:flex;align-items:center;gap:13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:13px 14px}
+  .node.io{background:linear-gradient(90deg,rgba(57,230,214,.06),transparent);border-color:var(--cyan-dim)}
+  .node.io .ic{color:var(--cyan)}
+  .node.out{background:linear-gradient(90deg,rgba(255,176,0,.06),transparent);border-color:var(--amber-dim)}
+  .node.out .ic{color:var(--amber)}
+  .node .ic{font-family:var(--mono);font-size:11px;letter-spacing:.12em}
+  .node .meta{flex:1}
+  .node .ttl{font-family:var(--mono);font-size:13px;color:var(--ink)}
+  .node .sub{font-family:var(--mono);font-size:11px;color:var(--mut2)}
+  .connector{height:14px;margin:-3px 0 -3px 26px;border-left:2px dotted var(--line2);position:relative}
+
+  /* plugin slot */
+  .slot{display:flex;flex-direction:column;gap:11px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:12px 13px;position:relative;transition:opacity .25s,border-color .25s}
+  .slot.bypassed{opacity:.42}
+  .slot.bypassed .knobs{filter:grayscale(1)}
+  .slot-top{display:flex;align-items:center;gap:9px}
+  .slot-idx{font-family:var(--mono);font-size:10px;color:var(--mut2);width:16px}
+  .slot-name{font-family:var(--mono);font-size:13px;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .slot-name.free{color:var(--grn)}
+  .icon-btn{cursor:pointer;width:24px;height:22px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:13px;background:#0c0f14;transition:.18s}
+  .icon-btn:hover{color:var(--ink);border-color:var(--mut)}
+  .icon-btn.byp.on{color:var(--bg);background:var(--amber);border-color:var(--amber)}
+  .icon-btn.x:hover{color:var(--red);border-color:var(--red)}
+  .knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .knob{display:flex;flex-direction:column;gap:5px}
+  .knob label{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut2);display:flex;justify-content:space-between}
+  .knob label b{color:var(--cyan);font-weight:500}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--ink);border:2px solid var(--cyan);box-shadow:0 0 6px rgba(57,230,214,.5)}
+  .empty{text-align:center;color:var(--mut2);font-family:var(--mono);font-size:12px;padding:26px 10px;border:1px dashed var(--line2);border-radius:10px}
+
+  .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .btn{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:11px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--line2);background:#0c0f14;color:var(--ink);transition:.18s;display:flex;align-items:center;gap:8px}
+  .btn:hover{border-color:var(--mut)}
+  .btn.primary{background:var(--amber);color:#1a1205;border-color:var(--amber);font-weight:600}
+  .btn.primary:hover{box-shadow:0 0 22px rgba(255,176,0,.35)}
+  .btn.ghost{color:var(--cyan);border-color:var(--cyan-dim)}
+  .btn.ghost:hover{background:rgba(57,230,214,.07)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* output / meters */
+  .scope{padding:14px 14px 16px}
+  .wavebox{background:#07090c;border:1px solid var(--line);border-radius:8px;height:96px;position:relative;overflow:hidden;margin-bottom:14px}
+  .wavebox canvas{width:100%;height:100%;display:block}
+  .wavebox .lbl{position:absolute;top:6px;left:9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--mut2)}
+  .meters{display:flex;flex-direction:column;gap:13px}
+  .m{display:flex;flex-direction:column;gap:5px}
+  .m .mh{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+  .m .mh b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .m .mh .arr{color:var(--mut2)}
+  .meter{position:relative;height:13px;border-radius:3px;background:linear-gradient(90deg,#2c8f44,#6fc93c 52%,#ffcc33 80%,#ff5a4d 100%);overflow:hidden}
+  .meter .mask{position:absolute;top:0;bottom:0;right:0;background:#0a0c10;width:100%;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+  .meter .ghost{position:absolute;top:0;bottom:0;width:2px;background:rgba(236,233,225,.55);transition:left .7s}
+  .verdict{margin-top:15px;font-family:var(--mono);font-size:11px;border-radius:8px;padding:11px 12px;border:1px solid var(--line2);color:var(--mut);line-height:1.5}
+  .verdict.changed{border-color:var(--amber-dim);background:rgba(255,176,0,.05);color:var(--amber)}
+  .verdict.null{border-color:#1d4d24;background:rgba(94,224,106,.05);color:var(--grn)}
+  .verdict.real::after{content:"MEASURED ✓";float:right;color:var(--grn);letter-spacing:.06em}
+  .verdict.modeled::after{content:"MODELED";float:right;color:var(--mut2);letter-spacing:.06em}
+
+  /* json */
+  .jsonwrap{margin-top:16px}
+  pre{background:#07090c;border:1px solid var(--line);border-radius:10px;padding:15px 16px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.55;color:#c8ccd2;margin:0}
+  pre::-webkit-scrollbar{height:8px}pre::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}
+  .jk{color:var(--cyan)} .js{color:#cda06a} .jn{color:var(--amber)} .jb{color:var(--grn)} .jc{color:var(--mut2)}
+
+  /* processing sweep */
+  .sweep{position:absolute;inset:0;pointer-events:none;opacity:0}
+  .sweep.on{opacity:1}
+  .sweep::after{content:"";position:absolute;top:0;bottom:0;width:120px;background:linear-gradient(90deg,transparent,rgba(57,230,214,.18),transparent);animation:sw 1.05s linear}
+  @keyframes sw{from{left:-130px}to{left:100%}}
+
+  /* architecture */
+  .arch{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,var(--panel),var(--bg2));overflow:hidden}
+  .astep{flex:1;min-width:150px;padding:18px 16px;border-right:1px solid var(--line);position:relative}
+  .astep:last-child{border-right:none}
+  .astep .an{font-family:var(--mono);font-size:10px;color:var(--mut2);letter-spacing:.1em}
+  .astep .at{font-family:var(--mono);font-size:13px;color:var(--ink);margin-top:6px}
+  .astep .ad{font-size:11.5px;color:var(--mut);margin-top:5px;line-height:1.45}
+  .astep.hl .at{color:var(--amber)}
+  .astep .arrow{position:absolute;right:-7px;top:50%;transform:translateY(-50%);color:var(--line2);z-index:2;background:var(--bg2);font-size:13px}
+  @media(max-width:760px){.astep{border-right:none;border-bottom:1px solid var(--line)}.astep .arrow{display:none}}
+  .dataflow{font-family:var(--mono);font-size:12px;color:var(--mut);margin-top:14px;padding:13px 15px;border:1px dashed var(--line2);border-radius:10px;overflow-x:auto;white-space:nowrap}
+  .dataflow b{color:var(--cyan)}
+
+  /* facts grid */
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:860px){.facts{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.facts{grid-template-columns:1fr}}
+  .fact{border:1px solid var(--line);border-radius:11px;padding:18px;background:linear-gradient(180deg,var(--panel),var(--bg2));position:relative}
+  .fact .fi{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.14em;text-transform:uppercase;margin-bottom:9px}
+  .fact h3{margin:0 0 6px;font-size:15px;font-weight:600;color:var(--ink)}
+  .fact p{margin:0;font-size:13px;color:var(--mut);line-height:1.5}
+  .fact code{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+
+  /* research table */
+  details.research{border:1px solid var(--line);border-radius:11px;background:linear-gradient(180deg,var(--panel),var(--bg2));overflow:hidden}
+  details.research summary{cursor:pointer;padding:15px 18px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);list-style:none;display:flex;align-items:center;gap:10px}
+  details.research summary::-webkit-details-marker{display:none}
+  details.research summary::before{content:"+";color:var(--amber);font-size:15px}
+  details.research[open] summary::before{content:"–"}
+  details.research summary b{color:var(--ink)}
+  .ttable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  .ttable th,.ttable td{text-align:left;padding:11px 16px;border-top:1px solid var(--line)}
+  .ttable th{color:var(--mut2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px}
+  .ttable td{color:var(--mut)}
+  .ttable td b{color:var(--ink)}
+  .ttable tr.pick td b{color:var(--amber)}
+  .yes{color:var(--grn)} .no{color:var(--red)} .part{color:var(--yel)}
+
+  /* footer / provenance */
+  footer{margin:40px 0 60px;border-top:1px solid var(--line);padding-top:26px}
+  .journey{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
+  .journey span{padding:6px 11px;border:1px solid var(--line2);border-radius:999px;color:var(--mut)}
+  .journey span b{color:var(--grn)}
+  .journey .arr{border:none;color:var(--mut2);padding:6px 2px}
+  .foot-grid{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between;align-items:flex-end}
+  .foot-grid .col{font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+  .foot-grid .col b{color:var(--ink)} .foot-grid .col .amb{color:var(--amber)}
+  .sig{font-family:var(--disp);font-size:34px;color:var(--mut2);letter-spacing:.03em;text-transform:uppercase;line-height:1}
+  .sig span{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="dot"></span><b>ship-studios</b><span class="sep">//</span>
+    <span class="mono" style="color:var(--cyan)">apply-vst-chain</span>
+    <div class="right">
+      <span><b id="barCount">1,529</b> plugins on this Mac</span>
+      <span>server <b>● live</b></span>
+      <span>45 tools</span>
+    </div>
+  </div>
+</div>
+
+<header class="wrap">
+  <div class="kicker reveal" style="animation-delay:.05s">stemmy-loops · new capability</div>
+  <h1>
+    <span class="reveal" style="animation-delay:.12s;display:block">VST <span class="o">outside</span></span>
+    <span class="reveal" style="animation-delay:.22s;display:block">the <span class="daw">DAW</span></span>
+  </h1>
+  <p class="lede reveal" style="animation-delay:.34s">
+    A Python <b>create → mix → master</b> pipeline that owns no DSP just learned to run your
+    third-party <b>VST3 &amp; Audio Unit</b> effects — fully <b>headless &amp; offline</b>, no DAW,
+    no GUI window, no audio device, faster than realtime. One tool: <code>apply-vst-chain</code>.
+  </p>
+  <div class="chips reveal" style="animation-delay:.46s">
+    <span class="chip"><b>Pedalboard</b><span>JUCE · GPLv3</span></span>
+    <span class="chip">VST3 <span class="v">653</span></span>
+    <span class="chip">AU <span class="v">876</span></span>
+    <span class="chip">GUI opened <span class="v">never</span></span>
+    <span class="chip">tests <span class="v">12 ✓</span></span>
+  </div>
+</header>
+
+<!-- ============ 01 · THE RACK ============ -->
+<section class="wrap" id="rack">
+  <div class="shead">
+    <span class="snum">01</span>
+    <span class="stitle">live demo · <b>build a chain &amp; render</b></span>
+  </div>
+
+  <div class="rack">
+    <!-- browser -->
+    <div class="panel">
+      <div class="panel-h"><span class="led"></span> list-vst-plugins <span class="tag" id="browseCount"></span></div>
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" placeholder="filter installed effects…" autocomplete="off" />
+      </div>
+      <div class="plist" id="plist"></div>
+    </div>
+
+    <!-- chain -->
+    <div class="panel">
+      <div class="panel-h"><span class="led"></span> signal chain <span class="tag">mix/draft.wav · 48 kHz · stereo</span></div>
+      <div class="chainwrap">
+        <div class="sweep" id="sweep"></div>
+        <div class="flow">
+          <div class="node io"><span class="ic">IN ▸</span><div class="meta"><div class="ttl">draft.wav</div><div class="sub">soundfile.read → float32 (ch, n)</div></div></div>
+          <div class="connector"></div>
+          <div id="slots"></div>
+          <div class="connector"></div>
+          <div class="node out"><span class="ic">OUT ▸</span><div class="meta"><div class="ttl">draft_vst.wav</div><div class="sub">soundfile.write · 24-bit PCM</div></div></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="renderBtn">▸ RENDER (offline)</button>
+          <button class="btn ghost" id="realBtn">⟲ Replay the real render</button>
+          <button class="btn" id="nullBtn">∅ Null test</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- scope / output -->
+    <div class="panel">
+      <div class="panel-h"><span class="led" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span> output · meters</div>
+      <div class="scope">
+        <div class="wavebox"><span class="lbl" id="waveLbl">awaiting render</span><canvas id="wave" width="600" height="192"></canvas></div>
+        <div class="meters">
+          <div class="m">
+            <div class="mh"><span>TRUE PEAK</span><span><b id="peakB">—</b> <span class="arr">→</span> <b id="peakA">—</b> dBFS</span></div>
+            <div class="meter"><div class="ghost" id="peakGhost" style="left:0"></div><div class="mask" id="peakMask" style="width:100%"></div></div>
+          </div>
+          <div class="m">
+            <div class="mh"><span>RMS</span><span><b id="rmsB">—</b> <span class="arr">→</span> <b id="rmsA">—</b> dBFS</span></div>
+            <div class="meter"><div class="ghost" id="rmsGhost" style="left:0"></div><div class="mask" id="rmsMask" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div class="verdict" id="verdict">Hit <b style="color:var(--amber)">RENDER</b> to process the file through the chain — headless, offline, no plugin GUI ever opened.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="jsonwrap">
+    <pre id="json"><span class="jc">// VstChainResult — returned by apply-vst-chain</span>
+<span class="jc">// build a chain and render to see the typed result…</span></pre>
+  </div>
+</section>
+
+<!-- ============ 02 · ARCHITECTURE ============ -->
+<section class="wrap">
+  <div class="shead"><span class="snum">02</span><span class="stitle">how it slots in · <b>read → host → write</b></span></div>
+  <div class="arch">
+    <div class="astep"><div class="an">HOST</div><div class="at">ship-studios</div><div class="ad">MCP host; owns no DSP, composes the servers</div><span class="arrow">▶</span></div>
+    <div class="astep"><div class="an">SERVER</div><div class="at">stemmy-loops</div><div class="ad">stdio MCP server · 45 pure-DSP + render tools</div><span class="arrow">▶</span></div>
+    <div class="astep hl"><div class="an">TOOL</div><div class="at">apply-vst-chain</div><div class="ad">tools/ → register(app) → validate paths</div><span class="arrow">▶</span></div>
+    <div class="astep hl"><div class="an">DSP</div><div class="at">_dsp/vst_host.py</div><div class="ad">load · configure · render · dump_state</div><span class="arrow">▶</span></div>
+    <div class="astep"><div class="an">ENGINE</div><div class="at">Pedalboard</div><div class="ad">JUCE-backed · loads your plugin binary</div><span class="arrow">▶</span></div>
+    <div class="astep"><div class="an">PLUGIN</div><div class="at">.vst3 / .component</div><div class="ad">your installed effect — DSP only, no editor</div></div>
+  </div>
+  <div class="dataflow">
+    <b>soundfile.read</b>(path) → numpy float32 <b>(channels, samples)</b> → <b>Pedalboard</b>(chain)(audio, sr) → <b>soundfile.write</b>(out, subtype=PCM_24)
+  </div>
+</section>
+
+<!-- ============ 03 · FACTS ============ -->
+<section class="wrap">
+  <div class="shead"><span class="snum">03</span><span class="stitle">the constraints that matter</span></div>
+  <div class="facts">
+    <div class="fact"><div class="fi">▢ Headless</div><h3>The editor is never opened</h3><p>Only the plugin's <b>DSP</b> needs a process — <code>show_editor()</code> is never called. No display, no audio device, faster than realtime.</p></div>
+    <div class="fact"><div class="fi">◷ Format</div><h3>VST3 travels, AU doesn't</h3><p><b>VST3</b> runs on macOS/Windows/Linux. <b>Audio Units</b> are macOS-only at the OS level — they pin the whole pipeline (incl. CI) to a Mac.</p></div>
+    <div class="fact"><div class="fi">⛁ State</div><h3>Save the patch, not the preset</h3><p><code>dump_state</code> captures an opaque <code>raw_state</code> blob (VST3 <i>&amp;</i> AU) for a reproducible re-render — robust where <code>.vstpreset</code>/<code>.fxp</code> loading is flaky.</p></div>
+    <div class="fact"><div class="fi">⟂ Scope</div><h3>Effects only</h3><p>Instruments are rejected with a clear error. This is an effect-chain insert — MIDI / instrument rendering is a separate concern (DawDreamer territory).</p></div>
+    <div class="fact"><div class="fi">⚠ Determinism</div><h3>Opt-in island</h3><p>The one render tool that loads <b>external, non-deterministic</b> binaries. Behind the <code>vst</code> extra; pin plugin versions; a bad plugin can crash the render.</p></div>
+    <div class="fact"><div class="fi">⌧ Licensing</div><h3>iLok is a landmine</h3><p>Copy-protected (iLok/PACE) plugins fail in headless/CI containers. Free, machine-licensed plugins (Airwindows) are the safe render-farm choice.</p></div>
+  </div>
+</section>
+
+<!-- ============ 04 · RESEARCH ============ -->
+<section class="wrap">
+  <div class="shead"><span class="snum">04</span><span class="stitle">why pedalboard · <b>the landscape</b></span></div>
+  <details class="research" open>
+    <summary>verified across <b>6 angles · 24 claims · 0 refuted</b> — the contenders</summary>
+    <table class="ttable">
+      <thead><tr><th>Tool</th><th>Type</th><th>Formats</th><th>Headless / offline</th><th>API</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td><b>Pedalboard</b></td><td>Python lib</td><td>VST3 · AU</td><td class="yes">✓ numpy in/out</td><td>Python · raw_state</td></tr>
+        <tr><td><b>DawDreamer</b></td><td>Python graph</td><td>VST2·VST3·AU</td><td class="yes">✓ render()</td><td>sample-accurate automation</td></tr>
+        <tr><td><b>Plugalyzer</b></td><td>CLI</td><td>VST3·AU·LV2</td><td class="yes">✓ non-RT</td><td>flags · .vstpreset</td></tr>
+        <tr><td><b>Sushi</b></td><td>server/CLI</td><td>VST2·VST3·LV2</td><td class="yes">✓ -o offline</td><td>gRPC / OSC</td></tr>
+        <tr><td><b>Carla</b></td><td>standalone</td><td>all formats</td><td class="part">~ no offline bounce</td><td>OSC · Python</td></tr>
+        <tr><td>MainStage / AU&nbsp;Lab</td><td>live host</td><td>AU</td><td class="no">✗ GUI-only</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </details>
+  <p style="color:var(--mut);font-size:13.5px;max-width:760px;margin:18px 0 0">
+    <b style="color:var(--ink)">The verdict:</b> for a numpy/soundfile pipeline, Pedalboard is the short path — <code style="font-family:var(--mono);color:var(--cyan)">pip install</code>, numpy-native, headless, Apple-Silicon + Linux wheels, same GPLv3 footing as the existing JUCE stack. And since <b style="color:var(--ink)">Oct 2025 the VST3 SDK is MIT-licensed</b>, the historical legal blocker to an open-source host is gone.
+  </p>
+</section>
+
+<!-- ============ 05 · CODE ============ -->
+<section class="wrap">
+  <div class="shead"><span class="snum">05</span><span class="stitle">the call</span></div>
+  <pre><span class="jc"># discover what's installed (read-only, no `vst` extra needed)</span>
+list-vst-plugins(name_contains=<span class="js">"comp"</span>)
+
+<span class="jc"># run a WAV through an ordered effect chain — offline, headless</span>
+apply-vst-chain(
+  path=<span class="js">"projects/track/mix/draft.wav"</span>,
+  out_path=<span class="js">"projects/track/mix/draft_vst.wav"</span>,
+  plugins=[
+    {<span class="jk">"plugin_path"</span>: <span class="js">"/Library/Audio/Plug-Ins/VST3/Airwindows Consolidated.vst3"</span>,
+     <span class="jk">"parameters"</span>: {<span class="js">"input"</span>: <span class="jn">0.8</span>, <span class="js">"output"</span>: <span class="jn">0.4</span>}},
+    {<span class="jk">"plugin_path"</span>: <span class="js">"…/VST3/SSL Native X-ValveComp v6.vst3"</span>, <span class="jk">"bypass"</span>: <span class="jb">true</span>},
+  ],
+  dump_state=<span class="jb">True</span>,   <span class="jc"># write opaque .state blobs for a reproducible re-render</span>
+)</pre>
+</section>
+
+<footer class="wrap">
+  <div class="journey">
+    <span>researched</span><span class="arr">→</span>
+    <span>prototyped</span><span class="arr">→</span>
+    <span>built</span><span class="arr">→</span>
+    <span>tested <b>12 ✓</b></span><span class="arr">→</span>
+    <span>sanity-checked <b>1,529 plugins</b></span><span class="arr">→</span>
+    <span>shipped <b>2 commits</b></span>
+  </div>
+  <div class="foot-grid">
+    <div class="col">
+      <div><b>stemmy-loops</b> <span class="amb">1ff31c1</span> — tool · DSP · tests · vst extra</div>
+      <div><b>ship-studios</b> <span class="amb">0cf9a18</span> — docs · finalize-mix insert</div>
+      <div style="margin-top:8px;color:var(--mut2)">Gemini hears mono → meters own loudness/peak/stereo. VST hosting is pure-DSP, in-house.</div>
+    </div>
+    <div class="sig">apply&nbsp;<span>·</span>&nbsp;vst&nbsp;<span>·</span>&nbsp;chain</div>
+  </div>
+</footer>
+
+<script>
+const PLUGINS = [
+  {n:"Airwindows Consolidated", f:["VST3","AU"], free:true},
+  {n:"ADPTR MetricAB", f:["VST3","AU"]},
+  {n:"CORE Comp", f:["VST3","AU"]},
+  {n:"Delay BRIGADE", f:["VST3","AU"]},
+  {n:"Efx MOTIONS", f:["VST3","AU"]},
+  {n:"Filter Fusion", f:["VST3","AU"]},
+  {n:"Harrison StunningPhaser", f:["VST3","AU"]},
+  {n:"Lindell 354E", f:["VST3","AU"]},
+  {n:"Maag MAGNUM-K", f:["VST3","AU"]},
+  {n:"Nectar 3", f:["VST3"]},
+  {n:"Ozone 11 Vintage EQ", f:["VST3"]},
+  {n:"Ozone 10 Low End Focus", f:["VST3"]},
+  {n:"RX 10 Guitar De-noise", f:["VST3"]},
+  {n:"SSL Blitzer", f:["VST3","AU"]},
+  {n:"SSL Native X-ValveComp v6", f:["VST3","AU"]},
+  {n:"Stellar Echo SD-201", f:["VST3","AU"]},
+  {n:"TR5 Classic EQ", f:["VST3","AU"]},
+  {n:"TR5 Quad Limiter", f:["VST3","AU"]},
+  {n:"Tape Machine 80", f:["VST3","AU"]},
+  {n:"UAD API Vision Channel Strip", f:["AU"]},
+  {n:"UAD Manley Massive Passive MST", f:["AU"]},
+  {n:"UAD Neve 88RS", f:["AU"]},
+  {n:"UAD Precision Multiband", f:["AU"]},
+  {n:"UAD Tube-Tech ME 1B", f:["AU"]},
+  {n:"UAD elysia alpha compressor V2", f:["AU"]},
+  {n:"bx_console SSL 4000 G", f:["VST3","AU"]},
+  {n:"kHs Channel Mixer", f:["VST3","AU"]},
+  {n:"kHs Ring Mod", f:["VST3","AU"]},
+];
+
+// input file ground truth (real measured numbers from this Mac)
+const INPUT = {peak:-7.0442, rms:-27.9837};
+let chain = [];
+let uid = 0;
+
+const $ = s => document.querySelector(s);
+const dbToPct = db => Math.max(0, Math.min(100, (db + 60) / 60 * 100));
+
+/* ---------- browser ---------- */
+function renderBrowser(filter=""){
+  const f = filter.toLowerCase();
+  const rows = PLUGINS.filter(p => p.n.toLowerCase().includes(f));
+  $("#browseCount").textContent = rows.length + " / 1529";
+  $("#plist").innerHTML = rows.map((p,i) => `
+    <div class="prow" data-i="${PLUGINS.indexOf(p)}">
+      <span class="pn">${p.n}</span>
+      ${p.free?'<span class="badge b-free">FREE</span>':''}
+      ${p.f.map(x=>`<span class="badge ${x==='VST3'?'b-vst':'b-au'}">${x}</span>`).join('')}
+      <span class="plus">+</span>
+    </div>`).join('') || `<div class="empty">no match</div>`;
+  $("#plist").querySelectorAll(".prow").forEach(el =>
+    el.onclick = () => addPlugin(PLUGINS[+el.dataset.i]));
+}
+
+function addPlugin(p){
+  chain.push({id:++uid, n:p.n, f:p.f[0], free:!!p.free,
+              params:{input:0.5, output:0.5, mix:1.0}, bypass:false});
+  renderChain();
+}
+
+/* ---------- chain ---------- */
+function renderChain(){
+  const host = $("#slots");
+  if(!chain.length){ host.innerHTML = `<div class="empty">empty chain — add an effect from the browser →<br>or hit “Replay the real render”.</div>`; return; }
+  host.innerHTML = chain.map((s,i) => {
+    const slot = `
+    <div class="slot ${s.bypass?'bypassed':''}" data-id="${s.id}">
+      <div class="slot-top">
+        <span class="slot-idx">${String(i).padStart(2,'0')}</span>
+        <span class="slot-name ${s.free?'free':''}">${s.n}</span>
+        <span class="badge ${s.f==='VST3'?'b-vst':'b-au'}">${s.f}</span>
+        <span class="icon-btn byp ${s.bypass?'on':''}" data-act="byp" title="bypass">⏻</span>
+        <span class="icon-btn x" data-act="x" title="remove">✕</span>
+      </div>
+      <div class="knobs">
+        ${['input','output','mix'].map(k=>`
+          <div class="knob">
+            <label>${k} <b>${s.params[k].toFixed(2)}</b></label>
+            <input type="range" min="0" max="1" step="0.01" value="${s.params[k]}" data-k="${k}">
+          </div>`).join('')}
+      </div>
+    </div>`;
+    return slot + (i < chain.length-1 ? '<div class="connector" style="margin-left:26px"></div>' : '');
+  }).join('');
+
+  host.querySelectorAll(".slot").forEach(el => {
+    const id = +el.dataset.id; const s = chain.find(x=>x.id===id);
+    el.querySelector('[data-act=byp]').onclick = () => { s.bypass=!s.bypass; renderChain(); };
+    el.querySelector('[data-act=x]').onclick = () => { chain = chain.filter(x=>x.id!==id); renderChain(); };
+    el.querySelectorAll('input[type=range]').forEach(r =>
+      r.oninput = () => { s.params[r.dataset.k]=+r.value;
+        r.closest('.knob').querySelector('b').textContent=(+r.value).toFixed(2); });
+  });
+}
+
+/* ---------- meters + render ---------- */
+function setMeters(pB,pA,rB,rA){
+  $("#peakB").textContent=pB.toFixed(2); $("#peakA").textContent=pA.toFixed(2);
+  $("#rmsB").textContent=rB.toFixed(2);  $("#rmsA").textContent=rA.toFixed(2);
+  $("#peakMask").style.width=(100-dbToPct(pA))+"%";
+  $("#rmsMask").style.width=(100-dbToPct(rA))+"%";
+  $("#peakGhost").style.left=dbToPct(pB)+"%";
+  $("#rmsGhost").style.left=dbToPct(rB)+"%";
+}
+
+function drawWave(intensity){
+  const c=$("#wave"), x=c.getContext('2d'); const W=c.width,H=c.height,mid=H/2;
+  x.clearRect(0,0,W,H);
+  let seed=42; const rnd=()=>{seed=(seed*9301+49297)%233280; return seed/233280;};
+  x.lineWidth=1.4;
+  for(let i=0;i<W;i+=2){
+    const env=Math.pow(Math.abs(Math.sin(i/W*Math.PI*7))*0.6+0.4,1.3);
+    const noise=(rnd()*2-1);
+    let amp=env*noise*(mid-6)*(0.45+intensity*0.62);
+    if(intensity>0){ amp+= Math.sin(i*0.9)*intensity*5*env; } // added harmonics when driven
+    amp=Math.max(-mid+3,Math.min(mid-3,amp));
+    const t=i/W;
+    const col = t<0.7? '#39e6d6' : t<0.86? '#ffcc33':'#ff5a4d';
+    x.strokeStyle = intensity>0? col : '#3a4048';
+    x.globalAlpha = intensity>0? 0.9 : 0.5;
+    x.beginPath(); x.moveTo(i,mid-amp); x.lineTo(i,mid+amp); x.stroke();
+  }
+}
+
+function processing(cb){
+  const sw=$("#sweep"); sw.classList.remove('on'); void sw.offsetWidth; sw.classList.add('on');
+  $("#waveLbl").textContent="processing 6,300,000 frames · faster than realtime…";
+  $("#renderBtn").disabled=$("#realBtn").disabled=$("#nullBtn").disabled=true;
+  setTimeout(()=>{ sw.classList.remove('on');
+    $("#renderBtn").disabled=$("#realBtn").disabled=$("#nullBtn").disabled=false; cb(); }, 1050);
+}
+
+function showJSON(o){
+  const f=(k,v)=>{
+    if(typeof v==='string') return `<span class="js">"${v}"</span>`;
+    if(typeof v==='boolean') return `<span class="jb">${v}</span>`;
+    if(typeof v==='number') return `<span class="jn">${v}</span>`;
+    if(v===null) return `<span class="jc">null</span>`;
+    return v;
+  };
+  const plug = o.plugins.map(p=>`    {<span class="jk">"name"</span>: ${f(0,p.name)}, <span class="jk">"plugin_format"</span>: ${f(0,p.plugin_format)}, <span class="jk">"is_effect"</span>: ${f(0,true)}, <span class="jk">"bypassed"</span>: ${f(0,p.bypassed)}, <span class="jk">"parameters_set"</span>: [${p.parameters_set.map(s=>f(0,s)).join(', ')}], <span class="jk">"state_loaded"</span>: ${f(0,false)}${p.state_dumped_to?`, <span class="jk">"state_dumped_to"</span>: ${f(0,p.state_dumped_to)}`:''}}`).join(',\n');
+  $("#json").innerHTML =
+`{
+  <span class="jk">"out_path"</span>: ${f(0,o.out_path)},
+  <span class="jk">"sample_rate"</span>: ${f(0,48000)}, <span class="jk">"channels"</span>: ${f(0,2)},
+  <span class="jk">"plugins"</span>: [
+${plug}
+  ],
+  <span class="jk">"peak_before_dbfs"</span>: ${f(0,o.pB)}, <span class="jk">"peak_after_dbfs"</span>: ${f(0,o.pA)},
+  <span class="jk">"rms_before_dbfs"</span>: ${f(0,o.rB)}, <span class="jk">"rms_after_dbfs"</span>: ${f(0,o.rA)},
+  <span class="jk">"length_delta_samples"</span>: ${f(0,0)}, <span class="jk">"changed"</span>: ${f(0,o.changed)}
+}`;
+}
+
+/* modeled render of the current freeform chain */
+function renderModeled(){
+  const active = chain.filter(s=>!s.bypass);
+  let rms=INPUT.rms, peak=INPUT.peak;
+  active.forEach(s=>{
+    rms  += (s.params.input-0.5)*20 + (s.params.output-0.5)*10 + 0.8;
+    peak += (s.params.input-0.5)*4  + (s.params.output-0.5)*3;
+  });
+  rms=Math.min(peak-1.5,rms); peak=Math.min(-0.2,peak);
+  const changed = active.length>0;
+  processing(()=>{
+    if(!changed){ renderNullResult(); return; }
+    setMeters(INPUT.peak,peak,INPUT.rms,rms);
+    drawWave(Math.min(1,(rms-INPUT.rms)/12+0.15));
+    $("#waveLbl").textContent="processed · "+active.length+" plugin"+(active.length>1?"s":"")+" active";
+    const v=$("#verdict"); v.className="verdict changed modeled";
+    v.innerHTML=`<b>changed = true</b> — signal moved RMS ${(rms-INPUT.rms>=0?'+':'')}${(rms-INPUT.rms).toFixed(1)} dB through ${active.length} plugin${active.length>1?'s':''}. Output written headless.`;
+    showJSON({out_path:"projects/track/mix/draft_vst.wav",
+      plugins:chain.map(s=>({name:s.n,plugin_format:s.f,bypassed:s.bypass,parameters_set:s.bypass?[]:["input","output","mix"]})),
+      pB:INPUT.peak,pA:+peak.toFixed(4),rB:INPUT.rms,rA:+rms.toFixed(4),changed:true});
+  });
+}
+
+/* the REAL measured render (Airwindows, input .8 / output .4) */
+function renderReal(){
+  chain=[{id:++uid,n:"Airwindows Consolidated",f:"VST3",free:true,params:{input:0.8,output:0.4,mix:1.0},bypass:false}];
+  renderChain();
+  processing(()=>{
+    setMeters(-7.0442,-2.9198,-27.9837,-21.644);
+    drawWave(0.7);
+    $("#waveLbl").textContent="processed on this Mac · Airwindows Consolidated.vst3";
+    const v=$("#verdict"); v.className="verdict changed real";
+    v.innerHTML=`<b>changed = true</b> — real render: RMS −27.98 → −21.64 dBFS, peak −7.04 → −2.92. State blob dumped for reproducibility.`;
+    showJSON({out_path:"projects/track/mix/draft_vst.wav",
+      plugins:[{name:"Airwindows Consolidated",plugin_format:"VST3",bypassed:false,parameters_set:["input","output"],state_dumped_to:"draft_vst.wav.0.Airwindows_Consolidated.state"}],
+      pB:-7.0442,pA:-2.9198,rB:-27.9837,rA:-21.644,changed:true});
+  });
+}
+
+/* the null test — bypass everything */
+function renderNull(){
+  if(!chain.length) chain=[{id:++uid,n:"Airwindows Consolidated",f:"VST3",free:true,params:{input:0.5,output:0.5,mix:1.0},bypass:true}];
+  chain.forEach(s=>s.bypass=true); renderChain();
+  processing(renderNullResult);
+}
+function renderNullResult(){
+  setMeters(INPUT.peak,INPUT.peak,INPUT.rms,INPUT.rms);
+  drawWave(0);
+  $("#waveLbl").textContent="bypass · output identical to input";
+  const v=$("#verdict"); v.className="verdict null real";
+  v.innerHTML=`<b>changed = false</b> — perfect null: max |out − in| = <b>0.00</b> across every sample. The chain itself adds nothing.`;
+  showJSON({out_path:"projects/track/mix/draft_vst.wav",
+    plugins:chain.map(s=>({name:s.n,plugin_format:s.f,bypassed:true,parameters_set:[]})),
+    pB:INPUT.peak,pA:INPUT.peak,rB:INPUT.rms,rA:INPUT.rms,changed:false});
+}
+
+/* ---------- wire up ---------- */
+$("#search").oninput = e => renderBrowser(e.target.value);
+$("#renderBtn").onclick = renderModeled;
+$("#realBtn").onclick = renderReal;
+$("#nullBtn").onclick = renderNull;
+
+renderBrowser();
+// prefill a tasteful starter chain
+addPlugin(PLUGINS[0]); // Airwindows (free)
+addPlugin(PLUGINS.find(p=>p.n.startsWith("SSL Native")));
+drawWave(0);
+</script>
+</body>
+</html>

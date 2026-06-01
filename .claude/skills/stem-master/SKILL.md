@@ -38,10 +38,15 @@ The actual loudness/limiting/compliance/export is **not** done here — it is
 3. **Surgical pulls per stem** — `[G] find-resonances` / `[G] find-sibilance`
    on the offending stems for precise notch / de-ess settings.
 4. **Corrective EQ per losing stem** — `[L] apply-eq`, one call per stem,
-   complementary cuts from steps 2–3 (carve bass under kick, tame vocal mud,
-   de-harsh). Cut the loser; boost owners only when a band is genuinely thin.
+   complementary cuts from steps 2–3 (carve bass under kick, tame vocal mud).
+   Cut the loser; boost owners only when a band is genuinely thin. For
+   problems a static cut can't handle: `[[de-ess]]` (sibilant stems, from the
+   `find-sibilance` settings), `[[de-harsh]]` (ringing/harsh stems), and
+   `[[dynamic-eq]]` for level-dependent collisions (carve only when the kick
+   hits).
 5. **Dynamics / transients where measured** — `[L] compress-loop` to tame a
-   dynamic stem, `[L] shape-bands` to add attack to the drum stem — only
+   dynamic stem, `[[multiband-compress]]` when one band's dynamics misbehave,
+   `[L] shape-bands` / `[[drum-punch]]` to add attack to the drum stem — only
    where step 1's crest/spectrum justified it.
 6. **Sum the corrected stems** — `drum-prep stem-mix <dir>` → one stereo bus
    (loudness-offset sum with per-stem spec). Local DSP.
@@ -77,6 +82,7 @@ masking-overlap read, the summed-bus path, and an explicit "now run
 ## Related
 
 - [[unmask-stems]] — the masking-only subset, when that's all you need
+- [[de-ess]] / [[de-harsh]] / [[dynamic-eq]] / [[multiband-compress]] — the per-stem corrective skills step 4–5 hand off to
 - [[master-track]] — the downstream stage that masters the summed bus
 - [[song-mix]] / [[drum-mix]] — balance-and-sum stems (no correction)
 - [[mix-check]] — single-bounce diagnosis when you lack stems

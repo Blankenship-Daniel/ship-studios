@@ -85,7 +85,9 @@ every name below is verified against CLAUDE.md.
 
 - **ALWAYS loudness-match before comparing.** Louder reads as better — an
   un-matched A/B is a level test, not a tone test. That's the whole point of
-  the `render-ab` / `drum-prep audition` step; never skip it.
+  the `render-ab` / `drum-prep audition` step; never skip it. To level-match a
+  pair without building a concatenated A/B file, [[level-match]] applies the
+  gain-only normalization directly.
 - **One dir per variant.** Don't write into the same `out_path` twice or you'll
   clobber the candidate you're trying to compare against.
 - **This judges, it doesn't decide.** Do not auto-promote a winner, overwrite
@@ -99,5 +101,7 @@ every name below is verified against CLAUDE.md.
 
 - [[drum-reference-match]] — generate the per-strength kit variants this shoots out
 - [[drum-audition]] — loudness-matched kit A/B halves to feed the comparison
+- [[level-match]] — gain-only loudness match (the primitive behind a fair A/B)
 - [[master-track]] — once a loudness/ceiling variant wins, master to it for real
 - [[reference-match]] — the EQ step whose strength this can sweep
+- [[vst-shootout]] — the same shootout discipline for VST plugin chains

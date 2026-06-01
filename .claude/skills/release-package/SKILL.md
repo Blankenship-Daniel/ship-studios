@@ -49,7 +49,10 @@ fields — see the `skill-gap-unblock-paths` memory note; ask and I'll add them.
    so verify rather than assume.
 6. **Consistency manifest** — loop `[L] measure-loudness` over the release
    masters → a table of LUFS-I / true-peak / LRA + **Δ-from-album-median**,
-   outliers flagged. This is the shippable QC sheet.
+   outliers flagged. Add `[L] analyze-album-normalization {dir, target_lufs}`
+   for the shared album gain a platform will apply (TD1008 vs album-integrated)
+   so the sheet shows real playback levels, not just source LUFS. This is the
+   shippable QC sheet.
 
 ## Outputs
 

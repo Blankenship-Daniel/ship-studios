@@ -2,6 +2,8 @@
 
 **Status:** research-backed proposal (no code changes yet) · **Date:** 2026-05-31 · **Scope:** both `stemmy-gemini` and `stemmy-loops`
 
+> **Update (2026-05-31, post-implementation):** the survivors below have since been **built** in both sibling repos *and* given user-facing skill wrappers. The corrective/measurement tools — `apply-dynamic-eq`, `suppress-resonances`, `match-eq`, `de-ess`, `multiband-compress`, `excite-loop`, `match-loudness`, `build-target-profile`/`match-to-profile`, `analyze-album-normalization`, `measure-microdynamics` — and the Gemini planning tools `master-assistant` / `recommend-mastering-chain` / `critique-region` are now reachable through skills: `[[de-ess]]`, `[[de-harsh]]`, `[[dynamic-eq]]`, `[[multiband-compress]]`, `[[excite]]`, `[[house-curve]]`, `[[level-match]]`, `[[mastering-plan]]`, plus `critique-region`/album-normalization folded into `[[mix-check]]` / `[[batch-master]]` / `[[release-package]]`. Mid-side EQ remains the one named gap with no dedicated tool/skill. This doc is kept as the design rationale.
+
 This document answers one question: *how do we make our Gemini-backed MCP servers more capable at mixing, mastering, and EQ?* It is the output of a verified research pass — 8 web-research angles, consolidation, adversarial feasibility verification, and synthesis — with every finding grounded against the actual code of both servers. Five proposals were **killed** as infeasible (see [Explicitly rejected](#explicitly-rejected)); the survivors are organized into four shippable phases.
 
 > **Legend:** `[G]` = stemmy-gemini · `[L]` = stemmy-loops · effort/impact ∈ {low, med, high}.

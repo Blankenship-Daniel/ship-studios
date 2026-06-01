@@ -76,8 +76,8 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | Per-platform LUFS/TP compliance + asymmetric playback-gain projection | — | `check-streaming-targets` |
 | Kick fundamental note + cents off | `tune-kick` | — |
 | Per-band microdynamics: crest/PLR/punch, read-only **(new)** | `measure-microdynamics` | — |
-| Reusable house-curve target: build from refs / match a mix **(new)** | `build-target-profile` · `match-to-profile` | — |
-| Album shared-gain (TD1008 + album-integrated offsets) **(new)** | `analyze-album-normalization` | — |
+| Reusable house-curve target: build from refs / match a mix **(new)** → `[[house-curve]]` | `build-target-profile` · `match-to-profile` | — |
+| Album shared-gain (TD1008 + album-integrated offsets) **(new)** → `[[batch-master]]` / `[[release-package]]` | `analyze-album-normalization` | — |
 
 **Overlap rule:** both servers expose `measure-loudness` / `measure-spectrum`. They are independent implementations. Prefer **`[L]`** when you're inside a loops/mastering chain (same code path that renders), and **`[G]`** when you've already opened the gemini session for perceptual work — don't spin up a server just to duplicate a meter. For stereo, `[L] measure-stereo` and `[G] analyze-phase-mono` are interchangeable; pick by which server is already in play.
 
@@ -89,9 +89,9 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | Audible problems (clip/sibilance/mask/pump/phase) + severity/timestamps | `detect-mix-issues` (Gemini) |
 | A/B against a reference, perceptual deltas + moves | `compare-to-reference` (Gemini) |
 | Master-bus critique + platform guidance + release-ready bool | `mastering-feedback` (Gemini) |
-| Hybrid: measure + propose chain + Gemini critique | `recommend-mastering-chain` (Gemini) |
-| Region-focused critique on a DSP-trimmed, onset-snapped clip **(new)** | `critique-region` (Gemini) |
-| Intent/intensity/style → meter-grounded complete typed mastering chain (plan only) **(new)** | `master-assistant` (Gemini) |
+| Hybrid: measure + propose chain + Gemini critique → `[[mastering-plan]]` | `recommend-mastering-chain` (Gemini) |
+| Region-focused critique on a DSP-trimmed, onset-snapped clip **(new)** → `[[mix-check]]` | `critique-region` (Gemini) |
+| Intent/intensity/style → meter-grounded complete typed mastering chain (plan only) **(new)** → `[[mastering-plan]]` | `master-assistant` (Gemini) |
 
 **Grounded + typed (the critique tools above):** `analyze-mix-balance`, `detect-mix-issues`, `mastering-feedback`, `compare-to-reference`, `critique-region`, and `master-assistant` now run **meter-grounded** — the matching pure-DSP meters (LUFS / true-peak / crest / LRA / 5-band tilt / L-R correlation / mono-sum loss) are measured and injected as ground truth the model must reason **from**, not re-estimate by ear (Gemini hears only ~16 kbps mono, so meters own loudness/peak/stereo). All accept optional `genre` + `intent`, split findings into `technical_defects` (meter-groundable, safe to auto-apply) vs `creative_observations` (taste), and emit **tool-ready typed** moves — e.g. `eq_moves` `[{freq_hz, gain_db, q, type}]`, de-ess `{center_hz, q, threshold_db, gr_db}` — clamped server-side so they drop straight into `apply-eq` / `de-ess`, plus a `meters` passthrough.
 
@@ -102,20 +102,20 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | Capability | Tool |
 |---|---|
 | RBJ biquad EQ (shelves/bells/pass) + tilt; `phase` = min/zero/linear | `apply-eq` |
-| Threshold-gated per-band dynamic EQ (difference-signal) **(new)** | `apply-dynamic-eq` |
-| Render a reference delta curve as a min/linear-phase FIR EQ **(new)** | `match-eq` |
-| Soothe-style dynamic resonance/harshness suppressor **(new)** | `suppress-resonances` |
-| Split-band de-esser (consumes `find-sibilance` settings) **(new)** | `de-ess` |
+| Threshold-gated per-band dynamic EQ (difference-signal) **(new)** → `[[dynamic-eq]]` | `apply-dynamic-eq` |
+| Render a reference delta curve as a min/linear-phase FIR EQ **(new)** → `[[reference-match]]` / `[[house-curve]]` | `match-eq` |
+| Soothe-style dynamic resonance/harshness suppressor **(new)** → `[[de-harsh]]` | `suppress-resonances` |
+| Split-band de-esser (consumes `find-sibilance` settings) **(new)** → `[[de-ess]]` | `de-ess` |
 | Downward + parallel compressor, GR stats | `compress-loop` |
-| Proper LR4 multiband compressor, per-band GR **(new)** | `multiband-compress` |
+| Proper LR4 multiband compressor, per-band GR **(new)** → `[[multiband-compress]]` | `multiband-compress` |
 | Bass mono-maker (graduated 12/24/48 slope) + M/S width | `adjust-stereo` |
 | Oversampled tanh/tape/soft-clip saturation | `saturate-loop` |
-| Band-limited parallel harmonic exciter (air/presence) **(new)** | `excite-loop` |
-| Multiband transient design + per-band gain (LR4) | `shape-bands` |
+| Band-limited parallel harmonic exciter (air/presence) **(new)** → `[[excite]]` | `excite-loop` |
+| Multiband transient design + per-band gain (LR4) → `[[drum-punch]]` | `shape-bands` |
 | DC/HPF/declick/denoise/gate cleanup | `clean-loop` |
 | Best loop wrap point + equal-power crossfade | `optimize-seam` |
 | HPF → transient → optional zero-phase EQ → normalize → limiter → resample/dither | `render-mastered` |
-| Normalize to target/reference LUFS, peak-safe (no limiting) **(new)** | `match-loudness` |
+| Normalize to target/reference LUFS, peak-safe (no limiting) **(new)** → `[[level-match]]` | `match-loudness` |
 | Loudness-matched [ref \| gap \| processed] audition | `render-ab` |
 | Run a chain of 3rd-party VST3/AU **effect** plugins, offline/headless (needs `vst` extra; non-deterministic) **(new)** | `apply-vst-chain` |
 | Discover installed VST3/AU plugins (read-only; no `vst` extra) **(new)** | `list-vst-plugins` |
@@ -142,7 +142,7 @@ Each is an ordered tool-call recipe. Server prefix `[L]`/`[G]` precedes the tool
 3. `[L] measure-stereo` — baseline correlation + mono-sum loss.
 4. `[L] check-clipping` — confirm no inter-sample clip / DC / polarity issue.
 5. `[L] measure-distortion` — baseline THD / aliasing before the limiter stage.
-6. `[G] mastering-feedback` — perceptual critique + `target_platform` + release-ready bool. *(Alt: `[G] master-assistant` with `intent`/`intensity`/`style` → a complete typed chain — EQ/comp/sat/limiter targets — to drive step 7.)*
+6. `[G] mastering-feedback` — perceptual critique + `target_platform` + release-ready bool. *(Alt: `[G] master-assistant` with `intent`/`intensity`/`style` → a complete typed chain — EQ/comp/sat/limiter targets — to drive step 7; both wrapped as [[mastering-plan]].)*
 7. `[L] render-mastered` — to chosen `target_lufs` + `ceiling_dbtp` (optional `eq_bands` for a zero-phase corrective move) → `projects/<track>/masters/`.
 8. `[G] check-streaming-targets` — re-verify the render vs Spotify/Apple/YouTube/Tidal… It also projects the **asymmetric** playback gain per platform (attenuate-only vs boost-and-attenuate, headroom-capped) so you can see what each platform will actually do to the level.
 9. If non-compliant, adjust target and re-render (back to 7).
@@ -169,8 +169,8 @@ You **mix** the stems (correct + sum), then **master** the bus. This stage does 
 1. Per stem: `[L] measure-loudness` + `[L] measure-spectrum` — baseline.
 2. `[G] analyze-stem-masking` (stem map) — per-collision dominant stem, stem-to-cut, center Hz, cut dB, Q. Optional `[L] detect-masking` cross-check.
 3. `[G] find-resonances` / `[G] find-sibilance` — surgical notch / de-ess settings on the offending stems.
-4. `[L] apply-eq` — one call **per losing stem**; complementary cuts (carve bass under kick, tame vocal mud). Cut the loser, don't boost the winner. `[L] de-ess` (from the `[G] find-sibilance` settings) and `[L] suppress-resonances` clean harsh/ringing stems; `[L] apply-dynamic-eq` for level-dependent collisions (carve only when the kick hits).
-5. `[L] compress-loop` / `[L] multiband-compress` / `[L] shape-bands` — per stem where dynamics / transients / per-band density call for it.
+4. `[L] apply-eq` — one call **per losing stem**; complementary cuts (carve bass under kick, tame vocal mud). Cut the loser, don't boost the winner. `[L] de-ess` ([[de-ess]], from the `[G] find-sibilance` settings) and `[L] suppress-resonances` ([[de-harsh]]) clean harsh/ringing stems; `[L] apply-dynamic-eq` ([[dynamic-eq]]) for level-dependent collisions (carve only when the kick hits).
+5. `[L] compress-loop` / `[L] multiband-compress` ([[multiband-compress]]) / `[L] shape-bands` ([[drum-punch]]) — per stem where dynamics / transients / per-band density call for it.
 6. `drum-prep stem-mix` — sum the corrected stems to one stereo bus (local DSP; no MCP tool sums a stem set).
 7. Re-run `[G] analyze-stem-masking` + `[L] measure-spectrum` — confirm the overlaps shrank.
 8. Hand the summed bus to **master-track** for loudness / limiting / compliance / export.
@@ -189,8 +189,8 @@ unmask-stems is the masking-only subset (steps 2 + 4 + re-score), when you don't
 8. `[G] analyze-phase-mono` — per-band correlation + polarity flag before EQ.
 9. Reconcile perceptual vs measured into a prioritized issue list.
 10. `[L] apply-eq` — notches + shelves/tilt from the findings (use `phase=zero` to keep transients/phase intact on drum material).
-11. `[L] de-ess` (consumes the `find-sibilance` settings) / `[L] suppress-resonances` — when sibilance or narrow ringing was flagged; `[L] apply-dynamic-eq` when a problem is level-dependent (mud only on kicks, harsh only on loud phrases) rather than static.
-12. `[L] compress-loop` / `[L] multiband-compress` — where dynamics analysis called for it. Write to `projects/<track>/mix/`.
+11. `[L] de-ess` ([[de-ess]], consumes the `find-sibilance` settings) / `[L] suppress-resonances` ([[de-harsh]]) — when sibilance or narrow ringing was flagged; `[L] apply-dynamic-eq` ([[dynamic-eq]]) when a problem is level-dependent (mud only on kicks, harsh only on loud phrases) rather than static; `[L] excite-loop` ([[excite]]) when it's dull, not harsh.
+12. `[L] compress-loop` / `[L] multiband-compress` ([[multiband-compress]]) — where dynamics analysis called for it. Write to `projects/<track>/mix/`.
 
 **Do not master here** — hand off to master-track.
 
@@ -202,7 +202,7 @@ unmask-stems is the masking-only subset (steps 2 + 4 + re-score), when you don't
 4. `[L] match-eq` — render the reconciled delta curve directly to a corrective FIR (pass `source_path`+`reference_path`, or the `delta_db_curve` from step 1/3; tune `match_strength` ~0.5, `phase` min/linear). For surgical residual moves, follow with `[L] apply-eq` bells/tilt.
 5. `[L] render-ab` — `processed`=corrected mix, `reference`=ref → single A/B WAV in `projects/<track>/mix/`. Report residual deltas (`[L] compare-tonality` again; `match-eq` also returns `residual_delta_db`).
 
-For a whole EP/album, capture **one shared house curve** with `[L] build-target-profile` over the references, then match each mix to it with `[L] match-to-profile` → `[L] match-eq` — a single consistent target across the set.
+For a whole EP/album, capture **one shared house curve** with `[L] build-target-profile` over the references, then match each mix to it with `[L] match-to-profile` → `[L] match-eq` — a single consistent target across the set ([[house-curve]]).
 
 ### loops-to-deliverables — stem/mix → tagged, mastered loop deliverables
 

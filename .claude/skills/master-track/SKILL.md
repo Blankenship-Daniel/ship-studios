@@ -52,7 +52,10 @@ a tool — every name below is verified.
    target_platform}`. Master-bus critique with platform guidance and a
    release-readiness boolean. Use this to steer the render target (e.g. if it
    flags harshness, set `high_pass_hz` modestly and/or back off
-   `transient_shape`).
+   `transient_shape`). *Alternative:* for a complete, typed starting chain
+   rather than a critique, run [[mastering-plan]] (`master-assistant` from a
+   creative brief, or `recommend-mastering-chain` measure-first) and drive
+   step 7 from its `eq_moves` / `expected_lufs` / limiter ceiling.
 7. **Render the master** — `stemmy-loops:render-mastered {path, out_path,
    target_lufs, ceiling_dbtp, ...}`. HPF → transient shape → loudness
    normalize → hard-clip limiter → optional resample + dither. Pass
@@ -99,6 +102,7 @@ exported file paths. If you re-rendered, say what you changed and why.
 
 ## Related
 
+- [[mastering-plan]] — design the chain (typed EQ/comp/limiter targets) before rendering step 7
 - [[mix-check]] — run first if the mix isn't clean; mastering is downstream
 - [[reference-match]] — when "master it" really means "make it sound like <ref>"
 - [[loops-to-deliverables]] — when the deliverable is loops, not a stereo master

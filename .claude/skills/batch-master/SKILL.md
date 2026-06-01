@@ -43,7 +43,13 @@ Then across the set:
    master and build a table: integrated LUFS, true-peak dBTP, LRA per track
    **plus deviation from the album median**. Flag anything beyond tolerance
    (e.g. > 0.5 LU off median, or any TP over ceiling).
-7. **Tag survival** — run [[delivery-qc]] / `drum-prep verify-tags` across the
+7. **Album playback gain** — `[L] analyze-album-normalization {dir:
+   "<album>/masters/", target_lufs, ceiling_dbtp}` for the **shared gain a
+   platform will actually apply**: it emits both TD1008 (loudest-track) and
+   album-integrated (gated loudness of the concatenated set) offsets, and per
+   track shows which play quieter under album vs track mode — the real
+   album-consistency read, not just per-track deltas.
+8. **Tag survival** — run [[delivery-qc]] / `drum-prep verify-tags` across the
    deliverables: `export-deliverables tag=true` is known to silently drop the
    RIFF INFO chunk, so verify rather than assume.
 
@@ -56,9 +62,10 @@ Then across the set:
 ## Reporting to the user
 
 Lead with the consistency table (LUFS / TP / LRA + Δ-from-median, outliers
-flagged). Then per-track release-readiness, any re-renders and why, and the
-tag-survival result. The table is the point — N individual masters without it
-is just [[master-track]] run N times.
+flagged) and the album playback-gain read (TD1008 vs album-integrated; which
+tracks a platform will quieten). Then per-track release-readiness, any re-renders
+and why, and the tag-survival result. The table is the point — N individual
+masters without it is just [[master-track]] run N times.
 
 ## Pitfalls
 
@@ -74,6 +81,7 @@ is just [[master-track]] run N times.
 ## Related
 
 - [[master-track]] — the single-file master this loops and extends
+- [[house-curve]] — make the set tonally consistent (this does loudness)
 - [[delivery-qc]] — the ship/don't-ship gate + tag-survival check
 - [[variant-shootout]] — pick a loudness target before committing the batch
 - [[mix-check]] — fix any track the perceptual read flags as not-ready

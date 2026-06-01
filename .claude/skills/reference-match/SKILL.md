@@ -45,7 +45,11 @@ numeric cross-check, the EQ, and the A/B render live on **stemmy-loops**.
    and sanity-checked against the perceptual notes (2). Don't apply 30 micro-
    bands; apply the few moves that close the biggest gaps.
 5. **Apply EQ** — `stemmy-loops:apply-eq {path: <mix>, out_path, bands,
-   tilt_db_per_octave}`. Write to `projects/<track>/mix/`.
+   tilt_db_per_octave}`. Write to `projects/<track>/mix/`. For a faithful
+   render of the *whole* delta curve rather than a few bells, drive
+   `stemmy-loops:match-eq {source_path: <mix>, reference_path: <ref>, ...}`
+   (a min/linear-phase corrective FIR, `match_strength ≈ 0.5`) and follow with
+   `apply-eq` only for surgical residuals.
 6. **Render the audition** — `stemmy-loops:render-ab {processed: <corrected
    mix from step 5>, reference: <ref>, out_path}`. Loudness-matches the
    corrected mix to the reference and renders one `[reference | gap |
@@ -81,6 +85,8 @@ them what to listen for.
 
 ## Related
 
+- [[house-curve]] — match a whole EP/album to ONE shared target (this is single mix ↔ single ref)
+- [[level-match]] — gain-only loudness match for an honest A/B without rendering the full audition
 - [[mix-check]] — fix problems the reference comparison surfaces (resonances, sibilance)
 - [[master-track]] — master the matched mix to a platform target
 - [[understand-audio]] — break down *what* the reference is doing before matching

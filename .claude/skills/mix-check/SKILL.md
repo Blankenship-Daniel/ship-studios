@@ -32,7 +32,10 @@ resonance/sibilance/phase pulls, matching the blueprint.
 
 1. **Listen for problems** — `stemmy-gemini:detect-mix-issues {path,
    severity_threshold}`. Clipping, sibilance, masking, pumping, phase, with
-   severity + timestamps. This sets the suspect list.
+   severity + timestamps. This sets the suspect list. To **zoom into** a flagged
+   window, `stemmy-gemini:critique-region {path, start_s, end_s, focus,
+   snap_to_onset}` re-critiques a DSP-trimmed, onset-snapped clip grounded in
+   that region's exact meters.
 2. **Perceptual balance** — `stemmy-gemini:analyze-mix-balance {path}`.
    Band-by-band tonal / stereo / depth critique with suggestions.
 3. **Objective loudness** — `stemmy-loops:measure-loudness {path}`. Ground
@@ -55,11 +58,21 @@ resonance/sibilance/phase pulls, matching the blueprint.
 10. **Apply corrective EQ** — `stemmy-loops:apply-eq {path, out_path, bands,
     tilt_db_per_octave}`. Bells from `find-resonances` notches, shelves/tilt
     from the balance read. Write to `projects/<track>/mix/`.
-11. **Apply compression where dynamics call for it** —
+11. **Apply the right corrective tool for the problem** — not everything is a
+    static EQ bell:
+    - **Sibilance** flagged → `[[de-ess]]` (native split-band, from the
+      `find-sibilance` settings).
+    - **Harsh / ringing** (a peak the spectrum confirms but a static notch
+      over-cuts) → `[[de-harsh]]` (Soothe-style dynamic suppression).
+    - **Level-dependent** problem (mud only when the kick hits, harsh only on
+      loud phrases) → `[[dynamic-eq]]`, not a static cut.
+    - **Dull / no air** → `[[excite]]` (parallel harmonics, not a noisy shelf).
+12. **Apply compression where dynamics call for it** —
     `stemmy-loops:compress-loop {path, out_path, threshold_db, ratio, ...}`
     only where the dynamics analysis (crest/PLR + pumping flag) justifies it.
     Parallel (`mix`) blend keeps transients when the goal is glue, not
-    squash.
+    squash. When one frequency band's dynamics misbehave while others are fine,
+    reach for `[[multiband-compress]]` instead of broadband.
 
 ## Outputs
 
@@ -96,5 +109,6 @@ route to [[master-track]] once the mix is clean.
 
 - [[master-track]] — the downstream stage once the mix passes
 - [[reference-match]] — when the goal is "sound like <ref>", not "fix problems"
+- [[de-ess]] / [[de-harsh]] / [[dynamic-eq]] / [[multiband-compress]] / [[excite]] — the targeted corrective skills step 11–12 hand off to
 - [[understand-audio]] — perceptual deep-dive on a specific timestamp/region
 - [[gemini-audio-understanding]] — what Gemini can/can't hear (it sums to mono; take stereo/phase from `measure-stereo` / `analyze-phase-mono`, not Gemini)

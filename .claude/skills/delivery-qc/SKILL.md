@@ -54,7 +54,11 @@ not an MCP tool). Every MCP name below is verified; mind hyphen vs underscore.
    `has_sidecar`, and `tagged` per file (`tagged = LIST chunk OR sidecar
    present`), plus channels / samplerate / subtype. This is the **only** check
    that catches the silent tag-drop above. Run it on the *written* export dir.
-6. **Reconcile into a gate.** Any file that is out-of-spec (step 1–4) **or**
+6. **Album-set loudness (multi-track releases only)** — when QC'ing a whole
+   EP/album, `[L] analyze-album-normalization {dir, target_lufs}` for the shared
+   gain a platform will apply (TD1008 vs album-integrated) and which tracks play
+   quieter under album mode. Skip for a single deliverable.
+7. **Reconcile into a gate.** Any file that is out-of-spec (step 1–4) **or**
    untagged (step 5) fails the gate. A clean step 1–4 with `tagged: false` is
    still a **don't-ship**.
 
@@ -95,3 +99,4 @@ green loudness numbers — surface it.
 
 - [[loops-to-deliverables]] — produces the loop deliverables this gate checks; holds the tagging step to re-run if untagged
 - [[master-track]] — produces the master + export matrix this gate fronts
+- [[release-package]] — the album-assembly stage this gate backs up (shares the album-normalization read)

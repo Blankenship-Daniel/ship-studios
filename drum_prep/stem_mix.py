@@ -25,6 +25,16 @@ def _pan(mono: np.ndarray, theta: float) -> np.ndarray:
     return np.column_stack([mono * np.cos(a), mono * np.sin(a)])
 
 
+def _balance(stereo: np.ndarray, theta: float) -> np.ndarray:
+    """Equal-power balance of an already-stereo signal: attenuate one side and lift
+    the other so total power (L**2 + R**2 = 2) — i.e. loudness — is held constant
+    across the pan range, the same constant-power law :func:`_pan` uses for mono.
+    ``theta`` in [-1, 1]; 0 is an exact no-op. (The old linear ``[1-pan, 1]`` law
+    quietened the bus as a stem was panned, off-target by up to ~3 dB at the edge.)"""
+    a = (theta + 1.0) * np.pi / 4.0
+    return stereo * np.array([np.sqrt(2.0) * np.cos(a), np.sqrt(2.0) * np.sin(a)])
+
+
 def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18.0,
               spec: dict | None = None, ceil_dbfs: float = -1.0,
               out_name: str = "song-mix.wav", t0: float = 0.0, dur: float = 0.0) -> dict:
@@ -65,8 +75,8 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
         pan = float(np.clip(s.get("pan", 0.0), -1.0, 1.0))
         if x.shape[1] == 2:
             ch = io.to_stereo(x)[:n] * gain
-            if pan:  # balance a stereo stem toward a side
-                ch = ch * np.array([1.0 - max(0.0, pan), 1.0 - max(0.0, -pan)])
+            if pan:  # equal-power balance toward a side (loudness-preserving)
+                ch = _balance(ch, pan)
             contrib, place = ch, ("stereo" if pan == 0 else f"stereo bal {round(pan * 100)}%")
         else:
             contrib = _pan(x[:n, 0], pan) * gain

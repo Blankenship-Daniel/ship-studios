@@ -32,8 +32,7 @@ touches audio. For *doing* perceptual analysis use `[[understand-audio]]` / `[[m
   mono** before hearing — so it **cannot judge stereo, true-peak, or absolute loudness**. Use
   meters for those (`[L] measure-stereo` / `[G] analyze-phase-mono` / `[L] measure-loudness`);
   use Gemini for harshness / pumping / masking / "feel." See
-  [caveats-and-limits.md](../../../docs/gemini-audio/caveats-and-limits.md) and
-  the `gemini-mastering-feedback-cross-check` memory note.
+  [caveats-and-limits.md](../../../docs/gemini-audio/caveats-and-limits.md).
 - **Numbers you reach for**: audio = **32 tokens/sec**, up to **9.5 h**/request; inline routes
   to Files API at **80 MB**; formats WAV/MP3/AIFF/AAC/OGG/FLAC; repo default model
   `gemini-3.1-pro-preview` (⚠️ preview).

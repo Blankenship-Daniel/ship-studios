@@ -428,7 +428,7 @@ Roles auto-detect from filenames: `overhead` (or `overhead_l`+`overhead_r`), `ro
 5. `drum-prep normalize <dir>` — balance-preserving GLOBAL gain by default (per-file changes the kit balance).
 6. `drum-prep analyze <dir> --reference <ref>` — read-only tonal report (reference vs kit, per-band ownership); writes nothing.
 7. `drum-prep reference-match <dir> --reference <ref>` — match the coherent kit sum toward the reference, distributed per stem → `<dir>/ref-matched/`.
-8. `drum-prep mix <dir> --feel <roomy|punchy|natural> --perspective <audience|drummer> [--plate FILE] [--flat]` — mix the prepped kit to a stereo bus by per-role loudness offsets + panning + FX return; the stage between prep and master.
+8. `drum-prep mix <dir> --feel <roomy|punchy|natural|dry> --perspective <audience|drummer> [--plate FILE] [--flat]` — mix the prepped kit to a stereo bus by per-role loudness offsets + panning + FX return; the stage between prep and master.
 9. `drum-prep audition <dir> --reference <ref>` — loudness-matched stereo A/B WAVs → `<dir>/auditions/`; also emits loudness-matched halves (`cmp_reference.wav`/`cmp_after.wav`) for stemmy-gemini `compare-to-reference`.
 10. `drum-prep chain <dir> --reference <ref>` — detect → phase-align → reference-match → audition end to end (`--out-root` to redirect).
 11. `drum-prep stem-mix <dir>` — mix arbitrary named stems to a stereo bus by loudness offsets + per-stem spec; the role-agnostic song-mix ([[song-mix]]).

@@ -19,7 +19,7 @@ loudness.
 > **Rule:** meters are ground truth; Gemini is for what meters can't see (harshness, pumping,
 > sibilance *feel*, masking, depth, "brittle"). Never let Gemini drive a loudness / peak /
 > stereo **amount**. Measure stereo & phase with `[L] measure-stereo` / `[G] analyze-phase-mono`,
-> loudness/true-peak with `[L] measure-loudness`. Confirms [[gemini-mastering-feedback-cross-check]].
+> loudness/true-peak with `[L] measure-loudness` — always cross-check a Gemini mastering read against the dBTP/LUFS meters.
 
 ### 2. Timestamps are navigation-grade and the flag is broken
 - Accuracy ≈ a few **seconds**, not frame-accurate. Fine for "boomy around 01:23"; useless for

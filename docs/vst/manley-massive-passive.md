@@ -7,7 +7,8 @@ that names itself "MASSIVE PASSIVE STEREO EQUALIZER") and the **Massive Passive 
 (`uaudio_manley_massive_passive_m.vst3` — ±11 dB, fully detented/stepped + a recallable ±2.5 dB L/R trim). This
 guide leads with the **standard** build and flags every standard-vs-MST difference. It's the broad/musical,
 **parallel passive** tube EQ counterpart to the surgical [[fabfilter-pro-q-4]], the program-EQ
-[[pultec-eqp-1a]], and the Motown graphic [[hitsville-eq-mastering]].
+[[pultec-eqp-1a]], and the Motown graphic [[hitsville-eq-mastering]] — the measured deep-dive
+behind the [[manley-massive-passive]] skill and a plugin-specific specialization of [[vst-eq]] / [[vst-master]].
 
 **Part A** is *measured on this rig* (the real Pedalboard param surface + Welch transfer-function / THD render
 results — `scripts/mix/massive_passive_sweep.py`). **Part B** is a *web-research synthesis, cited* (the Manley

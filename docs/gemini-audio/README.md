@@ -44,8 +44,8 @@ So Gemini **cannot hear true stereo width, true-peak, or absolute loudness.** Us
 meters can't see — harshness, pumping, sibilance *feel*, masking, depth, "too brittle" — and
 keep **meters as ground truth** for any loudness/peak/stereo *amount*
 (`[L] measure-stereo` / `[G] analyze-phase-mono` for stereo & phase). This matches the
-repo's standing policy ([[gemini-mastering-feedback-cross-check]]) and the roadmap's headline
-finding. Full treatment in [caveats-and-limits.md](caveats-and-limits.md).
+repo's standing policy of cross-checking any Gemini mastering read against the meters, and the
+roadmap's headline finding. Full treatment in [caveats-and-limits.md](caveats-and-limits.md).
 
 ---
 

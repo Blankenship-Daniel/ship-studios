@@ -55,9 +55,10 @@ dev = [
 # than reflow everything to 88.
 line-length = 100
 # Lint the library + tests, not the one-off experiment/probe helpers under
-# scripts/ and presets/ (deliberately terse; mypy likewise only covers the two
-# packages via [tool.mypy] files). Keeps `ruff check` / CI focused on shipped code.
-extend-exclude = ["scripts", "presets"]
+# scripts/ and presets/, nor the per-track human-owned scratch under projects/
+# (deliberately terse; mypy likewise only covers the two packages via
+# [tool.mypy] files). Keeps `ruff check` / CI focused on shipped code.
+extend-exclude = ["scripts", "presets", "projects"]
 
 [tool.ruff.lint]
 # Defaults (E4/E7/E9, F) plus bugbear (B — real bug classes like B904/B905),

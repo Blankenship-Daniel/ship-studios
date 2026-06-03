@@ -41,8 +41,26 @@ A contrasting flavor off the **same `stems/processed/`** source. Where the warm 
   PLR **22.6** (16.2) · corr **0.985** (0.975) · LUFS −23.6 · TP −0.99 · 0 clipped. Brighter, drier,
   much punchier, tighter — exactly the intended contrast.
 
+## Master (2026-06-03) — both buses mastered to a stereo bus
+
+Both mix buses mastered via `render-mastered` (HPF 30 → no added transient → limiter, −1 dBTP), target chosen
+by a **per-bus Gemini judge-panel shootout** (`warm-bus-shootout` workflow, criteria punch/clean/balance,
+meter-grounded). FX stayed **dry** (honoring the prior A/B).
+
+- **Warm → −14 LUFS** (`masters/watercolors_drums_warm_master.wav`). Panel winner (24/30 vs 23/23 for −16/−15).
+  Limiter near-transparent here: crest 17.2→**13.9**, THD **0.57 dB**, 0 clipped, TP −1.08. **Spotify/YouTube/
+  Tidal fully compliant** (−14 exactly); Apple turns it down 2 dB. The Spotify-ready master.
+- **Punchy → −18 LUFS** (`masters/watercolors_drums_punchy_master.wav`). **Overrode** the panel's loudness-biased
+  −16/−14 tie: this bus's identity is crest 24.5, and at −16 the limiter crushes it to 17.3 + adds **3.5 dB** THD
+  that mono Gemini can't hear (cross-check rule). −18 keeps crest **19.1**. **Dynamics-first**: TP-limited at
+  −1.08 so streaming can only lift it +0.08 dB → plays ~4 LU quieter than warm. Best used in-mix, not as a
+  loudness-competitive standalone. (`shootout/punchy_m16.wav` exists if a louder cut is wanted.)
+- Variants: `masters/shootout/{warm,punchy}_m{14,15,16,18}.wav`.
+- **Deliverables:** `deliverables/masters/` — each master × {44.1/16, 48/24, 96/24}, tagged (BPM 104; 16-bit via
+  sidecar only — `tag-deliverable` upconverts to 24-bit, so distribution re-exported `tag=false` + kept the sidecar).
+
 ## Files
-- `mix/bus_warm.wav` — FINAL warm/tight drum bus (mix bus, peak −1; **not mastered** → [[master-track]] for loudness).
+- `mix/bus_warm.wav` — FINAL warm/tight drum bus (mix bus, peak −1; mastered → `masters/…_warm_master.wav`).
 - `mix/bus_warm_dry.wav` (full untrimmed) · `mix/bus_warm_withfx.wav` + `mix/ab_*_m.wav` (the A/B that chose dry).
 - `mix/bus_punchy.wav` — FINAL **dry/tight/punchy** variant (mix bus, peak −1; not mastered). `mix/bus_punchy_pre.wav` = its dry balance pre-tone. Recipe: `scripts/mix/punchy_bus.py` + `mix/balance_punchy.spec.json`.
 - `loops/` (8 raw) · `deliverables/` (24 = 8 × {44.1/16, 48/24, 96/24}) — **warm-bus** loops. (Punchy loop pack not yet cut — say the word.)

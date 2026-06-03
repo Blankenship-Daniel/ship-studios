@@ -204,6 +204,18 @@ def main() -> None:
 @click.option("--bit-depth", type=int, default=None)
 @click.option("--sample-rate", type=int, default=None)
 @click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--assistant", is_flag=True, default=False,
+              help="Use master-assistant (a typed chain plan) for the perceptual "
+                   "step instead of mastering-feedback.")
+@click.option("--intent", default="balanced", show_default=True,
+              type=click.Choice(
+                  ["loud", "dynamic", "warm", "bright", "balanced", "punchy"]),
+              help="master-assistant creative intent (with --assistant).")
+@click.option("--intensity", default="medium", show_default=True,
+              type=click.Choice(["subtle", "medium", "strong"]),
+              help="master-assistant intensity (with --assistant).")
+@click.option("--style", default=None,
+              help="master-assistant style / genre hint (with --assistant).")
 def master(
     mix_path: str,
     out_path: str | None,
@@ -215,6 +227,10 @@ def master(
     bit_depth: int | None,
     sample_rate: int | None,
     deliverables_dir: str | None,
+    assistant: bool,
+    intent: str,
+    intensity: str,
+    style: str | None,
 ) -> None:
     """Master a near-final mix and export the deliverable format matrix."""
     from ship_studios.mcp_client import open_hub
@@ -236,6 +252,100 @@ def master(
                 bit_depth=bit_depth,
                 sample_rate=sample_rate,
                 deliverables_dir=deliverables_dir,
+                assistant=assistant,
+                intent=intent,
+                intensity=intensity,
+                style=style,
+            )
+
+    _run(_go())
+
+
+@main.command(name="house-curve")
+@click.argument("mix_path", type=click.Path())
+@click.option("--reference", "reference_paths", multiple=True, required=True,
+              type=click.Path(),
+              help="Reference track to fold into the house curve (repeatable).")
+@click.option("--profile-json", "profile_json", type=click.Path(), default=None,
+              help="Where to write/read the shared profile JSON "
+                   "(default: <mix>.house-profile.json). Reuse it across an EP.")
+@click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
+              show_default=True,
+              help="How much of the mix->profile delta match-eq corrects.")
+@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+              default="minimum", show_default=True,
+              help="match-eq filter realization.")
+@click.option("--out", "out_path", type=click.Path(), default=None,
+              help="Where to write the corrected mix "
+                   "(default: <mix>.house-matched.wav).")
+def house_curve_cmd(mix_path: str, reference_paths: tuple[str, ...],
+                    profile_json: str | None, match_strength: float,
+                    match_phase: str, out_path: str | None) -> None:
+    """Build a shared house curve from references and match a mix toward it."""
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import house_curve
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await house_curve(
+                hub, mix_path, list(reference_paths),
+                profile_json=profile_json, match_strength=match_strength,
+                match_phase=match_phase, out_path=out_path,
+            )
+
+    _run(_go())
+
+
+def _expand_mix_paths(paths: tuple[str, ...]) -> list[str]:
+    """Expand CLI mix args: a lone directory -> its sorted ``*.wav`` children.
+
+    Otherwise the paths pass through unchanged (so tests need no filesystem).
+    """
+    from pathlib import Path
+
+    if len(paths) == 1 and Path(paths[0]).is_dir():
+        wavs = sorted(str(p) for p in Path(paths[0]).glob("*.wav"))
+        if not wavs:
+            raise click.BadParameter(
+                f"no .wav files in {paths[0]}", param_hint="MIX_PATHS"
+            )
+        return wavs
+    return list(paths)
+
+
+@main.command(name="batch-master")
+@click.argument("mix_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--target-lufs", default=-14.0, show_default=True, type=float)
+@click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
+@click.option("--platform", "target_platform", default="spotify", show_default=True,
+              type=click.Choice(PLATFORM_CHOICES),
+              help="Shared release target for the whole set.")
+@click.option("--masters-dir", type=click.Path(), default=None,
+              help="Write every master here (default: each mix's project masters/).")
+@click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--bit-depth", type=int, default=None)
+@click.option("--sample-rate", type=int, default=None)
+def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
+                     ceiling_dbtp: float, target_platform: str,
+                     masters_dir: str | None, deliverables_dir: str | None,
+                     bit_depth: int | None, sample_rate: int | None) -> None:
+    """Master a set of mixes to one shared target + a cross-track album pass.
+
+    MIX_PATHS are the mix files; pass a single directory to master every .wav in it.
+    """
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import batch_master
+
+    mixes = _expand_mix_paths(mix_paths)
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await batch_master(
+                hub, mixes,
+                target_lufs=target_lufs, ceiling_dbtp=ceiling_dbtp,
+                target_platform=target_platform, masters_dir=masters_dir,
+                deliverables_dir=deliverables_dir, bit_depth=bit_depth,
+                sample_rate=sample_rate,
             )
 
     _run(_go())

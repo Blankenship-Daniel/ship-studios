@@ -94,6 +94,34 @@ def _streaming_compliant(result: Any) -> bool | None:
     return all(flags)
 
 
+def _profile_delta_curve(result: Any) -> list[dict[str, float]] | None:
+    """Extract a ``match-eq`` ``delta_db_curve`` from a ``match-to-profile`` result.
+
+    ``match-to-profile`` returns ``{"bands": [{"freq_hz", "delta_db", ...}]}``
+    where ``delta_db = input − target`` — the same source-minus-reference sign
+    ``match-eq``'s ``delta_db_curve`` expects — so we forward ``freq_hz`` +
+    ``delta_db`` per band to render the correction. Returns ``None`` when the
+    shape is unrecognised (e.g. a fake hub) so the caller skips the render
+    gracefully. Never raises.
+    """
+    if not isinstance(result, dict):
+        return None
+    bands = result.get("bands")
+    if not isinstance(bands, list) or not bands:
+        return None
+    curve: list[dict[str, float]] = []
+    for b in bands:
+        if (
+            isinstance(b, dict)
+            and isinstance(b.get("freq_hz"), (int, float))
+            and isinstance(b.get("delta_db"), (int, float))
+        ):
+            curve.append(
+                {"freq_hz": float(b["freq_hz"]), "delta_db": float(b["delta_db"])}
+            )
+    return curve or None
+
+
 class SupportsCallTool(Protocol):
     """Structural type for whatever the pipelines drive (real Hub or fake)."""
 
@@ -133,6 +161,10 @@ async def master_track(
     sample_rate: int | None = None,
     deliverables_dir: str | None = None,
     presets: list[str] | None = None,
+    assistant: bool = False,
+    intent: str = "balanced",
+    intensity: str = "medium",
+    style: str | None = None,
 ) -> dict[str, Any]:
     """Pipeline 1 — measure source, get a perceptual read, render, verify, export.
 
@@ -140,6 +172,12 @@ async def master_track(
     measure-stereo / check-clipping / measure-distortion (loops) ->
     mastering-feedback (gemini) -> render-mastered (loops) ->
     check-streaming-targets (gemini) -> export-deliverables (loops).
+
+    The perceptual/plan step is ``mastering-feedback`` by default; set
+    ``assistant=True`` to use ``master-assistant`` instead (driven by
+    ``intent`` / ``intensity`` / ``style``), the doc's step-6 alternative that
+    returns a complete typed mastering-chain plan. Either way the render still
+    targets ``target_lufs`` / ``ceiling_dbtp`` — the plan is advisory.
     """
     rec = _Recorder(hub)
 
@@ -149,11 +187,23 @@ async def master_track(
     await rec.run(LOOPS_SERVER, "check-clipping", {"path": mix_path})
     await rec.run(LOOPS_SERVER, "measure-distortion", {"path": mix_path})
 
-    await rec.run(
-        GEMINI_SERVER,
-        "mastering-feedback",
-        {"path": mix_path, "target_platform": _feedback_mood(target_platform)},
-    )
+    mood = _feedback_mood(target_platform)
+    if assistant:
+        plan_args: dict[str, Any] = {
+            "path": mix_path,
+            "intent": intent,
+            "intensity": intensity,
+            "target_platform": mood,
+        }
+        if style is not None:
+            plan_args["style"] = style
+        await rec.run(GEMINI_SERVER, "master-assistant", plan_args)
+    else:
+        await rec.run(
+            GEMINI_SERVER,
+            "mastering-feedback",
+            {"path": mix_path, "target_platform": mood},
+        )
 
     render_args: dict[str, Any] = {
         "path": mix_path,
@@ -193,6 +243,82 @@ async def master_track(
         "input": mix_path,
         "streaming_compliant": compliant,  # True/False/None — see _streaming_compliant
         "steps": rec.steps,
+    }
+
+
+async def batch_master(
+    hub: SupportsCallTool,
+    mix_paths: list[str],
+    *,
+    target_lufs: float = -14.0,
+    ceiling_dbtp: float = -1.0,
+    target_platform: str = "spotify",
+    high_pass_hz: float | None = None,
+    transient_shape: float | None = None,
+    bit_depth: int | None = None,
+    sample_rate: int | None = None,
+    masters_dir: str | None = None,
+    deliverables_dir: str | None = None,
+    presets: list[str] | None = None,
+) -> dict[str, Any]:
+    """Pipeline 6 — master a folder of mixes to ONE shared target + album pass.
+
+    Per track: the full master-track chain (measure -> mastering-feedback ->
+    render-mastered -> check-streaming-targets -> export-deliverables) to the
+    SHARED ``target_lufs`` / ``ceiling_dbtp``. Then a cross-track pass —
+    measure-loudness over every master + analyze-album-normalization (the shared
+    album gain a platform will actually apply). The consistency read is the
+    headline; hand any not-release-ready track to mix-check first.
+    """
+    if not mix_paths:
+        raise ValueError("batch_master needs at least one mix path")
+
+    tracks: list[dict[str, Any]] = []
+    masters: list[str] = []
+    steps: list[dict[str, Any]] = []
+    for mix in mix_paths:
+        out = _master_out(mix, masters_dir)
+        res = await master_track(
+            hub,
+            mix,
+            out,
+            target_lufs=target_lufs,
+            ceiling_dbtp=ceiling_dbtp,
+            target_platform=target_platform,
+            high_pass_hz=high_pass_hz,
+            transient_shape=transient_shape,
+            bit_depth=bit_depth,
+            sample_rate=sample_rate,
+            deliverables_dir=deliverables_dir,
+            presets=presets,
+        )
+        tracks.append(
+            {
+                "input": mix,
+                "master": out,
+                "streaming_compliant": res.get("streaming_compliant"),
+            }
+        )
+        masters.append(out)
+        steps.extend(res.get("steps", []))
+
+    # Cross-track album pass — consistency table + shared album-gain projection.
+    rec = _Recorder(hub)
+    for master in masters:
+        await rec.run(LOOPS_SERVER, "measure-loudness", {"path": master})
+    await rec.run(
+        LOOPS_SERVER,
+        "analyze-album-normalization",
+        {"paths": masters, "target_lufs": target_lufs, "ceiling_dbtp": ceiling_dbtp},
+    )
+    steps.extend(rec.steps)
+
+    return {
+        "pipeline": "batch-master",
+        "inputs": list(mix_paths),
+        "masters": masters,
+        "tracks": tracks,
+        "steps": steps,
     }
 
 
@@ -373,6 +499,68 @@ async def reference_match(
         "pipeline": "reference-match",
         "input": mix_path,
         "reference": ref_path,
+        "steps": rec.steps,
+    }
+
+
+async def house_curve(
+    hub: SupportsCallTool,
+    mix_path: str,
+    reference_paths: list[str],
+    *,
+    profile_json: str | None = None,
+    match_strength: float = 0.5,
+    match_phase: str = "minimum",
+    out_path: str | None = None,
+) -> dict[str, Any]:
+    """Pipeline — build one shared house curve from refs, match a mix to it.
+
+    Order (verified tools): build-target-profile (loops; power-averages the
+    references into a reusable profile JSON) -> match-to-profile (loops; the
+    mix's per-band delta vs the profile) -> match-eq (loops; renders the delta
+    as a min/linear-phase FIR correction). The match-eq render runs only when a
+    per-band delta is recoverable from match-to-profile (a real hub); the
+    profile + delta read are always produced. For a whole EP, reuse the one
+    ``profile_json`` across every mix so the set shares a target ([[house-curve]]).
+    """
+    if not reference_paths:
+        raise ValueError("house_curve needs at least one reference path")
+    rec = _Recorder(hub)
+
+    profile = profile_json or _profile_json_path(mix_path)
+    await rec.run(
+        LOOPS_SERVER,
+        "build-target-profile",
+        {"paths": list(reference_paths), "out_json": profile},
+    )
+    match = await rec.run(
+        LOOPS_SERVER,
+        "match-to-profile",
+        {"path": mix_path, "profile_json": profile},
+    )
+
+    curve = _profile_delta_curve(match)
+    output = mix_path
+    if curve is not None:
+        output = out_path or _suffix_path(mix_path, "house-matched")
+        await rec.run(
+            LOOPS_SERVER,
+            "match-eq",
+            {
+                "source_path": mix_path,
+                "delta_db_curve": curve,
+                "out_path": output,
+                "match_strength": match_strength,
+                "phase": match_phase,
+            },
+        )
+
+    return {
+        "pipeline": "house-curve",
+        "input": mix_path,
+        "profile": profile,
+        "output": output,
+        "matched": curve is not None,
         "steps": rec.steps,
     }
 
@@ -573,6 +761,27 @@ def _suffix_path(path: str, suffix: str) -> str:
     """Insert ``.<suffix>`` before the extension: a/b.wav -> a/b.<suffix>.wav."""
     p = PurePosixPath(path)
     return str(p.with_name(f"{p.stem}.{suffix}{p.suffix}"))
+
+
+def _profile_json_path(mix_path: str) -> str:
+    """Default house-profile JSON beside the mix: a/b.wav -> a/b.house-profile.json."""
+    p = PurePosixPath(mix_path)
+    return str(p.with_name(f"{p.stem}.house-profile.json"))
+
+
+def _master_out(mix_path: str, masters_dir: str | None) -> str:
+    """Master output path for a mix, honoring the ``masters/`` layout.
+
+    With an explicit ``masters_dir`` the file lands there; otherwise it follows
+    the project layout (a mix in ``mix/`` -> the sibling ``masters/``; else a
+    ``masters/`` dir beside the mix), matching the single-file CLI default.
+    """
+    p = PurePosixPath(mix_path)
+    name = f"{p.stem}.master{p.suffix}"
+    if masters_dir is not None:
+        return str(PurePosixPath(masters_dir) / name)
+    project = p.parent.parent if p.parent.name == "mix" else p.parent
+    return str(project / "masters" / name)
 
 
 def _deliverables_dir(out_path: str) -> str:

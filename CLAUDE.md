@@ -373,13 +373,15 @@ The same pipelines run without an interactive Claude session via the `ship-studi
 ```bash
 ship-studios doctor          # check env vars + sibling repos before first run
 ship-studios master          projects/<track>/mix/final.wav --platform spotify
+ship-studios batch-master    projects/<album>/mix/*.wav --platform spotify
 ship-studios mix-check       projects/<track>/mix/draft.wav
 ship-studios reference-match projects/<track>/mix/draft.wav --reference projects/<track>/refs/ref.wav
+ship-studios house-curve     projects/<track>/mix/draft.wav --reference refs/a.wav --reference refs/b.wav
 ship-studios loops           projects/<track>/stems/drums.wav --bpm 120
 ship-studios understand      projects/<track>/refs/ref.wav
 ```
 
-The five pipeline subcommands (`master`, `mix-check`, `reference-match`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
+The seven pipeline subcommands (`master`, `batch-master`, `mix-check`, `reference-match`, `house-curve`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
 
 ---
 

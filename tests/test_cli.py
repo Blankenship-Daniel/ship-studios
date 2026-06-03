@@ -42,6 +42,8 @@ def patched_pipelines(monkeypatch: pytest.MonkeyPatch):
         "master_track",
         "mix_check",
         "reference_match",
+        "house_curve",
+        "batch_master",
         "loops_to_deliverables",
         "understand_audio",
     ):
@@ -171,6 +173,56 @@ def test_reference_match_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert name == "reference_match"
     assert args == ("mix.wav", "ref.wav")
     assert kwargs["goal"] == "warmer low end"
+
+
+def test_master_assistant_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main,
+        ["master", "mix.wav", "--assistant", "--intent", "warm",
+         "--intensity", "strong", "--style", "indie"],
+    )
+    assert result.exit_code == 0, result.output
+    name, _, kwargs = patched_pipelines[0]
+    assert name == "master_track"
+    assert kwargs["assistant"] is True
+    assert kwargs["intent"] == "warm"
+    assert kwargs["intensity"] == "strong"
+    assert kwargs["style"] == "indie"
+
+
+def test_house_curve_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main,
+        ["house-curve", "mix.wav", "--reference", "a.wav", "--reference", "b.wav",
+         "--match-strength", "0.75"],
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "house_curve"
+    assert args == ("mix.wav", ["a.wav", "b.wav"])
+    assert kwargs["match_strength"] == 0.75
+
+
+def test_house_curve_requires_a_reference(runner: CliRunner, patched_pipelines) -> None:
+    # --reference is required (multiple); missing it is a usage error, not a crash.
+    result = runner.invoke(cli.main, ["house-curve", "mix.wav"])
+    assert result.exit_code == 2
+
+
+def test_batch_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["batch-master", "a.wav", "b.wav", "--target-lufs", "-12"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "batch_master"
+    assert args == (["a.wav", "b.wav"],)
+    assert kwargs["target_lufs"] == -12.0
+
+
+def test_batch_master_requires_a_mix(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["batch-master"])
+    assert result.exit_code == 2
 
 
 def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> None:
@@ -382,8 +434,10 @@ def test_doctor_flags_present_but_unsynced_sibling(
 def test_main_group_has_all_subcommands() -> None:
     assert set(cli.main.commands) >= {
         "master",
+        "batch-master",
         "mix-check",
         "reference-match",
+        "house-curve",
         "loops",
         "understand",
         "doctor",

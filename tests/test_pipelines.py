@@ -129,6 +129,134 @@ async def test_mix_check_diagnostic_sequence(recording_hub) -> None:
     }
 
 
+async def test_master_track_assistant_replaces_feedback(recording_hub) -> None:
+    await pipelines.master_track(
+        recording_hub, "m.wav", "o.wav", assistant=True,
+        intent="warm", intensity="strong", style="indie",
+    )
+    seq = recording_hub.tool_sequence
+    assert "master-assistant" in seq
+    assert "mastering-feedback" not in seq
+    args = recording_hub.args_for("master-assistant")
+    assert args["intent"] == "warm"
+    assert args["intensity"] == "strong"
+    assert args["style"] == "indie"
+    assert args["target_platform"] == "streaming"  # spotify -> streaming mood
+
+
+async def test_master_track_assistant_omits_style_when_none(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", assistant=True)
+    assert "style" not in recording_hub.args_for("master-assistant")
+
+
+async def test_master_track_default_step_is_feedback(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav")
+    assert "mastering-feedback" in recording_hub.tool_sequence
+    assert "master-assistant" not in recording_hub.tool_sequence
+
+
+async def test_house_curve_renders_match_eq_from_profile_delta() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={"match-to-profile": {
+        "profile_path": "p.json",
+        "bands": [
+            {"freq_hz": 100.0, "delta_db": 2.0},
+            {"freq_hz": 1000.0, "delta_db": -1.5},
+        ],
+    }})
+    result = await pipelines.house_curve(hub, "mix.wav", ["a.wav", "b.wav"])
+    assert hub.server_tool_sequence == [
+        (LOOPS_SERVER, "build-target-profile"),
+        (LOOPS_SERVER, "match-to-profile"),
+        (LOOPS_SERVER, "match-eq"),
+    ]
+    # build + match share the one profile JSON.
+    prof = hub.args_for("build-target-profile")["out_json"]
+    assert hub.args_for("build-target-profile")["paths"] == ["a.wav", "b.wav"]
+    assert hub.args_for("match-to-profile")["profile_json"] == prof
+    # match-eq is driven by the per-band delta from match-to-profile.
+    assert hub.args_for("match-eq")["delta_db_curve"] == [
+        {"freq_hz": 100.0, "delta_db": 2.0},
+        {"freq_hz": 1000.0, "delta_db": -1.5},
+    ]
+    assert hub.args_for("match-eq")["source_path"] == "mix.wav"
+    assert result["matched"] is True
+    assert result["output"] == hub.args_for("match-eq")["out_path"]
+
+
+async def test_house_curve_analysis_only_without_delta(recording_hub) -> None:
+    # The default hub returns {} -> no recoverable delta -> no match-eq render.
+    result = await pipelines.house_curve(recording_hub, "mix.wav", ["a.wav"])
+    assert recording_hub.server_tool_sequence == [
+        (LOOPS_SERVER, "build-target-profile"),
+        (LOOPS_SERVER, "match-to-profile"),
+    ]
+    assert result["matched"] is False
+    assert result["output"] == "mix.wav"
+
+
+async def test_house_curve_reuses_supplied_profile(recording_hub) -> None:
+    await pipelines.house_curve(
+        recording_hub, "mix.wav", ["a.wav"], profile_json="shared/ep.json"
+    )
+    assert recording_hub.args_for("build-target-profile")["out_json"] == "shared/ep.json"
+    assert recording_hub.args_for("match-to-profile")["profile_json"] == "shared/ep.json"
+
+
+async def test_house_curve_requires_references(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.house_curve(recording_hub, "mix.wav", [])
+
+
+async def test_batch_master_per_track_then_album_pass() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.batch_master(
+        hub, ["projects/ep/mix/a.wav", "projects/ep/mix/b.wav"]
+    )
+    masters = [
+        "projects/ep/masters/a.master.wav",
+        "projects/ep/masters/b.master.wav",
+    ]
+    assert result["pipeline"] == "batch-master"
+    assert result["masters"] == masters
+    seq = hub.tool_sequence
+    # each track went through the full master chain
+    assert seq.count("render-mastered") == 2
+    assert seq.count("export-deliverables") == 2
+    # the album pass closes it out: measure-loudness per master, then album norm
+    assert seq[-3:] == [
+        "measure-loudness",
+        "measure-loudness",
+        "analyze-album-normalization",
+    ]
+    assert hub.args_for("analyze-album-normalization")["paths"] == masters
+    # every render hit the SAME shared target, into masters/
+    renders = [c.args for c in hub.calls if c.tool == "render-mastered"]
+    assert [r["out_path"] for r in renders] == masters
+    assert all(r["target_lufs"] == -14.0 for r in renders)
+
+
+async def test_batch_master_masters_dir_override() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.batch_master(
+        hub, ["a.wav", "b.wav"], masters_dir="out/masters"
+    )
+    assert result["masters"] == [
+        "out/masters/a.master.wav",
+        "out/masters/b.master.wav",
+    ]
+
+
+async def test_batch_master_requires_paths(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.batch_master(recording_hub, [])
+
+
 async def test_mix_check_default_severity_is_server_valid(recording_hub) -> None:
     # Bare mix-check must send a floor the real detect-mix-issues accepts.
     await pipelines.mix_check(recording_hub, "mix.wav")
@@ -704,6 +832,11 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
     await pipelines.master_track(h, "m.wav", "o.wav", target_platform="spotify")
     _collect(h)
 
+    # master-track via the master-assistant plan step (covers master-assistant).
+    h = RecordingHub()
+    await pipelines.master_track(h, "m.wav", "o.wav", assistant=True, style="indie")
+    _collect(h)
+
     # mix-check with EVERY corrective branch so the live contract sees them all
     # (apply-eq, de-ess, suppress-resonances, apply-dynamic-eq, excite-loop,
     # compress-loop, multiband-compress).
@@ -739,6 +872,19 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
         event_description="kick", labels=["x"], compare_paths=["b.wav"],
         json_schema={"type": "object"},
     )
+    _collect(h)
+
+    # house-curve (build-target-profile -> match-to-profile -> match-eq), with a
+    # canned profile delta so the match-eq render branch fires.
+    h = RecordingHub(
+        canned={"match-to-profile": {"bands": [{"freq_hz": 1.0, "delta_db": 0.0}]}}
+    )
+    await pipelines.house_curve(h, "m.wav", ["r.wav"])
+    _collect(h)
+
+    # batch-master (per-track master chain + analyze-album-normalization).
+    h = RecordingHub()
+    await pipelines.batch_master(h, ["m.wav"])
     _collect(h)
 
     return pairs

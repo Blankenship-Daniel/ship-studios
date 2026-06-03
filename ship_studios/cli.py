@@ -136,12 +136,14 @@ def _parse_presets(presets: str | None) -> list[str] | None:
     return out or None
 
 
-def _load_eq_bands(path: str | None) -> list[dict[str, Any]] | None:
+def _load_eq_bands(
+    path: str | None, *, hint: str = "--eq-json"
+) -> list[dict[str, Any]] | None:
     """Load corrective EQ bands from a JSON file (a list of band dicts).
 
-    Lets the headless CLI reach the apply-eq branch of mix-check / reference-match
-    (otherwise unreachable). Raises a clean Click error on a missing file or a
-    payload that isn't a JSON list of objects.
+    Lets the headless CLI reach the band-driven steps (apply-eq / apply-dynamic-eq)
+    of mix-check / reference-match (otherwise unreachable). Raises a clean Click
+    error on a missing file or a payload that isn't a JSON list of objects.
     """
     if not path:
         return None
@@ -150,14 +152,14 @@ def _load_eq_bands(path: str | None) -> list[dict[str, Any]] | None:
     try:
         data = json.loads(Path(path).read_text())
     except FileNotFoundError:
-        raise click.BadParameter(f"file not found: {path}", param_hint="--eq-json") from None
+        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from None
     except json.JSONDecodeError as exc:
-        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint="--eq-json") from None
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from None
     if not (isinstance(data, list) and all(isinstance(b, dict) for b in data)):
         raise click.BadParameter(
             "expected a JSON list of band objects, e.g. "
             '[{"freq_hz": 200, "gain_db": -2, "q": 1.0, "type": "bell"}]',
-            param_hint="--eq-json",
+            param_hint=hint,
         )
     return data
 
@@ -249,21 +251,45 @@ def master(
                    '(e.g. [{"freq_hz":200,"gain_db":-2,"q":1,"type":"bell"}]).')
 @click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
               help="Where to write the EQ'd mix (with --eq-json).")
+@click.option("--deess", is_flag=True, default=False,
+              help="Also de-ess (tame sibilance) with default settings.")
+@click.option("--de-harsh", "de_harsh", is_flag=True, default=False,
+              help="Also run suppress-resonances (Soothe-style de-harsh).")
+@click.option("--dynamic-eq-json", "dynamic_eq_json", type=click.Path(), default=None,
+              help="JSON list of dynamic-EQ bands (level-dependent carves).")
+@click.option("--excite", is_flag=True, default=False,
+              help="Also add band-limited air/presence (excite-loop).")
 @click.option("--compress", is_flag=True, default=False,
-              help="Also run compress-loop after EQ.")
+              help="Also run compress-loop.")
+@click.option("--multiband", is_flag=True, default=False,
+              help="Also run multiband-compress (per-band dynamics).")
 def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
-                  eq_out_path: str | None, compress: bool) -> None:
-    """Diagnose a mix (perceptual + measurement) and surface concrete moves."""
+                  eq_out_path: str | None, deess: bool, de_harsh: bool,
+                  dynamic_eq_json: str | None, excite: bool, compress: bool,
+                  multiband: bool) -> None:
+    """Diagnose a mix (perceptual + measurement) and surface concrete moves.
+
+    The corrective steps are opt-in and chain in order: --eq-json, --deess,
+    --de-harsh, --dynamic-eq-json, --excite, --compress, --multiband. The bool
+    flags run their tool with default settings; the *-json flags carry EQ moves.
+    """
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import mix_check
 
     eq_bands = _load_eq_bands(eq_json)
+    dyn_bands = _load_eq_bands(dynamic_eq_json, hint="--dynamic-eq-json")
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await mix_check(
                 hub, mix_path, severity_threshold=severity_threshold,
-                eq_bands=eq_bands, eq_out_path=eq_out_path, compress=compress,
+                eq_bands=eq_bands, eq_out_path=eq_out_path,
+                deess={} if deess else None,
+                suppress={} if de_harsh else None,
+                dynamic_eq_bands=dyn_bands,
+                excite={} if excite else None,
+                compress=compress,
+                multiband={} if multiband else None,
             )
 
     _run(_go())

@@ -115,6 +115,37 @@ def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert kwargs["severity_threshold"] == "serious"
 
 
+def test_mix_check_corrective_flags(runner: CliRunner, patched_pipelines) -> None:
+    # The bool corrective flags enable each tool with default settings ({}).
+    result = runner.invoke(
+        cli.main,
+        ["mix-check", "mix.wav", "--deess", "--de-harsh", "--excite",
+         "--compress", "--multiband"],
+    )
+    assert result.exit_code == 0, result.output
+    name, _, kwargs = patched_pipelines[0]
+    assert name == "mix_check"
+    assert kwargs["deess"] == {}
+    assert kwargs["suppress"] == {}
+    assert kwargs["excite"] == {}
+    assert kwargs["multiband"] == {}
+    assert kwargs["compress"] is True
+
+
+def test_mix_check_no_corrective_flags_is_diagnose_only(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    result = runner.invoke(cli.main, ["mix-check", "mix.wav"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["deess"] is None
+    assert kwargs["suppress"] is None
+    assert kwargs["excite"] is None
+    assert kwargs["multiband"] is None
+    assert kwargs["dynamic_eq_bands"] is None
+    assert kwargs["compress"] is False
+
+
 def test_mix_check_rejects_invalid_severity(runner: CliRunner, patched_pipelines) -> None:
     # "minor"/"major" are NOT valid detect-mix-issues floors; the CLI must reject
     # them up front (Choice) rather than fail at the server.

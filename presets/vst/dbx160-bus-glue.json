@@ -1,0 +1,28 @@
+{
+  "name": "dbx160-bus-glue",
+  "description": "Gentle dbx 160 leveling/glue for a mix bus: a LOW ratio (2:1) with light GR, where the feed-forward true-RMS VCA acts as a transparent leveler and slightly REDUCES crest (the gentle end of the dbx — the opposite character to the 4:1+ punch presets). compress 2.0:1, thresh -22, sc_filter OFF, gain makeup. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-16.64 (+0.54), crest 17.17->16.69 (-0.48 — gentle leveling), low-band block-crest 17.14->15.52, LRA 2.44->1.88 (tighter), true-peak -0.99, centroid 1747->1756 (tone unchanged). The leveling/glue end of the dbx — contrast the 4:1 dbx160-drum-punch which RAISES crest.",
+  "intended_for": "a mix bus / submix that wants subtle, transparent leveling + cohesion (a few dB of glue) rather than added punch",
+  "plugin_build": "uaudio_dbx_160.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD dbx 160 twins PASS THROUGH offline, do not use them).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_dbx_160.vst3", "params": {
+        "thresh": -22.0,
+        "compress": " 2.0:1",
+        "gain": 3.0,
+        "meter": "GC",
+        "sc_filter": false,
+        "mix": 100.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "compress ' 2.0:1' (leading space) and meter/sc_filter are string/bool enums -> apply_vst_preset.py only.",
+    "At low ratios (<=2:1) the dbx behaves as a transparent leveler and slightly LOWERS crest; at 4:1+ it flips to RAISING crest (punch). This preset is the gentle/leveling end -- for punch use dbx160-drum-punch.",
+    "Keep GR light (raise thresh toward unity); for a touch more cohesion drop thresh a few dB. Clean VCA -> no added harmonics. dbx 160 = MONO. Glue stage, not a master."
+  ]
+}

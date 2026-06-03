@@ -123,7 +123,7 @@ harmonic grit** (not tube warmth, not crest-holding color). A/B loudness-matched
 ## Related
 
 - [`docs/vst/la-3a.md`](../../../docs/vst/la-3a.md) — the full measured field guide (Part A measured + Part B cited)
-- [[vst-compress]] — the generic compressor skill this specializes · [[fairchild-660]] — tube COLOR sibling (holds crest, even-harmonic) vs the LA-3A's LEVELING (drops crest, odd-harmonic) · [[ssl-bus-compressor-2]] — VCA stereo glue
+- [[vst-compress]] — the generic compressor skill this specializes · [[fairchild-660]] — tube COLOR sibling (holds crest, even-harmonic) vs the LA-3A's LEVELING (drops crest, odd-harmonic) · [[dbx-160]] — clean feed-forward true-RMS VCA that ADDS punch (RAISES crest) on drums, the opposite of the LA-3A's leveling · [[ssl-bus-compressor-2]] — VCA stereo glue
 - [[vst-preset]] — apply enum chains (required for Limit mode) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[finalize-mix]] / [[stem-master]] — stages this fits · [[drum-punch]] — pure-DSP transient design (no plugin) · [[multiband-compress]] — band-split dynamics
 - [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR

@@ -1,0 +1,31 @@
+{
+  "name": "dbx160-drum-punch",
+  "description": "THE signature UADx dbx 160 move on a stereo drum bus: a feed-forward true-RMS VCA at 4:1 that ADDS punch — it clamps the sustained body while the sharp transients ride over the top, so crest goes UP, not down (the opposite of an opto/leveler). compress 4.0:1, thresh -24 dBFS (a few dB of program-dependent GR), sc_filter OFF (keep the kick punching), gain makeup. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-19.18, crest 17.17->19.29 (+2.1 — punch ADDED), low-band (kick) block-crest 17.14->15.01 (body tightened) while mid-band crest 21.87->25.17 (snare/mid transients punch more), low-mid ratio 0.179->0.204 (fuller body), LRA 2.44->1.40 (tighter), true-peak -0.98, centroid 1747->1757 (tone essentially unchanged). Punch via the ENVELOPE, not EQ or saturation; THD ~0.04%.",
+  "intended_for": "a stereo drum bus / submix that wants more punch + forward body and a tighter kick, with broadband crest preserved or increased",
+  "plugin_build": "uaudio_dbx_160.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD dbx 160.component + /VST3/Universal Audio/.../UAD dbx 160.vst3 twins PASS THROUGH offline, do not use them). UADx native = perpetual/no-iLok-dongle lineage, but re-verify changed:true on a new machine.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_dbx_160.vst3", "params": {
+        "thresh": -24.0,
+        "compress": " 4.0:1",
+        "gain": 4.0,
+        "meter": "GC",
+        "sc_filter": false,
+        "mix": 100.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "The ratio `compress` is a STRING enum (' 4.0:1', leading space for single-digit ratios; '10.0:1' two-digit; 'Inf:1') and `meter`/`sc_filter` are string/bool enums — apply-vst-chain's float-only dict can't set them; this MUST go through apply_vst_preset.py (setattr + nearest-valid snap). Only thresh/gain/mix are numeric.",
+    "There is NO attack/release knob — the true-RMS feed-forward detector sets program-dependent timing. You sculpt with COMPRESS (ratio = the crest control), THRESH (dBFS; lower = more GR = MORE crest enhancement on drums) and SC_FILTER.",
+    "Ratio is the crest control on drums: 1.5-2:1 slightly REDUCES crest (gentle leveling); 4:1+ RAISES it (punch). Inf:1 = the dbx 'limiter' = maximum crest enhancement + tightest body.",
+    "sc_filter (the hardware PULL/SC) is a detector high-pass: turning it ON pulls lows out of the detector but the measured result is the BRIGHT transients get clamped harder -> crest DROPS + tone goes bassier (a de-harsh/transient-tame mode). Leave it OFF for punch.",
+    "gain is clean makeup; the harness peak-trims to -1 dBFS so gain is largely normalized away in the final file (set it just to avoid internal clipping) -- loudness-match before judging.",
+    "The dbx VCA is exceptionally clean (THD ~0.04% even when working) -- its character is DYNAMIC (the envelope/crest), not harmonic. dbx 160 = MONO unit (linked dual-mono on a stereo bus). Leveling/punch stage, not a master -> hand off to master-track."
+  ]
+}

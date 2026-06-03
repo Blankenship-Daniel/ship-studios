@@ -115,7 +115,7 @@ loudness-matched so "bigger" isn't just "louder."
 ## Related
 
 - [`docs/vst/fairchild-660.md`](../../../docs/vst/fairchild-660.md) — the full measured field guide (Part A measured + Part B cited)
-- [[vst-compress]] — the generic compressor skill this specializes · [[ssl-bus-compressor-2]] — VCA glue sibling (crush vs color) · [[finalize-mix]] / [[stem-master]] — stages this fits
+- [[vst-compress]] — the generic compressor skill this specializes · [[ssl-bus-compressor-2]] — VCA glue sibling (crush vs color) · [[dbx-160]] — feed-forward true-RMS VCA that ADDS punch (raises crest) vs the Fairchild's crest-holding tube color · [[la-3a]] — opto leveler (drops crest) · [[finalize-mix]] / [[stem-master]] — stages this fits
 - [[vst-preset]] — apply enum chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[ampex-atr-102]] / [[studer-a800]] — tube/tape color siblings · [[kit-bb-n105]] — warm Neve tone · [[drum-punch]] — pure-DSP transient design (no plugin)
 - [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR

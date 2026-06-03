@@ -1,0 +1,48 @@
+{
+  "name": "voxbox-bus-tube-glue",
+  "description": "Gentle Manley VOXBOX tube tone + PEAK CONTROL for a mix/2-bus or drum bus. Clean-ish LINE preamp (input 4 / gain 40 = subtle warmth, ~0.02% THD), a light ELOP optical leveling pass (comp_thresh 7, Medium/Medium), a broad passive Pultec 'smile' (lo_peak 3 @50 Hz + hi_peak 4 @16 kHz), and — the differentiator — the de-esser section switched to its 'Limit' position, which is a smooth opto LA-2A-style 10:1 WIDEBAND limiter catching stray peaks (crest 14.63 -> 12.76, RMS -17.7 -> -13.8 = +4 dB denser = real peak control, the opposite of the comp's crest-raising). A tasteful tube polish that tightens peaks without smashing.",
+  "intended_for": "a mix bus / 2-bus / drum bus wanting subtle analog tube warmth + a low/high 'smile' + gentle peak taming before the dedicated mastering limiter. The CONTROL counterpart to voxbox-drum-glue (which opens transients); this one reins peaks in via the Limit mode.",
+  "plugin_build": "UADx 'uaudio_manley_voxbox.vst3' (UADx NATIVE — RENDERS headless via Pedalboard 0.9.23; NOT the 'UAD Manley VOXBOX.component' passthrough twin). 25 params, all enums; the string switches (comp_byp/eq_byp/de_ess_byp=In, de_ess_sel='Limit', comp_attack/comp_rel, transformer_byp) MUST go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_voxbox.vst3", "params": {
+        "source_select": "Line",
+        "low_cut": "Off",
+        "phase": 0.0,
+        "input": 4.0,
+        "gain": 40.0,
+        "sc_link": "Sep",
+        "comp_byp": "In",
+        "comp_thresh": 7.0,
+        "comp_attack": "Medium",
+        "comp_rel": "Medium",
+        "eq_byp": "In",
+        "lo_peak": 3.0,
+        "lo_peak_freq": 50.0,
+        "mid_dip": 0.0,
+        "mid_dip_freq": 300.0,
+        "hi_peak": 4.0,
+        "hi_peak_freq": 16000.0,
+        "de_ess_byp": "In",
+        "de_ess_sel": "Limit",
+        "de_ess_thr": 5.0,
+        "meter": "GR",
+        "transformer_byp": "In",
+        "output": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "THE 'Limit' POSITION of de_ess_sel is a smooth opto LA-2A-style WIDEBAND 10:1 limiter (program-dependent, ~2 ms attack / ~0.5 s release per Manley spec — NOT a fast brickwall), not a de-esser. Measured (vs de-ess byp): thr 2/5/8 pulled peak -0.25/-1.0/-3.6 dB and crest 14.7/14.1/12.9 — higher thr = more limiting. As shipped (full chain) it lands crest 14.63 -> 12.76 and RMS -17.7 -> -13.8 (denser, +4 dB). Use it for gentle, musical peak safety; it has NO true-peak/ceiling control so it is NOT a mastering brickwall — hand off to render-mastered or [[fabfilter-pro-l-2]] for the real limiter.",
+    "LINE mode is the cleaner path (Mic colours ~10-20 dB sooner). input 4 / gain 40 keeps THD low (~0.02%) for transparent warmth; push input/gain or switch to Mic for more colour.",
+    "PULTEC 'smile': lo_peak @50 for sub-weight + hi_peak @16k for air, both broad boost bells (0-10 nonlinear; ~+1.5/+1.0 dB at these settings). Keep amounts modest on a full mix.",
+    "The ELOP comp at comp_thresh 7 / Line / input 4 is gentle (a dB or two of optical leveling). On a 2-bus keep it light — the Limit mode is doing the peak work.",
+    "Harness peak-normalizes to -1 dBFS. For mastering-grade true-peak delivery, this is a tone/glue stage — follow with render-mastered / Pro-L 2.",
+    "Verify: crest DOWN (the Limit pulling peaks) + a gentle low/high lift + tiny THD rise. A 0.00 delta = the .component twin loaded."
+  ]
+}

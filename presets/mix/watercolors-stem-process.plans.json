@@ -1,0 +1,28 @@
+[
+  {
+    "stem": "Kick.wav",
+    "role": "kick_in (dual-mono, phase-aligned to OH)",
+    "clean": {"hpf_hz": 30},
+    "rationale": "Measured clean: band_low 0.9, crest 20.6 (already controlled), 63 Hz peak, scooped 100-200. HPF 30 removes sub-25 rumble while keeping the 31.5 Hz sub. No tonal EQ needed; warmth/glue comes at the bus."
+  },
+  {
+    "stem": "Snare.wav",
+    "role": "snare_top (dual-mono, phase-aligned to OH)",
+    "clean": {"hpf_hz": 70},
+    "rationale": "Body @160-200; 250-400 is already ~10 dB below the 200 Hz peak (NOT honky), so no de-box (a cut there only thinned/brightened it). suppress_resonances was a no-op (no narrow resonance — it's broadband presence), dropped. HPF 70 cleans <125 rumble/bleed while keeping body; the bus (bell -1.5 @2.5k, HS -4 @6k, +1.5 @180, tape) owns the snare's warm tonal shaping."
+  },
+  {
+    "stem": "Drum Overheads.wav",
+    "role": "overhead (stereo anchor, carries hats+cymbals)",
+    "clean": {"hpf_hz": 110},
+    "eq_bands": [{"type": "bell", "freq_hz": 400, "gain_db": -2.0, "q": 1.0}],
+    "rationale": "Hottest stem; strong 63 Hz kick bleed + honky 315-400 peak. HPF 110 trims the deepest bleed/rumble (kick & OH now phase-aligned so residual lows reinforce rather than comb); -2 @400 de-honks. No per-stem de-harsh: cymbals already roll off and the bus HS -4 @6k + Studer tape own the top."
+  },
+  {
+    "stem": "Drum Room.wav",
+    "role": "room (stereo ambience/glue)",
+    "clean": {"hpf_hz": 120},
+    "eq_bands": [{"type": "bell", "freq_hz": 400, "gain_db": -1.5, "q": 1.0}],
+    "rationale": "Broadband mids, 400 Hz peak, 63 Hz bleed. HPF 120 cleans rumble; -1.5 @400 keeps it from piling on the OH/snare 400 buildup. Otherwise left as warmth/glue."
+  }
+]

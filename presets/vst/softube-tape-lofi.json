@@ -1,0 +1,32 @@
+{
+  "name": "softube-tape-lofi",
+  "description": "Lo-fi / vintage-character tape via Softube Tape — a creative effect, NOT mastering-grade. Type C (dirtiest), slow 3 3/4 IPS (top rolls off, distortion + hiss rise), Amount 9 (heavy saturation/compression), Speed Stability dialed into wow/flutter, Noise ON, HF Trim CUT for a dark vintage tone.",
+  "intended_for": "individual tracks/loops wanting degraded vintage character (drums, synths, guitars, vocal FX). Not for the master bus.",
+  "plugin_build": "Softube 'Tape.vst3' (renders headless via Pedalboard; iLok/PACE — authorized on this rig, re-verify elsewhere). String-enum params → this harness only.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Tape.vst3", "params": {
+        "color_type": "C",
+        "color_amount": 9.0,
+        "tape_speed": "3 3/4 IPS",
+        "dry_wet": "WET",
+        "speed_stability": "50.0",
+        "high_freq_trim": "CUT",
+        "crosstalk": "OFF",
+        "input_db": "6.0",
+        "output_db": "6.0",
+        "noise": true,
+        "playback": "RUN",
+        "meter": "THD"
+      }}
+    ]
+  },
+  "notes": [
+    "speed_stability runs STABLE(top) -> '99.9'..'0.1' -> WOBBLY; '50.0' = moderate wow/flutter (pitch + level wobble). Lower number = more wobble; use 'WOBBLY' for extreme. This is modulation — spectra barely show it, judge by ear.",
+    "For the most extreme lo-fi use tape_speed '1 7/8 IPS' (darkest/crunchiest). Noise grows louder + bassier as speed drops — that's intended here.",
+    "Heavy saturation here (Amount 9) collapses crest and adds 3rd-harmonic grit by design. A/B against dry; back off Amount/Noise/Stability to taste."
+  ]
+}

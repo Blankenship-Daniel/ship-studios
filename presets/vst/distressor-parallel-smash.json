@@ -1,0 +1,34 @@
+{
+  "name": "distressor-parallel-smash",
+  "description": "The classic New-York / room 'explosion' Distressor smash: crush a fully-wet layer to NUKE and blend it under the dry with the built-in MIX. Ratio NUKE (saturated near-brickwall), input 9 (slam), attack 1 (fast — grab everything), release 1 (fast — pumps it up huge), AUDIO = Dist 3 (3rd-harmonic grit on the crushed layer), MIX 30 so the dry transients punch through (measured: mix 30 restores crest to ~17 vs ~15 fully wet). Parallel drum smash / room mic 'whoomph'.",
+  "intended_for": "parallel drum-bus smash, or a room/ambience mic you want to explode and blend under the close mics",
+  "plugin_build": "uaudio_distressor.vst3 (UADx native build — RENDERS headless & processes offline, verified changed:true; not the /Components/UAD ….component twin — passthrough offline).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_distressor.vst3", "params": {
+        "bypass": "Off",
+        "ratio": "NUKE",
+        "detector": "Norm",
+        "audio": "Dist 3",
+        "input": 9.0,
+        "attack": 1.0,
+        "release": 1.0,
+        "output": 6.5,
+        "mix": 30.0,
+        "headroom": 12.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "MIX is the built-in parallel blend (0 = dry, 100 = fully crushed). 30 keeps the dry transients (crest ~17) while the crushed layer adds density + grit. Push to 40-50 for more smash, down to 20 for a subtle lift.",
+    "NUKE + fast attack/release + Dist 3 = maximum density + odd-harmonic grit. Drop ratio to 20:1 or audio to Dist 2 for a less destroyed version.",
+    "Because MIX does the parallel internally, you don't need a separate dry bus — but you can still bus this as a parallel send with mix 100 and blend on the console.",
+    "ratio/detector/audio are STRING enums -> preset harness only.",
+    "Lower headroom (12) runs the box hotter/denser. A/B loudness-matched — the smash adds a LOT of level."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "la3a-parallel-smash",
+  "description": "The classic LA-3A parallel drum technique: crush a fully-compressed LIMIT layer (Peak Reduction 9, hf 0 so it grabs everything), restore it with Gain 9.5 (MIX blends AFTER makeup — gain must come up or the crushed wet is too quiet to hear), then blend back at MIX 45 so the dry transients stay and the crushed layer adds body + sustain. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-15.61 (+1.57 denser), crest 17.17->15.49 (controlled but transients kept), true-peak -0.98, LRA 2.44->2.07, low band-ratio 0.792->0.826 + low-band RMS +1.8 dB (thicker bottom), low-band punch 27.15->22.07 (the kick sustain filled in). Bigger/denser, dry attack preserved.",
+  "intended_for": "the classic LA-3A parallel drum technique — crush a fully-compressed LIMIT layer and blend it under the dry with MIX for body/sustain that keeps the dry transients",
+  "plugin_build": "uaudio_la3a.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD Teletronix LA-3A.component twin PASSES THROUGH offline, do not use it).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la3a.vst3", "params": {
+        "peak_reduction": 9.0,
+        "gain": 9.5,
+        "comp_limit": "Limit",
+        "meter": "GR",
+        "hf_emphasis": 0.0,
+        "mix": 45.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "MIX is built-in parallel (0 = dry, 100 = wet) and blends AFTER the makeup gain — so you MUST drive `gain` UP (here 9.5) to bring the crushed wet layer back to a useful level, or the heavily-compressed (quiet) wet adds almost nothing when blended. Crush the wet HARD (Limit, high PR, hf 0 so it grabs everything), restore it with gain, then blend down to ~40-50% so the dry transients stay.",
+    "hf 0 on the wet layer = maximum dense, pumped, dark crush — exactly what you want under the dry for body/sustain.",
+    "comp_limit + meter are string enums -> preset harness only.",
+    "At mix 0 the output == dry source; raise toward 100 for more crushed layer. Re-dial mix to taste."
+  ]
+}

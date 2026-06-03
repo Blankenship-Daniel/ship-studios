@@ -1,0 +1,33 @@
+{
+  "name": "manley-vari-mu-master-ms-glue",
+  "description": "Mid/Side mastering glue via the UADx Manley Variable Mu — the move the MONO Fairchild 660 can't do. IN/OUT MATRIX M-S, controls + sidechain UNLINKED so the MID (L-channel controls) and SIDE (R-channel controls) compress independently. Glue the mid ~1 dB (l_thresh 6), leave the sides nearly open (r_thresh 9) → tighter centre + slightly wider, more cohesive master. Slow ATTACK 2, RECOVERY 'Med Slo', COMP, HP SIDECHAIN 'In'. VALIDATED on the Watercolors warm drum bus: correlation 0.975->0.956, stereo width -18.9->-16.4 dB (wider), LRA 2.44->1.93 (tighter), crest 17.17->17.65 (up), true-peak -0.99 — centre cohesion + a touch wider, the move the mono 660 can't do.",
+  "intended_for": "a near-final stereo mix / master bus that wants centre cohesion without squashing the stereo sides (a true-stereo M/S glue stage; hand off to master-track for limiting)",
+  "plugin_build": "uaudio_manley_variable_mu.vst3 (UADx native build — renders headless; the /Components/UAD Manley Variable Mu.component twin passes through offline, do not use it).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_variable_mu.vst3", "params": {
+        "dual_input": 6.0,
+        "l_thresh": 6.0, "r_thresh": 9.0,
+        "l_attack": 2.0, "r_attack": 2.0,
+        "l_recovery": "Med Slo", "r_recovery": "Med Slo",
+        "l_output": 5.0, "r_output": 5.0,
+        "l_comp_lim": "Comp", "r_comp_lim": "Comp",
+        "l_hp_sc_filt": "In", "r_hp_sc_filt": "In",
+        "l_bypass": "In", "r_bypass": "In",
+        "in_matrix": "M-S", "out_matrix": "M-S",
+        "sc_link": "Unlink", "ctrl_link": "Unlink",
+        "mix": 100.0, "headroom": 16.0,
+        "power": true, "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "In M-S mode the L-channel controls act on the MID and the R-channel controls act on the SIDE (measured: lowering l_thresh widened the image). UNLINK sc_link + ctrl_link so they're independent.",
+    "Squeezing the MID harder than the SIDE WIDENS the master (measured: correlation 0.977->0.933, width -19.2->-14.5 dB). To NARROW/centre instead, compress the SIDE harder (lower r_thresh).",
+    "Keep it gentle (~1 dB on the mid). This is a glue/imaging stage, not a leveler — hand off to master-track for loudness + the true-peak limiter.",
+    "Harness-only (enum params). LINKED M-S == L-R (no imaging change) — the unlink is the whole point."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "pultec-hlf-3c-drum-bus-shape",
+  "description": "GENTLE, musical band-limit on a drum bus / loop with the UADx Pultec HLF-3C passive filter set. A 50 CPS low-cut (high-pass) cleans sub rumble / mic-stand / room thump BELOW the kick fundamental without thinning the kick (measured -3 dB ~59 Hz, only -0.5 dB @100 Hz), and a 15 KCS high-cut (low-pass) gently rounds off the very top digital/cymbal edge (measured -5 dB @15k, -0.9 @10k) for that vintage 'finished tape' top. This box ONLY filters — no boost/Q/gain, 0.000% THD (color/saturate elsewhere). The 18-dB/oct-ish passive slopes sound smoother & less resonant than a surgical Butterworth HPF/LPF.",
+  "intended_for": "a drum bus / drum loop / instrument bus you want subtly tightened at the bottom and rounded at the very top — a musical 'analog band-limit', not a tonal EQ",
+  "plugin_build": "UADx 'uaudio_pultec_hlf-3c.vst3' (the UADx native build that RENDERS headless via Pedalboard 0.9.23 — NOT the 'UAD Pultec HLF-3C.component'/Universal Audio twins, which pass audio through unprocessed offline). 4 params, all Pedalboard enums; low_cut/high_cut/enable are STRING enums that must go through this setattr harness, not apply-vst-chain's float dict (which would silently miss them). NOTE: the standard probe_plugin.py FALSE-flags this plugin as passthrough because it has no gain/level param to push — verify renders by dialing a real low_cut/high_cut value.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_hlf-3c.vst3", "params": {
+        "low_cut": "50 CPS",
+        "high_cut": "15 KCS",
+        "enable": "In",
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "PURE FILTER — no boost, no Q, no gain, no saturation (0.000% THD measured across input levels). If you want warmth/weight/air, use a different box (saturate-loop / [[excite]] / apply-eq) BEFORE or AFTER this; the HLF-3C only removes the extremes.",
+    "LOW CUT labels read ~4 dB DOWN, not -3 dB: the true -3 dB corner sits ~6-12% ABOVE the label (50 CPS -> -3 dB at ~59 Hz). Slope steepens from ~12 dB/oct at the knee to ~18 dB/oct deep (50 CPS = -28 dB @20 Hz). To cut MORE rumble without touching the kick body, prefer raising the freq one step (80 CPS) over expecting a steeper slope.",
+    "HIGH CUT labels read ~ -3 dB and are GENTLEST at the very top: 15 KCS ~12 dB/oct (only -5 @15k, -8.7 @18k) — a soft 'air rolloff'. Lower settings get steeper (~18 dB/oct): 10 KCS = -3.1 @10k/-11.5 @15k; 5 KCS = -3.8 @5k/-18 @10k. For a darker, more obvious top rolloff use 10 KCS; for the gentlest 'tape' top use 15 KCS.",
+    "enable='Out' (the In/Out toggle) and master_bypass=true are BOTH true bypasses (0.00 dB) — keep enable='In' to hear the filter.",
+    "The model adds a tiny +0.59 dB passband makeup gain; the harness peak-normalizes to -1 dBFS so that doesn't matter. Verify with measure-spectrum: expect lows below ~60 Hz pulled down and the very top softened, midrange untouched. A 0.00 delta = the .component twin loaded instead of uaudio_."
+  ]
+}

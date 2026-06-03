@@ -1,0 +1,48 @@
+{
+  "name": "la6176-vocal-strip",
+  "description": "The canonical LA-6176 use: a complete VOCAL channel strip in one pass — 610 preamp + 75 Hz rumble cut + a touch of 610 air + LA-2A opto leveling. This is what the hardware 6176 is famous for (Coldplay/Adele/Pharrell vocals). 610 Line preamp (clean, or +5 for a hint of warmth), cut_filter 75Hz removes proximity rumble, low shelf flat, high shelf +3 @10k for air/sheen, and the LA-2A in Comp at pk_red 4 for smooth, transparent, program-dependent level control. Reusable on any lead vocal/VO stem. (Validated to RENDER on the Watercolors drum loop; tune pk_red/air per source.)",
+  "intended_for": "a lead vocal or voiceover stem that wants a single classic console-channel pass: clean tube preamp, HPF, air, and smooth opto leveling",
+  "plugin_build": "uaudio_la_6176.vst3 (UADx native build — renders headless; the 'UAD LA-6176 Channel Strip.component' twin passes through, do not use it). 26 enum params; the string switches + dyn_mode + digit-prefixed 1176_* need this setattr harness.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la_6176.vst3", "params": {
+        "input_select": "Line",
+        "input_pad": "Off",
+        "input_gain": 0.0,
+        "polarity": "In 0",
+        "cut_filter": "75Hz",
+        "eq_bypass": "EQ In",
+        "eq_lo_freq": 100.0,
+        "eq_lo_gain": 0.0,
+        "eq_hi_freq": 10000.0,
+        "eq_hi_gain": 3.0,
+        "level": 6.0,
+        "dyn_bypass": "Dyn In",
+        "dyn_mode": "LA2A",
+        "1176_atk": 5.0,
+        "1176_rel": 10.0,
+        "1176_ratio": "4:1",
+        "1176_input": 3.0,
+        "1176_output": 6.6,
+        "1176_sc_filt": false,
+        "1176_mix": 10.0,
+        "la2a_ratio": "Comp",
+        "la2a_pk_red": 4.0,
+        "la2a_gain": 6.0,
+        "meter": "GR",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "VOCAL VARIANTS: for an aggressive/up-front vocal switch dyn_mode to '1176' at 1176_ratio 4:1, 1176_input ~4, fast-ish atk (6-7) — the FET bite that sits a vocal forward. The LA-2A here is the smooth/transparent option.",
+    "cut_filter 75Hz is the proximity-rumble HPF (measured: removes low energy, raises crest, brightens). Use it on close-mic'd vocals; turn Off for sources that need their low end.",
+    "AIR without harshness: high shelf +3 @10k. If it gets sibilant, follow with [[de-ess]] (the LA-6176 has no de-esser). For presence/intelligibility instead of air, move the high band to 7k or add a low-mid body bump (low shelf 200 +1.5..+3).",
+    "If recording through an Apollo, the hardware version is Unison-enabled (impedance/gain matching) — that is an interface feature; offline here the Mic-path impedance options are tone-inert, so use Line on a recorded stem.",
+    "The harness peak-normalizes to -1 dBFS. On a real vocal, set la2a_gain for the target level instead and A/B loudness-matched."
+  ]
+}

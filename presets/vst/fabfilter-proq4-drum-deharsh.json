@@ -1,0 +1,46 @@
+{
+  "name": "fabfilter-proq4-drum-deharsh",
+  "description": "Surgical + SPECTRAL-DYNAMICS drum-bus clean-up on FabFilter Pro-Q 4, headless. HPF rumble, a static low-mid box cut, and a band_3 in SPECTRAL DYNAMICS mode at ~5 kHz that ducks ONLY the offending frequencies inside the band when they ring (Pro-Q 4's marquee feature — its built-in Soothe, beyond a whole-band dynamic EQ). Natural Phase globally (keeps drum transients); the spectral band runs linear-phase on itself. Validated on the Watercolors drum loop. Reproducible because it (a) FLATTENS first (disables all 24 bands — a bare Pedalboard load of Pro-Q restores FabFilter's last-saved curve, never assume flat) and (b) sets EVERY param on each used band explicitly, including band_3_dynamic_range and the spectral params (an unset dynamic_range inherits the restored state's value — the repro footgun this preset exists to avoid).",
+  "intended_for": "a drum bus / drum loop that needs rumble removed, low-mid box tamed, and harsh ~4-6 kHz controlled only on the frequencies that spike (spectral), without dulling the steady top",
+  "plugin_build": "FabFilter 'Pro-Q 4.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; all 581 params are Pedalboard valid_values lists settable via setattr — numeric snap to grid, string enums exact)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Pro-Q 4.vst3", "params": {
+        "band_4_enabled": false, "band_5_enabled": false, "band_6_enabled": false,
+        "band_7_enabled": false, "band_8_enabled": false, "band_9_enabled": false,
+        "band_10_enabled": false, "band_11_enabled": false, "band_12_enabled": false,
+        "band_13_enabled": false, "band_14_enabled": false, "band_15_enabled": false,
+        "band_16_enabled": false, "band_17_enabled": false, "band_18_enabled": false,
+        "band_19_enabled": false, "band_20_enabled": false, "band_21_enabled": false,
+        "band_22_enabled": false, "band_23_enabled": false, "band_24_enabled": false,
+
+        "band_1_used": "Used", "band_1_enabled": true, "band_1_shape": "Low Cut",
+        "band_1_frequency": 35.0, "band_1_slope": "24 dB/oct",
+        "band_1_dynamics_enabled": "Dynamics Disabled", "band_1_spectral_enabled": false,
+
+        "band_2_used": "Used", "band_2_enabled": true, "band_2_shape": "Bell",
+        "band_2_frequency": 250.0, "band_2_gain": -3.0, "band_2_q": 1.0,
+        "band_2_dynamics_enabled": "Dynamics Disabled", "band_2_dynamic_range": 0.0, "band_2_spectral_enabled": false,
+
+        "band_3_used": "Used", "band_3_enabled": true, "band_3_shape": "Bell",
+        "band_3_frequency": 5000.0, "band_3_gain": 0.0, "band_3_q": 2.0,
+        "band_3_dynamics_enabled": "Dynamics Enabled", "band_3_dynamics_auto": "Dynamics Auto",
+        "band_3_threshold": "Auto", "band_3_dynamic_range": -8.0,
+        "band_3_spectral_enabled": true, "band_3_spectral_density": 70.0,
+
+        "processing_mode": "Natural Phase", "character": "Clean",
+        "gain_scale": 100.0, "output_level": 0.0, "auto_gain": false
+      }}
+    ]
+  },
+  "notes": [
+    "FLATTEN FIRST: a plain load_plugin restores FabFilter's last-saved state (the GUI curve), NOT a flat EQ — so disable all unused bands explicitly or the leftover curve rides your move. apply-vst-chain's float-only `parameters` dict CANNOT do this (it can't set band_N_used / band_N_shape / band_N_slope / band_N_spectral_enabled string enums, nor enable an Unused band) — use this harness (setattr) or a dumped state_path.",
+    "SET EVERY DYNAMIC PARAM EXPLICITLY: band_3 sets gain 0, dynamic_range -8, dynamics_enabled, threshold Auto, spectral_enabled, spectral_density 70. An UNSET band_3_dynamic_range silently inherits the restored state's value (we hit -4.11 from the screenshot session once) — so a 'dynamic' band with no explicit dynamic_range is NOT reproducible. gain is the static base (0 = flat); dynamic_range is the spectral excursion (-8 = ducks up to 8 dB on the offending freqs only).",
+    "band_3 is SPECTRAL DYNAMICS (Pro-Q 4's marquee feature): it ducks only the individual frequencies inside the ~5 kHz band that exceed the threshold, leaving the rest of the band (and steady cymbals) intact — the surgical step beyond a whole-band dynamic EQ. Push dynamic_range more negative and/or spectral_density higher for a stronger/narrower duck. For a plain whole-band dynamic de-harsh instead, set spectral_enabled false (it'll move more of the band).",
+    "Spectral forces band_3 to LINEAR PHASE on itself (adds latency by resolution) even though the global mode is Natural Phase; the other bands stay Natural Phase. Fine for de-harsh above ~1 kHz at Low/Medium resolution.",
+    "Numeric params snap to Pro-Q's valid-values grid (gain ~0.06 dB, freq log grid) — read back to confirm. Verify with measure-spectrum: expect <40 Hz gone, ~250 Hz down ~3 dB, and 4-6 kHz pulled down only on its peaks (a gentler, surgical move than a static cut of the same dB)."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "pultec-meq5-warm-body",
+  "description": "Warmth + body from the UADx Pultec MEQ-5 alone — its LOW PEAK (200-1000 Hz) is the warmth tool; this adds low-mid fullness, controls the honk above it, and lifts a hint of presence. Moves (measured 0-10 ~= dB): LOW PEAK 300 CPS @4 (~+3.3 dB low-mid weight/body) + DIP 2 KCS @4 (~-5 dB tame the honk/nasal upper-mid) + HIGH PEAK 5 KCS @4 (~+3.5 dB a touch of presence so warmth isn't dull). Measured on watercolors bus_punchy_pre (60 s dry drum bus), peak-normalized -1 dBFS: band_ratio_low_mid 0.327 -> 0.433 (low-mid forward), band_ratio_mid 0.036 -> 0.022 (honk scooped), spectral_centroid 2223 -> 2069 Hz (WARMER), crest 21.6 -> 22.0 dB (opens slightly). A WARM voicing, the contrast to drum-presence (forward 3 kHz attack) and mid-scoop (de-box).",
+  "intended_for": "a drum bus / mix bus / bass / instrument bus that wants more weight and warmth in one passive box (pairs with the user's warm-tight drum-bus preference); thin or brittle sources. The MEQ-5 has NO true 'air' (it tops at 5 kHz) — for 10 kHz+ sheen use the EQP-1A or [[excite]]. Tonal stage; master/limit AFTER in [[master-track]].",
+  "plugin_build": "uaudio_pultec_meq-5.vst3 (UADx native — RENDERS headless via Pedalboard, verified on this rig. master_bypass=True is a TRUE NULL. iLok account, no dongle; re-verify on a new machine. Not the UAD/DSP '.component' twin.)",
+  "headless_notes": "All 10 params ENUMs; the frequency selectors (lm_freq/mid_freq/hm_freq) + output + enable are STRING enums DROPPED by apply-vst-chain's float dict (only the three amount knobs lm_peak/mid_dip/hm_peak set that way) -> build with THIS harness. 'CPS'=Hz, 'KCS'=kHz.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_meq-5.vst3", "params": {
+        "power": true,
+        "master_bypass": false,
+        "enable": "In",
+        "lm_freq": "300 CPS", "lm_peak": 4.0,
+        "mid_freq": "2 KCS", "mid_dip": 4.0,
+        "hm_freq": "5 KCS", "hm_peak": 4.0,
+        "output": "0.0 dB"
+      }}
+    ]
+  },
+  "notes": [
+    "OVERLAP CAVEAT (measured live): an earlier version dipped 3 KCS while boosting 5 KCS HIGH PEAK — the DIP's skirt extends up ~1 octave and ate most of the 5 kHz boost (5 kHz third-octave barely moved). Moving the DIP to 2 KCS keeps it clear of the 5 kHz boost. Whenever you boost+dip near each other, RE-MEASURE — the broad passive bells interact.",
+    "For MORE warmth: raise LOW PEAK to 5-6 or move it to 200 CPS. For LESS scoop: lower the DIP to 2-3. The dial is roughly dB here, so 4 ~= a few dB.",
+    "To add the gentle Pultec harmonic colour, drive the INPUT (input_gain_db up); the 'output' trim is a clean post-gain and does not saturate.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/pultec-meq5-warm-body.json <in.wav> <out.wav>"
+  ]
+}

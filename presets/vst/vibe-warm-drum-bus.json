@@ -1,0 +1,28 @@
+{
+  "name": "vibe-warm-drum-bus",
+  "description": "WARM, glued drum-bus tone from the UADx Vibe Analog Machines using the WARM machine at drive 65 — the truest 'warm but still open' voicing (unlike GLOW, which darkens hard). WARM stays clean until pushed (~0.3% THD on a tone until drive ~60, then builds odd harmonics to ~7.5% by drive 80), so at drive 65 you get gentle harmonic warmth + light glue while KEEPING some top. Measured on the Watercolors drum loop, peak-normalized to -1 dBFS (via the apply_vst_preset harness): crest 14.63 -> 12.09 dB (-2.5 = real glue), spectral centroid 1593 -> 1335 Hz (warmer), tilt -2.71 -> -3.34 dB/oct (darker), 10 kHz -28.8 -> -32.3 dB (top GENTLY rolled — vs GLOW which guts it to -44.5), 5 kHz a touch fuller. Warble left at 0. For a DARKER, more obviously vintage/tape warmth use the GLOW machine (centroid crashes ~1593 -> 707 Hz, tilt -2.7 -> -4.5, top gutted — lovely but lo-fi); for midrange BODY/weight (crest up = tighter) use THICKEN. This matches the user's documented preference for a WARM + controlled drum bus (warm via harmonics/tape character, not EQ boosts) — see [[drum-bus-warm-tight-preference]].",
+  "intended_for": "a drum bus / loop you want WARM + lightly glued but not dull — analog-harmonic warmth that holds the transients and some air, the warm counterpart to the clean SWEETEN preset",
+  "plugin_build": "UADx 'uaudio_verve.vst3' (codename 'verve', product name 'UADx Vibe Analog Machines'). UADx native, RENDERS headless via Pedalboard (verified). 6 enum params; the 'machine' string enum needs this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_verve.vst3", "params": {
+        "machine": "WARM",
+        "param_1": 65.0,
+        "param_2": 0.0,
+        "output_trim": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "PARAM MAP (measured): param_1 = DRIVE (amount), param_2 = WARBLE (wow/flutter pitch modulation) — WARM is a TAPE machine so the 2nd knob is warble; on the 4 PREAMP machines (Edge/Glow/Distort/Sputter) this same slot is a TONE/brightness control. output_trim = clean output level (-12..+12 dB linear), machine = voicing. drive 0 is NOT bypass (use master_bypass=true / power=false for a null).",
+    "WHY WARM, NOT GLOW, FOR A DRUM BUS: GLOW is the even-harmonic 'tube glow' machine but it rolls the top off very hard (10 kHz -28.8 -> -44.5 dB, centroid -> ~707 Hz) — gorgeous as a lo-fi/tape darken, often too dark for a bus. WARM warms while keeping air (it holds the 8-16 kHz band far better). THICKEN adds midrange body and raises crest (tighter) if you want weight over warmth.",
+    "DRIVE for more/less warmth: WARM stays near-clean below ~55-60 then the odd harmonics build; push toward 75-85 for heavier glue/color, back to ~45 for a hint. It is NOT gain-compensated so the harness peak-normalizes; A/B loudness-matched.",
+    "STACK IDEA: WARM (harmonic warmth) -> a low-band multiband-compress or Studer/Ampex tape for the user's 'warm + tight bottom' bus; or feed into [[warm-drum-bus]] / [[drum-bus-warm-tight-preference]] recipe. It's a color insert, NOT mastering — hand the bus to [[master-track]] for loudness/limiting.",
+    "Verify: expect centroid DOWN a little, tilt steeper (darker), crest DOWN ~1-2 dB (the glue), low/low-mid fuller. A 0.00 delta = wrong build loaded."
+  ]
+}

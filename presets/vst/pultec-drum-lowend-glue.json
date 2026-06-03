@@ -1,0 +1,35 @@
+{
+  "name": "pultec-drum-lowend-glue",
+  "description": "The signature Pultec move on a drum bus: the LOW-END TRICK at 60 CPS (lf_boost 5 + lf_atten 4 at the SAME frequency) gives a big, TIGHT low end — a broad shelf bump peaking ~30-60 Hz WITH a complementary low-mid scoop ~300-1k that clears the mud, so the kick is weighty but the bus stays tight (the user's preferred warm+tight bottom, achieved by EQ shape not boost). A gentle hf_atten at 5 KCS (knob 3) shaves the known 3-8k drum harshness, and a small 16 KCS boost (knob 3, broad) adds a touch of sheen without fizz. The Pultec's character is the CURVE shapes + a faint passive/tube colour (~0.01% THD), not heavy saturation. Harness peak-normalizes to -1 dBFS, so loudness-match before judging.",
+  "intended_for": "a stereo drum bus / drum loop that wants weighty-but-tight low end + smooth top — warm without getting bright or harsh",
+  "plugin_build": "UADx 'uaudio_pultec_eqp-1a.vst3' (the UADx native build that RENDERS headless via Pedalboard; NOT the 'UAD Pultec EQP-1A.component'/Legacy twins, which pass audio through unprocessed offline). 12 params; low_freq/high_freq/hf_atten_freq/enable/output are STRING enums that must go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_eqp-1a.vst3", "params": {
+        "enable": "In",
+        "low_freq": "60 CPS",
+        "lf_boost": 5.0,
+        "lf_atten": 4.0,
+        "high_freq": "16 KCS",
+        "hf_boost": 4.0,
+        "hf_q": 8.0,
+        "hf_atten_freq": "5 KCS",
+        "hf_atten": 2.0,
+        "output": "0.0 dB",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "THE LOW-END TRICK is the whole point: lf_boost and lf_atten at the SAME low_freq do NOT cancel — the boost shelf peaks BELOW the CPS and the atten dips a region ABOVE it, so you get a low bump + a low-mid scoop. Measured @60 CPS B5/A4 ~ +6 dB @60 with a ~-1.5 dB dip @1k. Higher CPS (100) = broader bump reaching higher; lower CPS (20/30) = tighter/lower.",
+    "Knob calibration is NONLINEAR (knob is the 0-10 position, not dB): most of the boost/atten action happens between knob 4 and 8; 8->10 adds little. Measured low boost @60 CPS: knob4 ~ +4 dB, knob6 ~ +11, knob8 ~ +15 (peak, at ~30 Hz).",
+    "hf_atten freq sets the HINGE of the high-shelf cut: 5 KCS hinges ~1k (de-harsh + darken), 10 KCS ~2k, 20 KCS ~5k (shave only the extreme top). hf_atten knob 3 here ~ -1 to -2 dB across 3-8k.",
+    "hf_boost is a BROAD proportional bell at the high_freq center; hf_q is the BANDWIDTH (0=SHARP/tall, 10=BROAD/lower+wider). 16 KCS + knob 3 + q8 = a gentle air shelf, ~+1.5 dB @16k.",
+    "For MORE weight: low_freq 100 CPS (fuller, extends to ~500 Hz). For a TIGHTER/LOWER bump: 30 CPS. To darken instead of air: drop hf_boost to 0 and lean on hf_atten.",
+    "Verify with measure-spectrum + measure-loudness: expect a low-end lift + a small 300-1k dip + a hair of top, crest roughly held (it's EQ, not compression). A 0.00 delta means the .component twin loaded instead of uaudio_."
+  ]
+}

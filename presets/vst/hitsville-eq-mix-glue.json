@@ -1,0 +1,37 @@
+{
+  "name": "hitsville-eq-mix-glue",
+  "description": "Gentle broadband 'Motown polish' for a full mix bus or a master-stage tonal tilt, from the UADx Hitsville EQ. Small dial moves keep the proportional-Q broad, so this behaves like a smooth tilt rather than surgical bells: 50 +2 (sub/weight), 320 -1 (clear the low-mids), 5000 +1 (presence), 12500 +1 (air), GAIN -1. A clean, no-distortion macro EQ (0.000% THD). For the precise stereo-linked/finer-step version on a master, prefer the 'uaudio_hitsville_eq_mastering.vst3' variant.",
+  "intended_for": "a stereo mix bus or a master tonal-shaping stage where you want a musical Motown tilt with tiny moves. On a master keep every band <= +/-2 and check streaming-target loudness afterward; for surgical work use [[fabfilter-pro-q-4]].",
+  "plugin_build": "UADx 'uaudio_hitsville_eq.vst3' (UADx native — RENDERS headless via Pedalboard, no-iLok). The mastering twin 'uaudio_hitsville_eq_mastering.vst3' loads the same way if you want the precision/stereo-link version.",
+  "target_signature": {
+    "comment": "measured dry->processed on projects/watercolors/mix/bus_warm_pre_dry.wav via the harness (peak-trim -1 dBFS). Dry: crest 23.6, centroid 3128, tilt -2.26, low 0.542, low_mid 0.378, high 0.0115. (Drum bus stands in for a mix here; on a real full mix the deltas are gentler.)",
+    "crest_db": 23.2, "centroid_hz": 3337, "tilt_db_per_oct": -2.13,
+    "band_ratio_low": 0.592, "band_ratio_low_mid": 0.325, "band_ratio_high": 0.0148
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_hitsville_eq.vst3", "params": {
+        "1_50": 2.0,
+        "2_130": 0.0,
+        "3_320": -1.0,
+        "4_800": 0.0,
+        "5_2000": 0.0,
+        "6_5000": 1.0,
+        "7_12500": 1.0,
+        "gain": -1.0,
+        "bypass": "In",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "Small settings on purpose: at +/-1..+2 the proportional-Q is broad (measured peak:octave ~1.1 at +2), so the curve is a smooth tilt — ideal on a full bus. Don't reach for big boosts on a mix/master.",
+    "Clean EQ, no colour (0.000% THD). GAIN -1 compensates; never GAIN-BOOST hot material (clips past 0 dBFS).",
+    "On a master, re-check with [G] check-streaming-targets after; this is a tonal stage, not a limiter.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/hitsville-eq-mix-glue.json <in.wav> <out.wav>"
+  ]
+}

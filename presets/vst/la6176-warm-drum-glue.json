@@ -1,0 +1,48 @@
+{
+  "name": "la6176-warm-drum-glue",
+  "description": "WARM + tight, punch-retaining drum-bus tone from the UADx LA-6176. Warmth comes from the 610 tube/transformer preamp DRIVE (Line input + input_gain +5 = ~1.5% THD, even-harmonic/H2-dominant), not EQ boosts — the user's warm-via-saturation preference. A low shelf +3 @100 adds weight, a gentle +1.5 @10k keeps it from going dull. Glue is a PARALLEL 1176 (4:1, slow attack 2 to keep the transients, mix 6 = 60% wet) with the detector sidechain filter ON so the kick stops pumping the bus = tight bottom. Harness peak-normalizes the output. MEASURED on the Watercolors 8-bar drum loop: crest 14.6 -> 12.1 dB (tight/controlled, punch retained), centroid 1593 -> 1405 Hz (warmer/darker), tilt -2.71 -> -3.19 dB/oct, low-band ratio 0.798 -> 0.848 (more weight), high-mid 0.011 -> 0.006 (smoother top). For heavier glue raise input_gain to +10 + 1176_input 5 + mix 7 (crest -> ~9.6, denser/darker).",
+  "intended_for": "a drum bus / drum loop you want WARM (tube colour) + glued + tight, with punch preserved — the LA-6176 counterpart to the warm-tight drum bus",
+  "plugin_build": "uaudio_la_6176.vst3 (UADx native build — RENDERS headless & processes offline via Pedalboard; the 'UAD LA-6176 Channel Strip.component' twin is the UAD-2/passthrough build, do not use it). 26 params, ALL enums; the string switches (input_select/input_pad/cut_filter/polarity/eq_bypass/dyn_bypass/dyn_mode/1176_ratio/la2a_ratio/meter) and the digit-prefixed 1176_* params must go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la_6176.vst3", "params": {
+        "input_select": "Line",
+        "input_pad": "Off",
+        "input_gain": 5.0,
+        "polarity": "In 0",
+        "cut_filter": "Off",
+        "eq_bypass": "EQ In",
+        "eq_lo_freq": 100.0,
+        "eq_lo_gain": 3.0,
+        "eq_hi_freq": 10000.0,
+        "eq_hi_gain": 1.5,
+        "level": 6.0,
+        "dyn_bypass": "Dyn In",
+        "dyn_mode": "1176",
+        "1176_atk": 2.0,
+        "1176_rel": 6.0,
+        "1176_ratio": "4:1",
+        "1176_input": 4.0,
+        "1176_output": 6.0,
+        "1176_sc_filt": true,
+        "1176_mix": 6.0,
+        "la2a_ratio": "Comp",
+        "la2a_pk_red": 0.0,
+        "la2a_gain": 6.0,
+        "meter": "GR",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "WARMTH = THE 610 PREAMP DRIVE, not EQ. Line input_gain 0 = 0.24% THD (nearly clean); +10 = 3.5% THD, H2-dominant (even-harmonic tube/transformer warmth), crest 14.2->11.3 on the loop. For subtler warmth use input_gain +5; for clean use 0.",
+    "DO NOT use the Mic path for warmth on a line-level stem. The Mic input is a high-gain MIC preamp — feeding it a line-level signal lands at ~40% THD (crest crushed to ~5) instead of musical colour. Mic is for heavy saturation only, with the -15 pad + input_gain -10.",
+    "TIGHT BOTTOM = 1176_sc_filt true (detector high-pass) so the kick/low end stops triggering gain reduction (low% rises, less pumping). PUNCH PRESERVED = slow-ish 1176_atk (3) + parallel 1176_mix 7 (the dry path keeps the transients).",
+    "1176 attack/release map 0=slow -> 10=fast (measured: atk10 catches transients, crest collapses to 11.0; atk0 lets them through, crest rises to 14.8). Push atk down / mix down for more punch; up for denser glue.",
+    "The harness peak-normalizes to -1 dBFS, absorbing the drive+makeup level. A/B loudness-matched (render-ab) before judging or 'warmer' is just 'louder'."
+  ]
+}

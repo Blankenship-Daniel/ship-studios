@@ -1,0 +1,40 @@
+{
+  "name": "saturn2-drum-bus-warm",
+  "description": "Warm, tight drum-bus GLUE on FabFilter Saturn 2, headless. ONE full-range band of Warm Tube at moderate drive (even+odd harmonic body), a touch of low-shelf weight + treble tame from the per-band Tone EQ, and the band Dynamics knob pulled NEGATIVE so the saturation backs off on transients (preserves punch — measured crest 10.8 at dynamics -0.8 vs 8.0 at +0.8). The warm counterpart to a parallel smash. Built to the user's drum-bus preference (warm + controlled, not bright). Validated on the Watercolors drum loop.",
+  "intended_for": "a drum bus / drum loop that wants analog warmth and glue without losing its hits; tube-style even+odd body, gentle low weight, slightly tamed top",
+  "plugin_build": "FabFilter 'Saturn 2.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; 956 params, all Pedalboard valid_values lists — numeric snap to grid, string/bool enums exact via setattr)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Saturn 2.vst3", "params": {
+        "num_active_bands": 1.0,
+        "band_1_enabled": true,
+        "band_1_style": "Warm Tube",
+        "band_1_drive": 24.0,
+        "band_1_dynamics": -0.3,
+        "band_1_feedback_amount": 0.0,
+        "band_1_bass": 2.0,
+        "band_1_mid": 0.0,
+        "band_1_treble": -1.5,
+        "band_1_presence": 0.0,
+        "band_1_mix": 100.0,
+        "band_1_level": 0.0,
+        "mix": 100.0,
+        "input_gain": 0.0,
+        "output_gain": -1.0,
+        "channel_mode": "Left/Right",
+        "processing_mode": "Minimum Phase",
+        "high_quality_mode": "Good"
+      }}
+    ]
+  },
+  "notes": [
+    "SET EVERY PARAM EXPLICITLY: a bare load of Saturn 2 restores FabFilter's last-saved GUI state (ours came up as the 'Warm Tape' preset — num_active_bands=1, band_1_style='Warm Tape', drive 20, output_gain -1), NOT a neutral default. So always set num_active_bands, the style, drive, mix, tone, and output explicitly or the leftover GUI state rides along. apply-vst-chain's float-only `parameters` dict CANNOT set the string enums (band_1_style, processing_mode, channel_mode, high_quality_mode, band_N_crossover_slope, band_N_state) — use this harness (setattr) or a dumped state_path.",
+    "DRIVE IS NOT BYPASS: even band_1_drive=0 still colors (Warm Tube @drive0 measured +1.7 dB / 2.2% THD on a 1 kHz sine). The only bit-exact passthrough is mix=0 or bypass='Bypassed'. To make a band inert in a multiband preset use band_N_mix=0, not drive 0.",
+    "DYNAMICS knob is bipolar and PRESERVES transients when NEGATIVE: measured crest 10.8 (dyn -0.8) -> 9.75 (0) -> 8.0 (+0.8) at Warm Tube drive 60. Negative = more open/punchy (backs off on hits), positive = denser/compressed. -0.3 here keeps the drum punch under the glue.",
+    "TONE is a fixed post-distortion 4-band EQ (Bass=low shelf, Mid=high bell, Treble+Presence=high shelves), +/-24 dB, freqs not sweepable. Measured powerful: bass +12 -> centroid 2871->1935 Hz and +7 dB level; treble +12 -> centroid ->4940; presence +12 -> ->4788. Small moves here (bass +2, treble -1.5) for warm-not-bright.",
+    "For more glue with less transient loss, drop band_1_mix or the global mix to ~60-70 (parallel) and push band_1_drive to 40-50 instead — measured parallel mix 30 restored crest to 12.7 vs 5.6 full-wet at drive 80. HQ 'Good' (8x oversampling) is plenty here; 'Superb' (32x) only for hot/destructive styles or mastering."
+  ]
+}

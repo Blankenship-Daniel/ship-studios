@@ -1,0 +1,32 @@
+{
+  "name": "softube-tape-parallel-thick",
+  "description": "Parallel tape thickener for drums/bass via Softube Tape — the Chiccarelli/Willing move. Type C (most saturated/colored) driven HARD (Amount 8) but blended to 50% DRY/WET so the dry transients survive while the wet adds harmonic weight/grit. Measured: full-wet Amount 8 = -0.93 dB crest; at 50% blend = -0.63 dB (punch preserved).",
+  "intended_for": "drums or bass that want fatness + grit without losing attack. Parallel insert on the stem/bus.",
+  "plugin_build": "Softube 'Tape.vst3' (renders headless via Pedalboard; iLok/PACE — authorized on this rig, re-verify elsewhere). String-enum params → this harness only.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Tape.vst3", "params": {
+        "color_type": "C",
+        "color_amount": 8.0,
+        "tape_speed": "15 IPS",
+        "dry_wet": "50.0",
+        "speed_stability": "STABLE",
+        "high_freq_trim": "FLAT",
+        "crosstalk": "OFF",
+        "input_db": "6.0",
+        "output_db": "6.0",
+        "noise": false,
+        "playback": "RUN",
+        "meter": "THD"
+      }}
+    ]
+  },
+  "notes": [
+    "dry_wet '50.0' is the internal parallel blend (DRY=0 .. WET=100). Drive Amount hard (8-10) THEN pull the blend back — the plugin's own dry path keeps the transients.",
+    "For BASS use Type B (transformer weight) at 15 IPS, ~50/50, to add midrange harmonics while keeping sub tight. For dirtier drums push Amount toward 10 (watch for 2-5 kHz spit).",
+    "Verify the blend kept crest up vs full-wet (measure-loudness), and that it added LF/harmonics not just level (measure-spectrum), render-ab loudness-matched."
+  ]
+}

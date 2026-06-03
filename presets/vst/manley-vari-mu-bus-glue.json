@@ -1,0 +1,33 @@
+{
+  "name": "manley-vari-mu-bus-glue",
+  "description": "Gentle UADx Manley Variable Mu leveling/glue on a mix / 2-bus: a single dB or two of clean vari-mu cohesion. DUAL INPUT 6, threshold 6 (~1 dB GR), ATTACK 2 (slow = transparent, lets transients through), RECOVERY 'Med Slo' (open, no pump), COMP, HP SIDECHAIN 'In'. The clean tube alternative to VCA bus glue (ssl-bus-compressor-2) and the cleaner sibling of fc660-bus-glue. VALIDATED on the Watercolors warm drum bus: ~1 dB of cohesion — crest 17.17->17.29 (held), LRA 2.44->2.18 (tighter), true-peak -0.98, -0.11 LU. Transparent.",
+  "intended_for": "a near-final mix / 2-bus that wants subtle tube cohesion before mastering (NOT a limiter; hand the result to master-track)",
+  "plugin_build": "uaudio_manley_variable_mu.vst3 (UADx native build — renders headless; the /Components/UAD Manley Variable Mu.component twin passes through offline, do not use it).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_variable_mu.vst3", "params": {
+        "dual_input": 6.0,
+        "l_thresh": 6.0, "r_thresh": 6.0,
+        "l_attack": 2.0, "r_attack": 2.0,
+        "l_recovery": "Med Slo", "r_recovery": "Med Slo",
+        "l_output": 5.0, "r_output": 5.0,
+        "l_comp_lim": "Comp", "r_comp_lim": "Comp",
+        "l_hp_sc_filt": "In", "r_hp_sc_filt": "In",
+        "l_bypass": "In", "r_bypass": "In",
+        "in_matrix": "L-R", "out_matrix": "L-R",
+        "sc_link": "Link", "ctrl_link": "Link",
+        "mix": 100.0, "headroom": 16.0,
+        "power": true, "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "Target ~1-2 dB GR for glue — read it as a gentle RMS pull with crest roughly held. More than ~3 dB on a full mix starts to pump unless you slow the recovery.",
+    "Slow ATTACK (2) + Med-Slo RECOVERY = the most transparent setting (highest crest in the sweep). Speed the recovery toward Fast for more obvious 'breathing' density.",
+    "For a true STEREO mix you can switch to in/out_matrix M-S + unlink to glue the centre without squashing the sides — see manley-vari-mu-master-ms-glue.",
+    "Harness-only (enum params). Hand off to master-track for loudness/limiting."
+  ]
+}

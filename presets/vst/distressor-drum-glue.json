@@ -1,0 +1,35 @@
+{
+  "name": "distressor-drum-glue",
+  "description": "The everyday musical UADx Distressor move on a stereo drum bus: gentle program-dependent glue + 2nd-harmonic warmth that mostly keeps the punch. Ratio 2:1 (the Distressor's silky transparent 'parabolic' soft knee), input 5 for a couple dB of drive/GR, attack 8 (slow = transients punch through), release 5 (medium, breathes), AUDIO = Dist 2 (even-harmonic warmth, ~+9 dB H2 measured at musical settings), DETECTOR = HP so the kick stops triggering GR and stays forward. VALIDATED on the Watercolors warm drum bus: crest 17.17->15.06 (held within ~2.1 dB), LRA 2.44->1.96 (a touch tighter), +2.0 LU denser, true-peak -0.99, low end forward (HP detector lets the kick through). Glue + warmth that keeps the feel. For heavier/forward use distressor-aggressive-drums; for parallel use distressor-parallel-smash. NOTE: every render is peak-normalized to -1 dBFS, so compression shows up as +LU at constant peak and a few dB of crest drop is expected even when gentle.",
+  "intended_for": "a stereo drum bus / submix that wants Distressor glue + warmth while keeping its transients",
+  "plugin_build": "uaudio_distressor.vst3 (UADx native build — RENDERS headless & processes offline, verified changed:true; the /Components/UAD Empirical Labs Distressor.component twin passes through offline, do not use it). UADx native is the no-iLok perpetual lineage, but re-verify changed:true on a new machine.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_distressor.vst3", "params": {
+        "bypass": "Off",
+        "ratio": "2:1",
+        "detector": "HP",
+        "audio": "Dist 2",
+        "input": 5.0,
+        "attack": 8.0,
+        "release": 5.0,
+        "output": 6.5,
+        "mix": 100.0,
+        "headroom": 16.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "ratio / detector / audio are STRING enums — apply-vst-chain's number-only dict CANNOT set them (you can't pass '4:1'/'HP'/'Dist 2'). This MUST go through apply_vst_preset.py. The four dials (input/attack/release/output/mix) and headroom ARE numeric and could be set via apply-vst-chain, but ratio defines the whole character, so use the harness.",
+    "ATTACK dial: 0 = FASTEST (clamps transients, crest collapses ~18->10), 10 = SLOWEST (transients punch through, crest ~18->19). High number = punch. Lower it toward 3-4 for the controlled/aggressive sound.",
+    "RELEASE dial: 0 = fast (dense, aggressive, brighter, pumps), 10 = slow (smooth, holds level down). 4 here keeps it breathing without pumping.",
+    "INPUT is the drive/threshold: more input = more signal into the detector (more GR) AND harder into the distortion stage (more THD). It colors and compresses together.",
+    "DETECTOR HP removes lows from the DETECTOR only (audio low end untouched) so the kick/bass stop pulling GR down — kick punches through and the bus gets louder (rms rose ~+4 dB vs Norm in isolation).",
+    "Dist 2 = even/2nd-harmonic warmth (gentle, <1% THD at this drive). For grit use Dist 3 (adds 3rd harmonic). The harness peak-normalizes to -1 dBFS, so A/B at matched loudness before judging."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "saturn2-bass-multiband",
+  "description": "Multiband bass saturation on FabFilter Saturn 2, headless — the classic 'keep the sub clean, harmonically excite the mids so it translates on small speakers' move. TWO bands split at ~110 Hz: the LOW band is left fully DRY (band_1_mix=0), the HIGH band gets Warm Tube drive with a Tone presence lift so the bass grows upper harmonics that survive on phones/laptops. Saturn's true multiband (per-band style/drive/mix) is what apply-eq/saturate-loop can't do. Validated headless (on the Watercolors drum loop it saturates only >110 Hz, sub untouched).",
+  "intended_for": "a bass / 808 / sub that disappears on small speakers — add cutting harmonics above the fundamental while the sub stays clean and mono-solid; also a template for any band-targeted saturation",
+  "plugin_build": "FabFilter 'Saturn 2.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; band_N_crossover_frequency 40-18000 Hz, slopes 6/12/24/36/48 dB/oct)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Saturn 2.vst3", "params": {
+        "num_active_bands": 2.0,
+
+        "band_1_enabled": true,
+        "band_1_style": "Clean Tube",
+        "band_1_drive": 0.0,
+        "band_1_mix": 0.0,
+        "band_1_dynamics": 0.0,
+        "band_1_feedback_amount": 0.0,
+        "band_1_bass": 0.0, "band_1_mid": 0.0, "band_1_treble": 0.0, "band_1_presence": 0.0,
+        "band_1_level": 0.0,
+
+        "band_2_enabled": true,
+        "band_2_crossover_frequency": 110.0,
+        "band_2_crossover_slope": "24 dB/oct",
+        "band_2_style": "Warm Tube",
+        "band_2_drive": 45.0,
+        "band_2_mix": 100.0,
+        "band_2_dynamics": 0.0,
+        "band_2_feedback_amount": 0.0,
+        "band_2_bass": 0.0, "band_2_mid": 1.5, "band_2_treble": 2.0, "band_2_presence": 2.0,
+        "band_2_level": 0.0,
+
+        "mix": 100.0,
+        "input_gain": 0.0,
+        "output_gain": -1.0,
+        "channel_mode": "Left/Right",
+        "processing_mode": "Minimum Phase",
+        "high_quality_mode": "Good"
+      }}
+    ]
+  },
+  "notes": [
+    "KEEP THE SUB CLEAN with band_1_mix=0 (NOT drive 0 — drive 0 still colors). band_1_mix=0 makes the low band fully dry/untouched; band_2 (the >110 Hz band) carries the saturation. The split frequency lives on band_2_crossover_frequency (the crossover between band 1 and band 2); raise it (~150) for a heavier kick/808, lower (~80) to color more of the body.",
+    "TRANSLATION harmonics: Warm Tube on band 2 grows even+odd harmonics above the fundamental; the Tone presence/treble lift (+2) pushes them into the 1-4 kHz 'cuts on a phone speaker' zone. Push band_2_drive (45->60) for more grind; back off if it gets fizzy.",
+    "MULTIBAND IS REAL: driving one band only affects that band's range (plus the harmonics it generates, which land ABOVE the band). Measured contrast — driving only the low band preserves transients (crest 13.1) while driving only the high band crushes them (crest 8.6), because the high band carries the transient energy. So saturate lows for weight, highs for bite.",
+    "string enums (band_N_style, band_N_crossover_slope, channel_mode, processing_mode, high_quality_mode) must be exact valid values via this setattr harness — apply-vst-chain's float dict can set crossover_frequency/drive/mix/tone but NOT the style/slope/HQ. Set num_active_bands AND every used band explicitly (bare load = restored GUI state).",
+    "For an 'air' variant of the same pattern: split high (~6 kHz), low band mix 0, high band Clean Tube low drive (~12) + treble/presence up -> harmonic sheen instead of an EQ shelf raising hiss (overlaps this repo's [[excite]])."
+  ]
+}

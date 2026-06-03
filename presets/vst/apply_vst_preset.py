@@ -17,6 +17,37 @@ from pedalboard import load_plugin, Pedalboard
 
 PLUGIN_DIR = "/Library/Audio/Plug-Ins/VST3/"
 
+
+def set_param(p, name, value):
+    """Set a Pedalboard param tolerantly. Tries the exact assignment first (so presets that pass a
+    valid enum string / bool / on-grid float are byte-identical to before). If that fails and the
+    param is a discrete/enum with valid_values, snap a numeric target to the nearest valid value —
+    this handles the log-stepped string enums some plugins expose (e.g. an SSL HPF corner whose only
+    valid strings are '39.8'/'40.2', never '40.0'). Returns a note string when it snapped/failed."""
+    try:
+        setattr(p, name, value)
+        return None
+    except Exception as ex:
+        try:
+            par = p.parameters[name]
+            vv = list(getattr(par, "valid_values", []) or [])
+        except Exception:
+            return f"{name}={value!r}: {str(ex)[:100]}"
+
+        def num(x):
+            try:
+                return float(str(x).replace("∞", "inf"))
+            except Exception:
+                return None
+        tn = num(value)
+        cand = [(abs(num(v) - tn), v) for v in vv if num(v) is not None]
+        if tn is not None and cand:
+            best = min(cand, key=lambda t: t[0])[1]
+            setattr(p, name, best)
+            return f"{name}={value!r} -> nearest valid {best!r}"
+        return f"{name}={value!r}: {str(ex)[:100]}"
+
+
 def main():
     preset = json.load(open(sys.argv[1]))
     inp, outp = sys.argv[2], sys.argv[3]
@@ -32,10 +63,9 @@ def main():
     for e in R["chain"]:
         p = load_plugin(PLUGIN_DIR + e["file"])
         for k, v in e.get("params", {}).items():
-            try:
-                setattr(p, k, v)
-            except Exception as ex:  # surface, don't crash — a wrong param leaves that one at default
-                print(f"warn: {e['file']} {k}={v!r}: {str(ex)[:100]}", file=sys.stderr)
+            note = set_param(p, k, v)  # exact-first, then nearest-valid snap; never crashes the render
+            if note:
+                print(f"warn: {e['file']} {note}", file=sys.stderr)
         plugins.append(p)
 
     y = Pedalboard(plugins)(x, sr)

@@ -1,0 +1,35 @@
+{
+  "name": "blackbird-a5-drums",
+  "description": "Punchy/forward 'American console' drum bus from the KIT Plugins BB A5 (Blackbird Studio API Legacy console strip) alone — the KIT/Blackbird counterpart to the UAD tight-70s-api chain. Mic-mode preamp drive (pre_amp_gain 35) adds even+odd console color + light peak-managing glue (raw peak +0.1 dB vs +2.3 dB EQ-only => the preamp is doing the densifying, not just EQ); 55L 4-band carves weight + de-box + modest air; HPF 40 Hz tightens sub. Crest stays ~11.5 (vs dry 11.58) so it's forward, not squashed. Keep MSTR BUSS OFF (it CLEANS the channel grit on this rig) and hum OFF. Built+measured 2026-06-03 on watercolors_drums_104bpm_8bar_a.",
+  "intended_for": "a dry-ish, measured-balanced drum bus/loop — BB A5 supplies console color + forward EQ + light glue in one box (API = forward/punchy, the contrast to the warm Studer/Neve tape direction)",
+  "plugin_build": "KIT BB A5.vst3 (VST3, Universal 2 — renders headless via Pedalboard; iLok/PACE, authorized on this machine)",
+  "headless_notes": "String-enum params (pre_amp_source='Mic Mode', eq_choice='55L', *_filter_type bool) are set by this harness's setattr — apply-vst-chain's float-only dict CANNOT set them. To re-drive the same color on a hotter/colder source, adjust pre_amp_gain (color/glue), not input_trim. output is peak-trimmed by the harness so the Mic-gain level jump is handled.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "KIT BB A5.vst3", "params": {
+        "pre_amp_source": "Mic Mode",
+        "pre_amp_gain": 35.0,
+        "high_pass_filter": "40 Hz",
+        "eq_on_off": true,
+        "eq_choice": "55L",
+        "55l_continuous_gain": true,
+        "55l_low_filter_gain": 4.0, "55l_low_filter_frequency": 100.0, "55l_low_filter_type": false,
+        "55l_low_mid_filter_gain": -3.0, "55l_low_mid_filter_frequency": 500.0,
+        "55l_high_mid_filter_gain": 1.5, "55l_high_mid_filter_frequency": 5000.0,
+        "55l_high_filter_gain": 2.5, "55l_high_filter_frequency": 12500.0, "55l_high_filter_type": true,
+        "master_bus": false,
+        "hum": false
+      }}
+    ]
+  },
+  "notes": [
+    "Color source ranking (measured, 1 kHz harmonic probe): MIC + pre_amp_gain is the strongest (2nd+3rd; H3 -64->-14 dB as gain 0->100). LINE mode adds only level-driven 3rd harmonic (channel amp). MSTR BUSS = CLEAN (harmonics -> -150 dB) on a single render — it does NOT add glue here, opposite of the marketing copy. So for grit use Mic drive; for a transparent EQ pass flip to Line + MSTR BUSS.",
+    "55L low band is a BELL at type:false (focused weight at 100); set type:true for a low SHELF (broad sub lift). High band type:true = air SHELF. There is NO Q control (proportional-Q: gain widens/narrows the bell).",
+    "Keep the top modest (high-mid <=2 dB): API forwardness AND harshness both live 2-5 kHz, and proportional-Q auto-narrows a big boost there into a brittle peak (the api-vision lesson). Get punch from low weight + de-box, not the top.",
+    "For more aggression/glue (squashed crest ~8), switch to Line Mode + master_fader 10 + input_trim ~6 (drives the channel amp hard) — a 'smash' variant, re-measure crest.",
+    "pre_amp_gain steps integer 0..100; gains/freqs are stepped enums but 55l_continuous_gain:true lets you set any +/-dB. master_fader -96..+10, input_trim/output_trim +/-36."
+  ]
+}

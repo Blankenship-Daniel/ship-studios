@@ -1,0 +1,36 @@
+{
+  "name": "helios-type-69-warm-drum-glue",
+  "description": "WARM, glued, slightly airy drum-bus tone from the UADx Helios Type 69 — warmth via the MIC-mode preamp/transformer DRIVE (even-harmonic saturation), not EQ boosts. Mic input + gain 40 + the -20 dB input pad: the pad keeps the operating level sane so gain 40 lands as MODERATE color (measured ~1.9% THD on a 1 kHz tone, 2nd harmonic -41 dB) instead of the nuclear 53% you get at line level with no pad. A gentle +4 dB of the broad 10 kHz Helios shelf adds air/presence. Bass left flat: the boost positions are INERT headless (see notes), and the low end fills in from the drive harmonics anyway. The harness peak-normalizes the output to -1 dBFS, which absorbs the large level the Mic-mode gain adds. Measured on the Watercolors drum loop: crest 14.6 -> 13.1 dB (moderate glue), +4.6 dB @10k, slight low fill, centroid 182 -> 246 Hz.",
+  "intended_for": "a drum bus / drum loop you want WARM + glued + a touch airier, with the colour coming from console-preamp saturation rather than EQ — the warm counterpart to the clean Line-mode EQ preset",
+  "plugin_build": "UADx 'uaudio_helios_type_69.vst3' (the UADx native build that RENDERS headless via Pedalboard 0.9.23 — NOT the 'UAD Helios Type 69.component'/Legacy twins, which pass audio through unprocessed offline). 14 params, all Pedalboard enums; string enums (input_select/mid_type/pad/eq_in/polarity) must go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_helios_type_69.vst3", "params": {
+        "input_select": "Mic",
+        "gain": 40.0,
+        "pad": "-20 dB",
+        "hi_shelf_gain": 4.0,
+        "mid_freq": 700.0,
+        "mid_gain": 0.0,
+        "mid_type": "Peak",
+        "bass": 0.0,
+        "eq_in": "In",
+        "polarity": "Normal",
+        "level": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "DRIVE = TONE. `gain` is a colour control, not just a level: at line-level input, Line g20 = 0.002% THD (clean), Mic g20 = 0.049%, Mic g40 = 53% THD, Mic g70 = 61% — even-harmonic dominant (transformer/tube warmth). Mic mode reaches saturation ~10-20 dB sooner than Line for the same gain number. The harmonics fill the low end and thicken transients (crest drops).",
+    "THE -20 dB PAD IS WHAT MAKES THE DRIVE MUSICAL. Mic g40 with NO pad on a line-level signal is nuclear (53% THD, peak +0.65 dBFS, crest crushed to 7.8). The input pad attenuates BEFORE the gain stage, so Mic g40 + pad lands at a gentle ~1.9% THD and crest ~13.1 — moderate glue. To push harder: drop the pad (heavier) or raise gain to 50 (crest ~8.8, 33% THD — usually too much). To go cleaner/warmer-but-subtler: gain 30 + pad (~0.24% THD, crest ~14.9).",
+    "BASS BOOST IS UNREACHABLE HEADLESS — left at 0 deliberately. The `bass` knob's boost positions (60/120/250/400) produce EXACTLY 0.00 dB change via Pedalboard (in Line and Mic mode), and `bass_gain` is hard-locked to its only value 'Off'. Only the CUT values (-3..-15, a broad low shelf) render. For low-end WEIGHT, lean on the Mic drive (it fills the lows) or boost lows with a separate EQ (`[L] apply-eq`). For a TIGHTER bottom, set bass to -3..-9 here.",
+    "OUTPUT LEVEL: Mic mode + gain add a lot of (non-compensated) output level; the harness's output_peak_dbfs -1.0 normalizes it. If you drive via apply-vst-chain instead, pull `level` (the fader) down to compensate.",
+    "DARK-WARM VARIANT: set hi_shelf_gain 0.0 for pure preamp warmth with no air (measured centroid 168 Hz, slightly DARKER than dry, crest 12.6) — a good 'thick and dark' drum tone. AIRIER: hi_shelf_gain 8.0 (centroid 439, +8 @ the top).",
+    "Verify with measure-spectrum + measure-loudness: expect crest DOWN ~1.5 dB (the glue), +4-5 dB lift toward 10k (the air), and a small low-end fill — re-measure, a 0.00 delta means the .component twin loaded instead of uaudio_."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "dbx160-parallel-punch",
+  "description": "Parallel ('New York') dbx 160 on a drum bus: hard RMS limiting (Inf:1, low threshold) blended UNDER the dry. Because the dbx's fully-wet signal is already high-crest/punchy (transients ride over a crushed body) but quiet, the parallel blend mostly restores BODY + level + density while keeping the punch — the dbx parallel is a density/weight move, not a transient-restore move. compress Inf:1, thresh -30, mix 50. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-16.74 (+0.44 denser at the same -1 dBFS peak), crest 17.17->16.73, low-band RMS -20.1->-19.7 (body filled), LRA 2.44->2.21, true-peak -0.98, centroid 1747->1753 (tone preserved). Weight/density with the transients intact.",
+  "intended_for": "a drum bus that wants more weight/density + sustained body without losing transient snap",
+  "plugin_build": "uaudio_dbx_160.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD dbx 160.component + Universal Audio UAD dbx 160 twins PASS THROUGH offline, do not use them).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_dbx_160.vst3", "params": {
+        "thresh": -30.0,
+        "compress": "Inf:1",
+        "gain": 0.0,
+        "meter": "GC",
+        "sc_filter": false,
+        "mix": 50.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "compress 'Inf:1' and meter/sc_filter are string/bool enums -> apply_vst_preset.py only (apply-vst-chain's float dict can't set them).",
+    "mix is the built-in parallel blend (0=dry, 100=fully crushed wet). Unlike an opto comp where the wet is dense/low-crest, the dbx wet is HIGH-crest (RMS-detector signature) -> blending toward dry restores body/level/density, not transients.",
+    "Lower thresh = harder wet (more body crushed). Inf:1 at thresh -30 is a firm RMS limiter on the body.",
+    "Clean VCA (THD ~0.05% even at Inf:1) -- the density is dynamic, not saturation. dbx 160 = MONO. Hand the result to master-track."
+  ]
+}

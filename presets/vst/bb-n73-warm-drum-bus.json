@@ -1,0 +1,39 @@
+{
+  "name": "bb-n73-warm-drum-bus",
+  "description": "Warm, weighty Neve 1073 drum-bus tone from the KIT BB N73 (Blackbird Neve 1073 channel). Warmth + low-end WEIGHT come from the MIC-mode transformer drive (pre_amp_mode='Mic' + pre_amp_saturation=TRUE, sensitivity -47 = moderate transformer color) — NOT from an EQ air boost (the user's preference: warm via the transformer, not bright EQ). The 1073 EQ only tightens + weights: 50 Hz HPF + 60 Hz low shelf +3 for weight + 700 Hz -2 to de-box. HF (fixed 12 kHz) shelf left at 0 so the only top comes from the transformer's harmonics. CRITICAL: pre_amp_saturation MUST be true in Mic mode — with it FALSE the Mic preamp digitally overloads when driven (23-46% THD, ugly clip). output_gain -12 keeps internal headroom; the harness peak-trims to -1 dBFS (Auto-Gain is GUI-only, unavailable headless). Built & verified 2026-06-03 on the watercolors drum bus.",
+  "intended_for": "a stereo drum bus, roughly -25 to -18 LUFS balanced. Mic-drive color is LEVEL-dependent — on a hotter/quieter bus, re-tune pre_amp_sensitivity (toward -80 = more gain/drive/weight, toward -20 = unity/clean) and output_gain to compensate.",
+  "plugin_build": "KIT BB N73.vst3 — KIT Plugins, iLok/machine-authorized on this Mac; RENDERS headless via Pedalboard (verified, not just loads). The 3-band Neve 1073 (fixed 12k HF shelf, sweepable mid bell, sweepable low shelf, HPF) — distinct from KIT BB N105 V2 (=4-band Neve 31105/8078).",
+  "target_signature": {
+    "comment": "measured dry->processed on projects/watercolors/mix/bus_warm_pre_dry.wav (full bus, stemmy measure-loudness/spectrum, peak-normalized to -1 dBFS). Dry: crest 23.64, centroid 3128, tilt -2.26, low 0.542, low_mid 0.378, high 0.0115. Sanity-check a re-apply.",
+    "lufs_i": -20.2, "true_peak_dbtp": -0.97, "crest_db": 23.11, "centroid_hz": 3209,
+    "tilt_db_per_oct": -2.22, "band_ratio_low": 0.671, "band_ratio_low_mid": 0.267, "band_ratio_high": 0.0122
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "KIT BB N73.vst3", "params": {
+        "eq": "EQ On",
+        "pre_amp_mode": "Mic",
+        "pre_amp_saturation": true,
+        "pre_amp_sensitivity": -47.0,
+        "hpf_frequency": "50 Hz",
+        "low_frequency": "60 Hz", "low_gain": 3.0,
+        "mid_frequency": "700 Hz", "mid_gain": -2.0,
+        "high_shelf_gain": 0.0,
+        "output_gain": -12.0,
+        "master_bus_toggle": "MST Off",
+        "hum": false
+      }}
+    ]
+  },
+  "notes": [
+    "ALL 18 params are enum-valued in Pedalboard. Numeric controls (input_trim/output_trim ±36, pre_amp_sensitivity -80..-20, *_gain ±18, output_gain -40..+20) accept a FLOAT (coerced to the nearest 0.1 step) so apply-vst-chain's float dict can reach them. But mid_frequency ('700 Hz'), low_frequency ('60 Hz'), hpf_frequency ('50 Hz'), pre_amp_mode ('Mic'/'Line'), eq, phase, hum, master_bus_toggle are STRING/bool enums — apply-vst-chain cannot set them, so use this preset harness.",
+    "The Neve preamp COLOR is MIC-MODE ONLY. In Line mode, pre_amp_sensitivity AND pre_amp_saturation are inert (measured byte-identical, THD 0.00%). Mic mode adds large gain (sens -50 ~= +18 dB, -80 ~= +23 dB over -20).",
+    "pre_amp_saturation=TRUE is the controlled soft-transformer path (~0.2-0.3% THD, level-managed). pre_amp_saturation=FALSE in Mic mode is a RAW high-gain pre that digitally CLIPS when driven (THD 23% @ sens-50, 46% @ -80) — only use sat=false for deliberate aggressive overdrive.",
+    "There is NO host Auto-Gain (the GUI Auto-Gain/Continuous/oversampling are not exposed). Driving Mic sensitivity raises level a lot — compensate with output_gain (linear) and/or the harness peak-trim.",
+    "HF EQ is a FIXED 12 kHz shelf (high_shelf_gain only, no frequency selector) — that's the 1073. For a brighter 'Neve air' variant set high_shelf_gain=2.0 (measured centroid 3209->3420, tilt -2.22->-2.06). For glue/density add master_bus_toggle='MST On' (subtle API master-buss saturation, ~1.9% THD on a sine, crest 23.1->22.2). For a TIGHTER low end raise hpf_frequency to '80 Hz' and/or trim low_gain to +2.",
+    "analog hum (hum/hum_level) is negligible offline and left off here. Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/bb-n73-warm-drum-bus.json <in.wav> <out.wav>"
+  ]
+}

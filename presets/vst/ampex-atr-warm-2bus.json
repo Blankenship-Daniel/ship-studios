@@ -1,0 +1,30 @@
+{
+  "name": "ampex-atr-warm-2bus",
+  "description": "Warm, fuller mixdown color on the UADx Ampex ATR-102 — REPRO, 15 IPS (bigger head bump, fuller lows), Ampex 456, Cal +6, 1/2\" tape, NAB (50 Hz bass shelf), transformer ON, subtle modeled wow&flutter + crosstalk for vibe. More drive than the master-glue preset — audible warmth + light tape compression.",
+  "intended_for": "a stereo mix / 2-bus / fuller-sounding mixdown where you want obvious-but-musical tape warmth (the classic ATR mixdown). Color insert before mastering.",
+  "plugin_build": "uaudio_*.vst3 (UADx native build — renders headless; the UAD *.component twin passes audio through unprocessed offline, do NOT use it)",
+  "target_signature": {
+    "comment": "measured dry -> processed on projects/drums-kit/mix/bus_70s_balanced.wav (peak-normed), +10 dB drive. centroid in [L] measure-spectrum units.",
+    "centroid_hz": 3871, "tilt_db_per_oct": -2.73, "band_low": 0.632, "band_high": 0.0060,
+    "crest_db": 22.43, "lufs_i": -18.47
+  },
+  "recipe": {
+    "input_gain_db": 10,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_ampex_atr-102_tape.vst3", "params": {
+        "path_select": "REPRO", "ips": "15 IPS", "tape_type": "456", "cal_level": 6.0,
+        "head_width": "1/2", "emphasis_eq": "NAB",
+        "transformer": true, "wow_flutter": true, "crosstalk": true, "hiss_hum": false,
+        "auto_cal": true, "auto_gain": true
+      }}
+    ]
+  },
+  "notes": [
+    "15 IPS = warmer/fuller than 30 IPS (bigger ~50-70 Hz head bump, more HF roll-off, more compression). NAB adds a 50 Hz bass shelf (CCIR is leaner/brighter).",
+    "+10 dB drive measured ~2.6 dB of tape compression (crest 25.0 -> 22.4) and slight darkening (centroid 4266 -> 3871). Back off if the top starts to spit (rising 3rd harmonic).",
+    "If the low end gets boomy (15-IPS head bump), pull repro_lf_eq down (default 9.7) or HPF post-tape — it's the bump, not saturation.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/ampex-atr-warm-2bus.json <in.wav> <out.wav>"
+  ]
+}

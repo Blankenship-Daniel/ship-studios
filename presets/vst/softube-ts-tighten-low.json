@@ -1,0 +1,20 @@
+{
+  "name": "softube-ts-tighten-low",
+  "description": "Clean LOW-band tighten via the Softube Transient Shaper: reduce SUSTAIN on the low band so the kick/snare body & boom tighten while cymbals/hats keep their natural decay. Validated on the Watercolors no-room drum bus (crest up, choke-free, highs preserved). Tighten = NEGATIVE sustain, NOT punch (punch adds an unnatural click). WIDE negative sustain chokes the hats — that is why this is LOW-band.",
+  "intended_for": "a dry / no-room drum bus or kick/snare stem that needs a tighter, controlled low end without choking the cymbals",
+  "plugin_build": "Softube 'Transient Shaper.vst3' (renders headless via Pedalboard; iLok-authorized — re-verify on a new machine)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Transient Shaper.vst3", "params": {
+        "sustain_db": -5.0, "sustain_band": "LOW",
+        "punch_db": 0.0, "punch_band": "WIDE", "punch_type": "SLOW",
+        "crossover_freq_hz": 700.0,
+        "output_level_db": 0.0, "clip": false
+      }}
+    ]
+  },
+  "notes": ["Tighten = SUSTAIN down + punch 0 (punch pushed = clicky/spitty — Gemini flagged punch+3). LOW band (xover 700) keeps cymbal/hat decay natural; WIDE negative sustain gates the highs. Push sustain toward -6..-8 for more tighten, then re-QC for gate-like choke. Level-independent → no input gain-stage. Verify crest/PLR UP and centroid roughly steady after."]
+}

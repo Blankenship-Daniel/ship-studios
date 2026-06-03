@@ -13,10 +13,12 @@ the *why* and the settings tables.
 
 ## The governing facts (read first)
 
-1. **Tape DARKENS — it's a harshness cure, not a cause.** Measured on a drum bus, the A800 pulled spectral
-   centroid **−341 Hz**; every lever only darkened further. **If a tape chain sounds harsh, the harshness is
-   upstream** — isolate each plugin and measure before blaming the tape (on our 70s bus it was a Neve
-   +2 dB @ 3.2 kHz mid, centroid **+808**, not the tape).
+1. **Lightly-driven tape DARKENS — *usually* a harshness cure, not the cause.** Measured on a drum bus, the
+   A800 pulled spectral centroid **−341 Hz**; every lever only darkened further. So **suspect upstream first** —
+   isolate each plugin and measure before blaming the tape (on our 70s bus it was a Neve +2 dB @ 3.2 kHz mid,
+   centroid **+808**, not the tape). **But tape can be the harsh one itself** when **over-driven or under-biased**
+   (its own 3rd-harmonic + IMD lands in **2–6 kHz**; fact #2 + doc §5) — cure a *tape-stage* harshness with
+   **less Input / over-bias / higher-headroom tape**.
 2. **Tape's harmonics are odd/3rd-order (harsh), not even/2nd (sweet).** The real warmth is the **LF head
    bump + gentle compression**, not "even-order glow." Over-driving adds 2–5 kHz edge + IMD that no EQ fixes
    — the cure is **less Input**.
@@ -31,9 +33,17 @@ the *why* and the settings tables.
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - The **`uaudio_studer_a800.vst3`** build (UADx native — renders headless). The `UAD ….component`/twin
   passes through offline — never use it. Confirm with `[L] list-vst-plugins {name_contains:"studer"}`.
+  **UADx = UA's native (CPU) build** (VST3/AU, no UAD DSP hardware; one purchase = both licenses). **iLok account +
+  PACE must be present** on a render farm even with no UAD hardware — but a *perpetual* UADx license uses local
+  auth (**no USB dongle**). [[uadx-uaudio-build-renders-headless]].
 - Enum/float/bool params (`ips='15 IPS'`, `tape_type='456'`, `cal_level=6.0`, `emphasis_eq='NAB'`,
   `auto_cal=True`) → set via the **[[vst-preset]]** harness (`presets/vst/apply_vst_preset.py`), since
   `apply-vst-chain`'s `parameters` is float-only and can't gain-stage.
+- **The simple panel = *primary* controls only** (Path · IPS · Tape · Cal · Input · Output · VU). **Bias,
+  NAB/CCIR, the Repro/Sync EQ cards, Noise, Auto Cal, Gang** live on the **expanded view** (click the Studer badge /
+  "Open") → set them via the preset harness, never the headless float dict. Top-bar **IN / A·B / COPY·PASTE /
+  preset** are UAD-Toolbar shell features (not A800 params, not reachable headless) → use **`dump_state`** for
+  reproducibility. Full **panel→param control-map: doc §8**.
 
 ## Recipe (ordered — measured)
 
@@ -61,8 +71,9 @@ the *why* and the settings tables.
 ## Outputs
 
 - Processed WAV in `projects/<track>/mix/` + the reusable preset JSON (and `.state` if dumped).
-- Ready-made presets: `presets/vst/tight-70s-{dry,warm,warmer}.json` (Neve→dbx→Studer drum-bus chains;
-  see the doc for what each measured).
+- Ready-made presets: **`presets/vst/studer-a800-warm-glue.json`** (standalone single-plugin default — the
+  warm/glue starting point, ready for `apply_vst_preset.py`) · `presets/vst/tight-70s-{dry,warm,warmer}.json`
+  (Neve→dbx→Studer drum-bus chains; see the doc for what each measured).
 
 ## Reporting to the user
 
@@ -79,14 +90,16 @@ A/B with `[L] render-ab` (loudness-matched) so taste isn't a level illusion.
 - **Auto Cal ON** after any Tape/Speed/Cal change (aligns bias + EQ). Our early presets used `False` with no
   measured difference, but ON is the correct default.
 - **No Wow/Flutter knob**; **Noise OFF by default** and stacks across instances; **extra latency** (upsampling).
+- **Gang Controls is destructive** — when linked, any edit overwrites *every* open A800 instance (no undo). Leave
+  it off unless you're deliberately driving a multi-instance kit in lockstep.
 - **Tape can't do surgery** — a true sibilance hotspot or harsh imbalance wants `[L] de-ess` /
   `[L] apply-dynamic-eq` / `[[mix-balance]]`, not tape. Tape is glue + tilt only.
 
 ## Related
 
-- [`docs/vst/studer-a800.md`](../../../docs/vst/studer-a800.md) — the full measured field guide (levers, theory, decision table)
+- [`docs/vst/studer-a800.md`](../../../docs/vst/studer-a800.md) — the full measured field guide (levers, theory, decision table, **§8 panel→param control-map + UADx/UAD-2 build notes**)
 - [[vst-saturate]] — the generic tape/harmonic-color skill this specializes · [[vst-preset]] — apply enum/gain-staged chains
 - [[vst-verify]] — prove the build renders (responds to params) before trusting it · [[vst-chain]] — the backbone recipe
-- [[vst-shootout]] — render A800 setting variants & judge to a winner · [[vst-master]] — the Ampex ATR-102 sibling fits 2-bus mastering
+- [[vst-shootout]] — render A800 setting variants & judge to a winner · [[ampex-atr-102]] — the smoother Ampex ATR-102 *master* tape sibling for the 2-bus / mastering (UADx native, no iLok) · [[vst-master]] — the mastering-tape stage it lives in
 - [[finalize-mix]] — the pure-DSP glue stage a tape insert lives in · [[drum-mix]] — balance the kit (by measured loudness) before tape
 - [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves

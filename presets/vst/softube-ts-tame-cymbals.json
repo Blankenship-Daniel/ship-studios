@@ -1,0 +1,20 @@
+{
+  "name": "softube-ts-tame-cymbals",
+  "description": "Tame cymbal/hat wash via the Softube Transient Shaper: REDUCE SUSTAIN on the HIGH band only (crossover 1.5 kHz) so long cymbal/hat decays are shortened while the kick/snare body below the crossover is untouched. The inverse of overhead-shimmer. No punch, Clip off.",
+  "intended_for": "an overhead/drum bus with too much cymbal/hat wash or ringy hats — control the HF tail without dulling the kit body",
+  "plugin_build": "Softube 'Transient Shaper.vst3' (renders headless via Pedalboard; iLok-authorized — re-verify on a new machine)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Transient Shaper.vst3", "params": {
+        "punch_db": 0.0, "punch_band": "WIDE", "punch_type": "SLOW",
+        "sustain_db": -3.0, "sustain_band": "HIGH",
+        "crossover_freq_hz": 1500.0,
+        "output_level_db": 0.0, "clip": false
+      }}
+    ]
+  },
+  "notes": ["HIGH-band negative sustain shortens cymbal/hat decay; the LOW body stays full (opposite of the WIDE cut that chokes everything). Don't push past ~-4 or hats start to gate unnaturally. Expect 8-16k band DOWN, centroid down a touch; A/B loudness-matched."]
+}

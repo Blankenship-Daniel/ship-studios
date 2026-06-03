@@ -1,0 +1,44 @@
+{
+  "name": "fabfilter-promb-drum-multiband-glue",
+  "description": "Three-band dynamic clean-up + glue on a drum bus with FabFilter Pro-MB, headless. band_1 tightens boomy LOWS (~30-120 Hz), band_2 tames LOW-MID box (~200-600 Hz) only when it builds, band_3 de-harshes the PRESENCE (~3-9 kHz) on spikes. Each band is a true split — it only touches its own range, leaving the gaps unprocessed (the difference from a fixed-crossover multiband: only the problem zones move). Validated on the Watercolors drum loop.",
+  "intended_for": "a summed drum bus that is boomy on the loud kicks, builds low-mid mud on busy passages, and spits in the presence band — controlled dynamically without static EQ dulling the steady tone",
+  "plugin_build": "FabFilter 'Pro-MB.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; 156 enum params; set string enums via the preset harness, not apply-vst-chain's float dict)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -3.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Pro-MB.vst3", "params": {
+        "band_1_state": "Enabled",
+        "band_1_low_crossover": 30.0, "band_1_low_slope": "24.0 dB/oct",
+        "band_1_high_crossover": 120.0, "band_1_high_slope": "24.0 dB/oct",
+        "band_1_dynamics_mode": "Compression", "band_1_threshold": -20.0,
+        "band_1_range": -5.0, "band_1_ratio": "3.00:1",
+        "band_1_attack": 15.0, "band_1_release": 40.0, "band_1_knee": 18.0, "band_1_lookahead": 2.0,
+
+        "band_2_state": "Enabled",
+        "band_2_low_crossover": 200.0, "band_2_low_slope": "18.0 dB/oct",
+        "band_2_high_crossover": 600.0, "band_2_high_slope": "18.0 dB/oct",
+        "band_2_dynamics_mode": "Compression", "band_2_threshold": -24.0,
+        "band_2_range": -4.0, "band_2_ratio": "2.50:1",
+        "band_2_attack": 20.0, "band_2_release": 40.0, "band_2_knee": 24.0, "band_2_lookahead": 1.0,
+
+        "band_3_state": "Enabled",
+        "band_3_low_crossover": 3000.0, "band_3_low_slope": "24.0 dB/oct",
+        "band_3_high_crossover": 9000.0, "band_3_high_slope": "24.0 dB/oct",
+        "band_3_dynamics_mode": "Compression", "band_3_threshold": -28.0,
+        "band_3_range": -6.0, "band_3_ratio": "4.00:1",
+        "band_3_attack": 8.0, "band_3_release": 35.0, "band_3_knee": 12.0, "band_3_lookahead": 2.0,
+
+        "processing_mode": "Dynamic Phase", "oversampling": "Off", "lookahead_enabled": true,
+        "mix": 100.0, "input_level": 0.0, "output_level": 0.0
+      }}
+    ]
+  },
+  "notes": [
+    "Each band sets band_N_state=Enabled AND a NONZERO band_N_range — range is the master 'amount'; at range 0 the band is inert regardless of threshold/ratio (measured).",
+    "The three bands do not need to tile: a Pro-MB band only processes between its own low/high crossover; frequencies in the gaps (120-200, 600-3000, >9000, <30) pass UNPROCESSED. That selectivity is the point — fix only the problem zones.",
+    "For PARALLEL glue (NY-style) drop the global `mix` below 100 (0..200%) instead of softening each range — measured: mix 50 halved the presence duck (-4.2 -> -2.7 dB). For UPWARD density on a band, switch its dynamics_mode to Expansion with a POSITIVE range (measured: Expansion + range +12 on 3-9k ADDED ~+6 dB presence and raised crest).",
+    "attack/release are a normalized 0..100 scale here (not ms); lows get slower attack (15) to keep kick punch, presence gets faster attack (8) to catch spit. Dynamic Phase keeps transients intact. Verify with measure-spectrum: expect lows + low-mids + presence each pulled down only on peaks, mids/air/sub between the bands unchanged."
+  ]
+}

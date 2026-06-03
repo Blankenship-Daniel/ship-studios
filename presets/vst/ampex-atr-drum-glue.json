@@ -1,0 +1,30 @@
+{
+  "name": "ampex-atr-drum-glue",
+  "description": "Tape glue + color on a drum bus via the UADx Ampex ATR-102 — REPRO, 15 IPS, Ampex 456, Cal +6, 1/2\" tape, NAB, transformer ON, wow&flutter/crosstalk OFF (tight). Driven harder than the 2-bus presets for audible tape compression (the glue) + 3rd-harmonic body, slightly narrowed. The ATR (smooth 2-track mastering deck) counterpart to the punchier Studer A800 drum-bus presets (tight-70s-*).",
+  "intended_for": "a stereo DRUM bus / drum mix wanting tape glue + warmth (smoother/glossier than the A800).",
+  "plugin_build": "uaudio_*.vst3 (UADx native build — renders headless; the UAD *.component twin passes audio through unprocessed offline, do NOT use it)",
+  "target_signature": {
+    "comment": "measured dry -> processed on projects/drums-kit/mix/bus_70s_balanced.wav (peak-normed), +12 dB drive. centroid in [L] measure-spectrum units (dry == 4266, crest 25.0). Tape glue: ~3.3 dB of compression (crest 25.0 -> 21.7) + gentle warm darkening.",
+    "centroid_hz": 3871, "tilt_db_per_oct": -2.67, "band_low": 0.621, "band_high": 0.0067,
+    "crest_db": 21.65, "lufs_i": -17.71
+  },
+  "recipe": {
+    "input_gain_db": 12,
+    "output_peak_dbfs": -1.0,
+    "width": 0.95,
+    "chain": [
+      {"file": "uaudio_ampex_atr-102_tape.vst3", "params": {
+        "path_select": "REPRO", "ips": "15 IPS", "tape_type": "456", "cal_level": 6.0,
+        "head_width": "1/2", "emphasis_eq": "NAB",
+        "transformer": true, "wow_flutter": false, "crosstalk": false, "hiss_hum": false,
+        "auto_cal": true, "auto_gain": true
+      }}
+    ]
+  },
+  "notes": [
+    "+12 dB drive pushes ~3-5 dB of tape compression (the glue) and adds 3rd-harmonic body. Driving harder stacks odd harmonics (3rd -> 5th -> 7th) = harshness; stop the moment the top spits and trim back.",
+    "Smoother/glossier than the Studer A800 drum-bus presets (tight-70s-*); for punchier/drier American-console drums use [[api-vision-channel-strip]] / [[kit-bb-a5]] instead.",
+    "For more aggression: tape 250 (earliest saturation) or 1/4\" (leaner/brighter). For cleaner: 30 IPS / GP9 / 1\".",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/ampex-atr-drum-glue.json <in.wav> <out.wav>"
+  ]
+}

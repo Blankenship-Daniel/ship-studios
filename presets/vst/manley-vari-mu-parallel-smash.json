@@ -1,0 +1,33 @@
+{
+  "name": "manley-vari-mu-parallel-smash",
+  "description": "NY parallel smash via the UADx Manley Variable Mu's built-in MIX: crush a hot wet, blend the dry back. DUAL INPUT 8 (drive the tubes), threshold 2, ATTACK 8 (fast clamp), RECOVERY 'Fast', LIMIT mode (much more GR than Comp), HP SIDECHAIN 'Flat', MIX 45 so the dry transients stay. Bigger/denser with the attack preserved. VALIDATED on the Watercolors warm drum bus: +0.61 LU, crest 17.17->16.59, low-band punch 27.15->25.99 (denser low end), LRA 2.30, true-peak -0.98 — the dry blend keeps the slam.",
+  "intended_for": "a drum bus / room / parallel aux that wants size + density with the dry punch intact",
+  "plugin_build": "uaudio_manley_variable_mu.vst3 (UADx native build — renders headless; the /Components/UAD Manley Variable Mu.component twin passes through offline, do not use it).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_variable_mu.vst3", "params": {
+        "dual_input": 8.0,
+        "l_thresh": 2.0, "r_thresh": 2.0,
+        "l_attack": 8.0, "r_attack": 8.0,
+        "l_recovery": "Fast", "r_recovery": "Fast",
+        "l_output": 5.0, "r_output": 5.0,
+        "l_comp_lim": "Limit", "r_comp_lim": "Limit",
+        "l_hp_sc_filt": "Flat", "r_hp_sc_filt": "Flat",
+        "l_bypass": "In", "r_bypass": "In",
+        "in_matrix": "L-R", "out_matrix": "L-R",
+        "sc_link": "Link", "ctrl_link": "Link",
+        "mix": 45.0, "headroom": 16.0,
+        "power": true, "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "MIX is built-in parallel (100 = fully wet). As MIX drops, the dry transients return and crest recovers — measured: mix100 crest 16.00 -> mix25 crest 16.60 on a hard wet. ~40-50% keeps slam.",
+    "LIMIT mode pulls much more level than COMP at the same threshold (thr4: -5.8 vs -2.2 dB) — it's the higher-ratio mode. Pair with fast ATTACK + Fast RECOVERY for the densest wet.",
+    "Drive DUAL INPUT up (8-10) to hit the tubes for even-harmonic color on the wet; the dry blend keeps it from sounding distorted.",
+    "Harness-only (enum params)."
+  ]
+}

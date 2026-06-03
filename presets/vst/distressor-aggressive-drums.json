@@ -1,0 +1,34 @@
+{
+  "name": "distressor-aggressive-drums",
+  "description": "The iconic forward/aggressive UADx Distressor drum sound: Ratio 10:1 (the famous 'British'-style Distressor drum ratio), input 8 for real gain reduction, attack 4 (medium-fast — grabs the transient for that smacked density), release 2 (fast = aggressive, dense, the Distressor 'attitude'), AUDIO = Dist 2 warmth, DETECTOR = HP so the kick still punches. Denser and more in-your-face than distressor-drum-glue. Great on a drum bus, snare bus, or room you want forward.",
+  "intended_for": "a drum bus / snare / room that should sound aggressive, dense and forward (not transparent)",
+  "plugin_build": "uaudio_distressor.vst3 (UADx native build — RENDERS headless & processes offline, verified changed:true; do not use the /Components/UAD Empirical Labs Distressor.component twin — passthrough offline).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_distressor.vst3", "params": {
+        "bypass": "Off",
+        "ratio": "10:1",
+        "detector": "HP",
+        "audio": "Dist 2",
+        "input": 8.0,
+        "attack": 4.0,
+        "release": 2.0,
+        "output": 7.0,
+        "mix": 100.0,
+        "headroom": 16.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "10:1 is the Distressor's signature aggressive ratio — fast, hard, but program-dependent. Higher ratios (20:1, NUKE) clamp harder; NUKE is a saturated near-brickwall.",
+    "attack 4 + release 2 = the dense/aggressive voicing (fast release pumps the level back up between hits). Slow the attack toward 6-7 if it kills the punch too much, or raise mix below 100 for parallel.",
+    "DETECTOR HP keeps the kick out of the detector so it punches through the density. Try Emp instead to make the detector grab the snare/cymbals harder.",
+    "ratio/detector/audio are STRING enums -> preset harness only (apply-vst-chain can't pass them).",
+    "It compresses hard AND adds harmonics -> A/B loudness-matched; judge by feel, not level."
+  ]
+}

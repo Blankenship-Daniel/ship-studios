@@ -1,0 +1,49 @@
+{
+  "name": "voxbox-drum-glue",
+  "description": "WARM, rounded, transient-OPEN tube drum-bus tone from the UADx Manley VOXBOX. Colour comes from the MIC-mode tube/transformer preamp DRIVE (input 4 + gain 50 = even-harmonic saturation, H2 dominant) plus the passive-opto compressor (nominal 3:1, program-dependent, sits FIRST in the chain before the preamp), which on transient drum material LEVELS THE BODY AND LEAVES THE TRANSIENTS — so crest goes UP (measured 14.63 -> 19.53), not down: this is openness/punch, NOT glue-squash. The Pultec-style EQ adds low weight (lo_peak 5 @70 Hz ~ +3.4 dB bell) and air (hi_peak 5 @10 kHz ~ +2.7 dB bell) and de-boxes the low-mids (mid_dip -3 @500). De-esser bypassed (drums don't need it). The harness peak-normalizes to -1 dBFS, absorbing the level the Mic-mode preamp adds. For HEAVIER glue/control set comp_attack 'Fast' (catches transients, crest drops) and/or raise input toward 6; for cleaner warmth drop to input 3 / gain 45.",
+  "intended_for": "a drum bus / drum loop you want WARM + rounded + opened-up (vintage tube channel-strip character) — the Manley VOXBOX counterpart to the Neve/API/tape drum-bus presets; warmth from tube preamp drive, life from the optical comp, tone from the passive Pultec EQ",
+  "plugin_build": "UADx 'uaudio_manley_voxbox.vst3' (the UADx NATIVE build that RENDERS headless via Pedalboard 0.9.23 — NOT the 'UAD Manley VOXBOX.component' twin, which passes audio through unprocessed offline). 25 params, all Pedalboard enums; the string switches (source_select=Mic, comp_byp/eq_byp In, comp_attack/comp_rel, low_cut, de_ess_sel, transformer_byp) MUST go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_voxbox.vst3", "params": {
+        "source_select": "Mic",
+        "low_cut": "Off",
+        "phase": 0.0,
+        "input": 4.0,
+        "gain": 50.0,
+        "sc_link": "Sep",
+        "comp_byp": "In",
+        "comp_thresh": 8.0,
+        "comp_attack": "Medium",
+        "comp_rel": "Medium",
+        "eq_byp": "In",
+        "lo_peak": 5.0,
+        "lo_peak_freq": 70.0,
+        "mid_dip": -3.0,
+        "mid_dip_freq": 500.0,
+        "hi_peak": 5.0,
+        "hi_peak_freq": 10000.0,
+        "de_ess_byp": "Byp",
+        "de_ess_sel": "3K",
+        "de_ess_thr": 4.1,
+        "meter": "GR",
+        "transformer_byp": "In",
+        "output": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "DRIVE = TONE, set by `input` + `gain` + Mic mode. Measured 1 kHz THD: Line in3 g40 = 0.002% (clean) -> Mic in6 g50 = 5% -> Mic in10 g60 = 67%, even-harmonic dominant (H2 -4.9 dB when hard-driven). Mic saturates well before Line. On the drum loop the drive thickens and BRIGHTENS as it distorts (centroid rises) and lowers crest at high settings; input 4 / gain 50 / Mic is moderate.",
+    "THE COMPRESSOR RAISES CREST ON DRUMS. It's a smooth, program-dependent PASSIVE-OPTO leveller (nominal '3:1' on the bypass toggle, NOT a fixed/selectable ratio — Manley's circuit draws on Variable-Mu + ELOP lineages). It pulls the sustain/body down and lets transients through, so on a drum loop crest INCREASES (measured 14.63 -> 19.53, centroid 1593 -> 1482 darker). That's the smooth, open, 'expensive' optical signature — NOT a transient-grabbing glue comp. comp_thresh is RELATIVE TO INPUT LEVEL: at input 3 you need comp_thresh 8-10 to engage; at input 6 even thr 6 gives ~9 dB GR. HIGHER comp_thresh number = MORE compression (the dial is inverted vs a dBFS threshold).",
+    "SIGNAL FLOW: the real internal order is INPUT -> COMPRESSOR -> tube PREAMP -> EQ -> de-ess/LIMITER -> output (the comp is FIRST, before the preamp; the GUI's left-to-right layout is NOT the audio path). It's fixed/non-reorderable. So `input` feeds the comp AND the tube; raising it drives both harder.",
+    "ATTACK/RELEASE direction (measured at engaged GR): SLOW attack lets transients pass (highest crest/punch), FAST attack catches them (most control). FAST release is lively/can pump, SLOW release is denser/smoother. Medium/Medium here = balanced.",
+    "PULTEC EQ DIALS ARE NONLINEAR 0-10, NOT dB. Measured: lo_peak 2/5/10 -> +0.5/+3.4/+10.5 dB @100; hi_peak 2/5/10 -> +0.04/+2.7/+8.6 dB @10k (a BELL, not a shelf); mid_dip 2/5/10 -> -0.2/-1.8/-11.7 dB @1k. The bottom half of the dial barely acts; the action is 5-10. lo_peak/hi_peak are boost-only BELLS; mid_dip is cut-only.",
+    "OUTPUT LEVEL: Mic-mode drive adds a lot of uncompensated level; the harness output_peak_dbfs -1.0 normalizes it. If you drive via apply-vst-chain instead, pull `output` down to compensate.",
+    "Verify with measure-spectrum + measure-loudness: expect crest UP (optical leveling opens transients), low weight @70-100, air @10k, slightly darker/rounder centroid from the drive+mid_dip. A 0.00 delta means the .component twin loaded instead of uaudio_."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "softube-tape-mix-bus-glue",
+  "description": "Transparent mix/master-bus tape glue via Softube Tape. Type A (most Hi-Fi/neutral) at 30 IPS (extended top, tight lows), Amount 3 for only ~1-2 dB transient reduction (crest ~ -0.2..-0.5 dB), Crosstalk 50 for cohesion, HF Trim FLAT (nudge BOOST for air). Peak-safe, conservative — the finalize-mix stage, not a limiter.",
+  "intended_for": "a near-final stereo mix that wants gentle analog cohesion before mastering. Insert in [[finalize-mix]]; hand to [[master-track]] after.",
+  "plugin_build": "Softube 'Tape.vst3' (renders headless via Pedalboard; iLok/PACE — authorized on this rig, re-verify elsewhere). String-enum params → this harness only.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Tape.vst3", "params": {
+        "color_type": "A",
+        "color_amount": 3.0,
+        "tape_speed": "30 IPS",
+        "dry_wet": "WET",
+        "speed_stability": "STABLE",
+        "high_freq_trim": "FLAT",
+        "crosstalk": "50.0",
+        "input_db": "6.0",
+        "output_db": "6.0",
+        "noise": false,
+        "playback": "RUN",
+        "meter": "THD"
+      }}
+    ]
+  },
+  "notes": [
+    "Keep it subtle: Amount 3 is barely-there glue. The official guide is 'drive until the GUI THD meter reads ~1-1.4%' — headless that meter is unreadable, so cap Amount by crest (only ~1-2 dB reduction) + render-ab.",
+    "Warmer/fuller master? tape_speed '15 IPS' (fattest LF). More air? high_freq_trim '2.0'..'BOOST'. Crosstalk 50 tightens + improves mono-sum; OFF to keep maximum width.",
+    "Tape compresses already — don't stack a heavy comp after. Verify check-clipping (Input pushes true-peak), measure-loudness, render-ab loudness-matched."
+  ]
+}

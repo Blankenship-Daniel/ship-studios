@@ -1,0 +1,36 @@
+{
+  "name": "ssl-4k-e-glue",
+  "description": "Gentle SSL-console GLUE for a drum/mix bus from the SSL 4K E alone — the clean British counterpart to API forwardness and tape warmth. '02 Brown' EQ (the original musical E EQ) for a small low shelf + de-box + air shelf, and the channel VCA comp at a low 2:1 ratio, slow attack (FAST out), modest GR for cohesion WITHOUT squashing transients. Measured on watercolors bus_punchy_pre (60 s dry drum bus): crest 21.6 -> 20.8 (gently denser), centroid mildly up (air shelf), corr 0.984. This is a glue pass, not a punch pass — for punch/weight use ssl-4k-e-drum-bus.json (Black EQ + 4:1).",
+  "intended_for": "a near-final drum bus or mix bus that needs cohesion + a touch of E-EQ tone — NOT a master (no limiting). The [[finalize-mix]] stage done with a real console strip.",
+  "plugin_build": "SSL 4K E.vst3 (VST3 — renders headless via Pedalboard; iLok/PACE, authorized on this machine; RE-VERIFY elsewhere with presets/vst/probe_plugin.py 'SSL 4K E')",
+  "headless_notes": "String enums (compressor_ratio '2.0', eq_colour 'Brown', lf_type/hf_type, the Out/In routing toggles) MUST go through this harness's setattr — apply-vst-chain's float dict reports them set but the value silently does not take. high_pass_filter_hz is snapped to the nearest valid log-step by the harness. output is peak-trimmed.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "SSL 4K E.vst3", "params": {
+        "filters_in": "In",
+        "high_pass_filter_hz": 30,
+        "eq_in": "In",
+        "eq_colour": "Brown",
+        "lf_type": "Shelf", "lf_frequency_hz": 60.0, "lf_gain_db": 2.0,
+        "lmf_frequency_khz": 0.4, "lmf_gain_db": -2.0, "lmf_q": 1.2,
+        "hf_type": "Shelf", "hf_frequency_khz": 12.0, "hf_gain_db": 2.0,
+        "dynamics_in": "In",
+        "compressor_ratio": "2.0",
+        "compressor_threshold_db": -12.0,
+        "compressor_release_s": 0.3,
+        "compressor_fast_attack": "Out",
+        "compressor_auto_make_up": true,
+        "analogue_vca": true
+      }}
+    ]
+  },
+  "notes": [
+    "Low ratio (2:1) + slow attack + a few dB GR = glue, not control. Keep crest within ~1 dB of dry; if it drops more, raise the threshold.",
+    "Brown EQ = the airiest/brightest of the three colours for the same dial (so the +2 @ 12 k shelf reads as open, not harsh — constant-Q, no proportional narrowing). For a darker/weightier glue switch eq_colour to 'Black'.",
+    "Parallel-glue variant: set compressor_ratio '10.0', compressor_threshold_db -20, compressor_fast_attack 'In', compressor_mix 40 (the COMPRESS MIX knob = NY parallel on the channel) — measured tightest L/R corr (0.985) of the bus variants, denser but brighter.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/ssl-4k-e-glue.json <in.wav> <out.wav>"
+  ]
+}

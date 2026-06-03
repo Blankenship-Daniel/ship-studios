@@ -3,13 +3,20 @@
     "stemmy-loops",
     "stemmy-gemini"
   ],
+  "skillListingBudgetFraction": 0.05,
   "permissions": {
     "allow": [
       "mcp__stemmy-loops__*",
       "mcp__stemmy-gemini__*",
       "Bash(uv:*)",
       "Bash(stemmy:*)",
+      "Bash(ship-studios:*)",
       "Bash(drum-prep:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)"
     ]
   }
 }

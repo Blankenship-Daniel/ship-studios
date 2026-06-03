@@ -268,16 +268,26 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
               help="Reference track to match the mix toward.")
 @click.option("--goal", default="match the reference tonal balance and loudness",
               show_default=True)
+@click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
+              show_default=True,
+              help="How much of the mix->reference delta match-eq corrects "
+                   "(0=none, 1=fully flatten toward the reference).")
+@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+              default="minimum", show_default=True,
+              help="match-eq filter realization (FIR phase, or 1 kHz tilt shelves).")
+@click.option("--match-out", "match_out_path", type=click.Path(), default=None,
+              help="Where to write the match-eq corrected mix.")
 @click.option("--ab-out", "ab_out_path", type=click.Path(), default=None,
               help="Where to write the A/B audition WAV.")
 @click.option("--eq-json", "eq_json", type=click.Path(), default=None,
-              help="JSON list of corrective EQ bands to close the gap before the "
-                   "A/B (otherwise the A/B compares the RAW mix to the reference).")
+              help="JSON list of SURGICAL residual EQ bands, layered on the "
+                   "match-eq'd mix before the A/B (match-eq always runs first).")
 @click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
-              help="Where to write the corrected mix (with --eq-json).")
+              help="Where to write the residual-EQ'd mix (with --eq-json).")
 def reference_match_cmd(
-    mix_path: str, ref_path: str, goal: str, ab_out_path: str | None,
-    eq_json: str | None, eq_out_path: str | None,
+    mix_path: str, ref_path: str, goal: str,
+    match_strength: float, match_phase: str, match_out_path: str | None,
+    ab_out_path: str | None, eq_json: str | None, eq_out_path: str | None,
 ) -> None:
     """Match a mix to a reference and render a loudness-matched A/B audition."""
     from ship_studios.mcp_client import open_hub
@@ -288,7 +298,9 @@ def reference_match_cmd(
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await reference_match(
-                hub, mix_path, ref_path, goal=goal, ab_out_path=ab_out_path,
+                hub, mix_path, ref_path, goal=goal,
+                match_strength=match_strength, match_phase=match_phase,
+                match_out_path=match_out_path, ab_out_path=ab_out_path,
                 eq_bands=eq_bands, eq_out_path=eq_out_path,
             )
 

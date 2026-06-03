@@ -168,6 +168,7 @@ async def test_reference_match_sequence(recording_hub) -> None:
         (GEMINI_SERVER, "match-reference-numeric"),
         (GEMINI_SERVER, "compare-to-reference"),
         (LOOPS_SERVER, "compare-tonality"),
+        (LOOPS_SERVER, "match-eq"),
         (LOOPS_SERVER, "render-ab"),
     ]
 
@@ -187,12 +188,27 @@ async def test_reference_match_numeric_uses_mix_and_reference_keys(
     }
 
 
+async def test_reference_match_match_eq_uses_source_and_reference(
+    recording_hub,
+) -> None:
+    # match-eq is the primary corrective: it measures source-minus-reference
+    # itself, so it takes source_path + reference_path (not a band list).
+    await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
+    args = recording_hub.args_for("match-eq")
+    assert args["source_path"] == "mix.wav"
+    assert args["reference_path"] == "ref.wav"
+    assert args["match_strength"] == 0.5
+    assert args["phase"] == "minimum"
+    assert "out_path" in args
+
+
 async def test_reference_match_render_ab_uses_processed_and_reference(
     recording_hub,
 ) -> None:
     await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     args = recording_hub.args_for("render-ab")
-    assert args["processed"] == "mix.wav"
+    # The A/B plays the match-eq'd output, not the raw mix.
+    assert args["processed"] == recording_hub.args_for("match-eq")["out_path"]
     assert args["reference"] == "ref.wav"
     assert "out_path" in args
 
@@ -205,9 +221,13 @@ async def test_reference_match_eq_feeds_render_ab(recording_hub) -> None:
         "match-reference-numeric",
         "compare-to-reference",
         "compare-tonality",
+        "match-eq",
         "apply-eq",
         "render-ab",
     ]
+    # Residual apply-eq layers on the matched output, then the A/B plays that.
+    match_out = recording_hub.args_for("match-eq")["out_path"]
+    assert recording_hub.args_for("apply-eq")["path"] == match_out
     eq_out = recording_hub.args_for("apply-eq")["out_path"]
     assert recording_hub.args_for("render-ab")["processed"] == eq_out
 

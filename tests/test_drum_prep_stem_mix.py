@@ -7,7 +7,7 @@ np = pytest.importorskip("numpy")
 sf = pytest.importorskip("soundfile")
 pytest.importorskip("pyloudnorm")
 
-from drum_prep.stem_mix import mix_stems  # noqa: E402
+from drum_prep.stem_mix import _balance, mix_stems  # noqa: E402
 
 SR = 48000
 CEIL = 10 ** (-1.0 / 20.0)
@@ -68,10 +68,10 @@ def test_unmatched_spec_key_surfaced(tmp_path) -> None:
 
 
 def test_pan_clamped_no_polarity_flip(tmp_path) -> None:
-    # pan > 1 from user JSON must be clamped to 1: unclamped, the stereo balance
-    # path computes a NEGATIVE left-channel gain (1 - 1.5 = -0.5), inverting
-    # polarity. After the clamp the left channel is fully attenuated (>= 0), never
-    # a phase-flipped copy of the input.
+    # pan > 1 from user JSON must be clamped to 1: unclamped, the equal-power
+    # balance computes a NEGATIVE left-channel gain (cos past 90 deg), inverting
+    # polarity. After the clamp the left channel is fully attenuated to ~silence
+    # (left gain ~0 at hard-right), never a phase-flipped copy of the input.
     rng = np.random.default_rng(7)
     n = SR * 4
     sig = (rng.standard_normal(n) * 0.4).astype(np.float32)
@@ -86,6 +86,38 @@ def test_pan_clamped_no_polarity_flip(tmp_path) -> None:
     # the right channel must stay in-polarity with the source (positive correlation).
     rr = y[: len(sig), 1]
     assert float(np.dot(rr, sig[: len(rr)])) > 0
+
+
+def test_stereo_balance_is_equal_power() -> None:
+    # The stereo balance law must PRESERVE loudness (L**2 + R**2 constant) across
+    # the pan range — the same constant-power law _pan uses for mono — not the old
+    # linear [1-pan, 1] law that quietened the bus as a stem was panned.
+    rng = np.random.default_rng(3)
+    sig = rng.standard_normal(4096)
+    stereo = np.column_stack([sig, sig])              # identical L/R -> exactly equal energy
+    base = float(np.sum(stereo ** 2))
+    for pan in (-1.0, -0.5, 0.0, 0.3, 0.7, 1.0):
+        assert abs(float(np.sum(_balance(stereo, pan) ** 2)) - base) <= base * 1e-9
+    # the per-side gain weights are equal-power (gL**2 + gR**2 == 2) at every pan
+    for pan in (-1.0, -0.3, 0.0, 0.7, 1.0):
+        a = (pan + 1.0) * np.pi / 4.0
+        assert abs((np.sqrt(2) * np.cos(a)) ** 2 + (np.sqrt(2) * np.sin(a)) ** 2 - 2.0) < 1e-9
+    assert np.allclose(_balance(stereo, 0.0), stereo)  # center is an exact no-op
+
+
+def test_panning_a_stereo_stem_preserves_bus_loudness(tmp_path) -> None:
+    # Integration regression: an isolated equal-L/R stereo stem mixed at center vs
+    # hard-panned must land at the SAME bus loudness (the old law dropped it as the
+    # stem was panned). Quiet stem so no anti-clip trim fires (asserted).
+    rng = np.random.default_rng(11)
+    sig = (rng.standard_normal(SR * 6) * 0.1).astype(np.float32)
+    _w(tmp_path / "pad.wav", np.column_stack([sig, sig]))
+    center = mix_stems(str(tmp_path), out_dir=str(tmp_path / "c"),
+                       spec={"pad.wav": {"pan": 0.0}}, dur=0)
+    panned = mix_stems(str(tmp_path), out_dir=str(tmp_path / "p"),
+                       spec={"pad.wav": {"pan": 0.7}}, dur=0)
+    assert abs(center["global_trim_db"]) < 0.01 and abs(panned["global_trim_db"]) < 0.01
+    assert abs(center["lufs"] - panned["lufs"]) < 0.5  # loudness preserved across pan
 
 
 def test_truncation_note_on_unequal_stems(tmp_path) -> None:

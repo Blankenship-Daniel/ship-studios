@@ -224,9 +224,9 @@ def _validate(kit: Kit, strict: bool) -> None:
             problems.append(f"could not detect a role for {s.name!r} — set it in kit.json (roles: {valid})")
         if s.partner and kit.by_name(s.partner) is None:
             problems.append(f"{s.name!r} names partner {s.partner!r}, which is not in the kit")
-        if s.partner and (s.ambience or s.role == Role.ROOM):
-            problems.append(f"{s.name!r} is ambience/room but names a partner "
-                            f"{s.partner!r} — room mics are polarity-only and must not be partnered")
+        if s.partner and (s.ambience or s.role in (Role.ROOM, Role.FX)):
+            problems.append(f"{s.name!r} is ambience/room/fx but names a partner "
+                            f"{s.partner!r} — these are excluded from alignment and must not be partnered")
     if problems:
         if strict:
             raise KitError("kit resolution problems:\n  - " + "\n  - ".join(problems))
@@ -272,14 +272,16 @@ def ambience_stems(kit: Kit) -> list[KitStem]:
 def partner_pairs(kit: Kit) -> list[tuple[KitStem, KitStem]]:
     """(partner, anchor) pairs — partner aligns to anchor, then composes onto OH.
 
-    Ambience/room stems are skipped even if mis-tagged with a ``partner``: they
-    are polarity-only (timing kept), so partnering them would both apply an
-    alignment delay AND get them re-processed by the ambience pass (double write,
-    wrong recorded delay). ``_validate`` flags the misconfiguration separately.
+    Ambience/room AND fx stems are skipped even if mis-tagged with a ``partner``.
+    Ambience/room are polarity-only (timing kept), so partnering them would both
+    apply an alignment delay AND get them re-processed by the ambience pass (double
+    write, wrong recorded delay). FX returns (plate/reverb/send) are not mics and
+    are excluded from alignment entirely (see ``anchored_to_oh``) — aligning one
+    would corrupt the return. ``_validate`` flags the misconfiguration separately.
     """
     out = []
     for s in kit.stems:
-        if s.ambience or s.role == Role.ROOM:
+        if s.ambience or s.role in (Role.ROOM, Role.FX):
             continue
         anchor = kit.by_name(s.partner)
         if anchor is not None:

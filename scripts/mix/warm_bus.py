@@ -18,19 +18,19 @@ Measured effect on a typical kit: centroid down, tilt more negative (warm), corr
 low band controlled. Run with the stemmy-loops vst venv. Pair upstream with a warm-leaning measured
 balance (bright stems down, room/body up) — see scripts/mix/balance_stems.py.
 """
-import sys, argparse
+import argparse, os, sys
 import numpy as np, soundfile as sf
-from pedalboard import load_plugin, Pedalboard
-from stemmy.loops_mcp.tools.apply_eq import apply_eq, EqBand
-from stemmy.loops_mcp.tools.multiband_compress import multiband_compress
-from stemmy.loops_mcp.tools.measure_loudness import measure_loudness
-from stemmy.loops_mcp.tools.measure_spectrum import measure_spectrum
-from stemmy.loops_mcp.tools.measure_stereo import measure_stereo
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import peak_normalize, warm_tilt_eq    # noqa: E402,F401  (warm_tilt_eq = the testable tilt mirror)
 
 STUDER = "/Library/Audio/Plug-Ins/VST3/uaudio_studer_a800.vst3"
 OUT_PEAK_DBFS = -1.0
 
 def _m(tag, f):
+    from stemmy.loops_mcp.tools.measure_loudness import measure_loudness
+    from stemmy.loops_mcp.tools.measure_spectrum import measure_spectrum
+    from stemmy.loops_mcp.tools.measure_stereo import measure_stereo
     L=measure_loudness(f).model_dump(); S=measure_spectrum(f).model_dump(); T=measure_stereo(f).model_dump()
     print(f"  {tag:<10} centroid {S['spectral_centroid_hz']:5.0f} | tilt {S['spectral_tilt_db_per_octave']:+.2f} "
           f"| crest {L['crest_factor_db']:5.1f} | LUFS {L['integrated_lufs']:6.1f} | corr {T['correlation']:.3f}")
@@ -45,6 +45,10 @@ def main():
     ap.add_argument("--repro-hf", type=float, default=2.0, help="Studer repro_hf_eq (raise toward 3 for more air)")
     ap.add_argument("--tape-in-gain", type=float, default=5.0, help="pre-tape drive dB (lower toward 4 for less glue / more crest)")
     a=ap.parse_args()
+    # vst/tool imports are deferred to here so --help works without the vst venv (render is unchanged)
+    from pedalboard import Pedalboard, load_plugin
+    from stemmy.loops_mcp.tools.apply_eq import EqBand, apply_eq
+    from stemmy.loops_mcp.tools.multiband_compress import multiband_compress
     src, out = a.src, a.out
     TAPE = {"path_select":"Repro","ips":"30 IPS","tape_type":"456","auto_cal":True,
             "input_level":4.0,"repro_hf_eq":a.repro_hf,"emphasis_eq":"NAB"}
@@ -62,10 +66,10 @@ def main():
     for k,v in TAPE.items():
         try: setattr(p,k,v)
         except Exception as ex: print(f"warn: {k}={v!r}: {ex}", file=sys.stderr)
-    y=Pedalboard([p])(x,sr); pk=float(np.max(np.abs(y)))
-    if pk>0: y=y*((10**(OUT_PEAK_DBFS/20))/pk)
+    y=Pedalboard([p])(x,sr)
+    y=peak_normalize(y, OUT_PEAK_DBFS)   # same math; shared core
     sf.write(out, y.T, sr, subtype="PCM_24")
-    import os; os.remove(e1); os.remove(e2)
+    os.remove(e1); os.remove(e2)
     _m("FINAL", out)
     print(f"warm bus -> {out}")
 

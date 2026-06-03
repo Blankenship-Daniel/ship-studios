@@ -89,6 +89,23 @@ def test_aiff_tagged_via_sidecar(tmp_path) -> None:
     assert r["has_metadata_chunk"] is False and r["tagged"] is True
 
 
+def test_truncated_chunk_header_not_counted_as_tag(tmp_path) -> None:
+    # A metadata chunk header whose declared body runs PAST EOF (export aborted
+    # mid-write / corrupt size) must NOT count as a tag — the payload isn't there.
+    # This is the QC gate, so it must not report tagged=True for a missing body.
+    p = tmp_path / "truncated.wav"
+    _plain_wav(p)
+    raw = open(p, "rb").read()
+    bogus = b"LIST" + struct.pack("<I", 9999)   # claims 9999 bytes; none follow
+    with open(p, "wb") as fh:
+        fh.write(raw + bogus)
+    container, ids = container_chunks(str(p))
+    assert container == "WAVE"
+    assert "LIST" not in ids                      # past-EOF body -> NOT recorded
+    r = verify_tags(str(p))
+    assert r["has_metadata_chunk"] is False and r["tagged"] is False
+
+
 def test_non_ascii_chunk_id_stops_parsing(tmp_path) -> None:
     # A chunk id with bytes outside printable ASCII signals lost alignment; the
     # parser must stop rather than mis-decode it as a (non-matching) tag and crawl

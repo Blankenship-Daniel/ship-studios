@@ -87,18 +87,21 @@ class Hub:
         read, write = await self._stack.enter_async_context(stdio_client(params))
         session = await self._stack.enter_async_context(ClientSession(read, write))
         timeout = config.startup_timeout_s()
-        try:
-            if timeout is None:
-                await session.initialize()
-            else:
+        # Guard ONLY the wait_for branch (see call_tool): the no-timeout path must
+        # let a bubbling TimeoutError through unrelabelled, and `f"{timeout:g}"`
+        # would crash with timeout=None.
+        if timeout is None:
+            await session.initialize()
+        else:
+            try:
                 await asyncio.wait_for(session.initialize(), timeout)
-        except TimeoutError:
-            raise TimeoutError(
-                f"server {server_key!r} did not complete the MCP handshake within "
-                f"{timeout:g}s — is the sibling repo synced and runnable? "
-                f"(uv --directory {config.server_dir(server_key)} run …). "
-                f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
-            ) from None
+            except TimeoutError:
+                raise TimeoutError(
+                    f"server {server_key!r} did not complete the MCP handshake within "
+                    f"{timeout:g}s — is the sibling repo synced and runnable? "
+                    f"(uv --directory {config.server_dir(server_key)} run …). "
+                    f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
+                ) from None
         return session
 
     def session(self, server_key: str) -> ClientSession:
@@ -124,17 +127,20 @@ class Hub:
         """
         session = self.session(server_key)
         timeout = config.call_timeout_s()
-        try:
-            if timeout is None:
-                result = await session.call_tool(name, args or {})
-            else:
+        # Guard ONLY the wait_for branch: a TimeoutError bubbling out of the tool
+        # itself on the no-timeout path must not be relabelled (and would crash
+        # `f"{timeout:g}"` with timeout=None).
+        if timeout is None:
+            result = await session.call_tool(name, args or {})
+        else:
+            try:
                 result = await asyncio.wait_for(session.call_tool(name, args or {}), timeout)
-        except TimeoutError:
-            raise ToolCallError(
-                server_key, name,
-                f"no response within {timeout:g}s "
-                f"(set {config.CALL_TIMEOUT_ENV}=0 to disable the call timeout)",
-            ) from None
+            except TimeoutError:
+                raise ToolCallError(
+                    server_key, name,
+                    f"no response within {timeout:g}s "
+                    f"(set {config.CALL_TIMEOUT_ENV}=0 to disable the call timeout)",
+                ) from None
         if getattr(result, "isError", False):
             raise ToolCallError(server_key, name, _result_text(result))
         return _parse_result(result)

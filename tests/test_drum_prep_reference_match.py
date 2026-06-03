@@ -44,6 +44,27 @@ def test_reference_match_reduces_delta(tmp_path) -> None:
     assert peak <= 10 ** (-1.0 / 20) + 1e-3
 
 
+def test_low_band_shortfall_flagged_as_extension(tmp_path) -> None:
+    # A reference far more low-heavy than the kit can reach (owner boost capped low)
+    # leaves a stubborn low-band residual. That's an EXTENSION/sustain problem, not
+    # a level one — the notes must route the user away from "more EQ".
+    n = SR * 4
+    aligned = tmp_path / "phase-aligned"
+    aligned.mkdir()
+    kick = colored_noise(SR, n, -9.0, seed=1)
+    oh = colored_noise(SR, n, +2.0, seed=2)
+    sf.write(str(aligned / "kick in.aif"), kick, SR, subtype="PCM_24", format="AIFF")
+    sf.write(str(aligned / "overheads - stereo.aif"), np.column_stack([oh, oh]), SR,
+             subtype="PCM_24", format="AIFF")
+    ref = colored_noise(SR, n, -24.0, seed=3)        # extreme low tilt the kit can't match
+    refp = tmp_path / "ref.wav"
+    sf.write(str(refp), np.column_stack([ref, ref]), SR, subtype="PCM_24")
+    kit = Kit(src_dir=str(tmp_path), stems=[])
+    res = apply_match(kit, str(refp), aligned_dir=str(aligned), out_dir=str(tmp_path / "rm"),
+                      strength=1.0, boost_cap=0.5, cut_cap=-2.0)
+    assert any("extension" in t or "sustain" in t for t in res["notes"]), res["notes"]
+
+
 def test_short_reference_loop(tmp_path) -> None:
     # a one-bar loop shorter than nperseg used to crash welch (noverlap >= nperseg)
     kit, _, aligned = _build(tmp_path)

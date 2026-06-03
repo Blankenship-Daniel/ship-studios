@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Matches requires-python ">=3.12,<3.14" (3.14 deliberately excluded —
+        # the sibling DSP wheels are only validated through 3.13).
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # The drum-prep extra pulls numpy/scipy/soundfile/pyloudnorm, which mypy
+      # needs importable (it type-checks both ship_studios and drum_prep).
+      - name: Sync (dev + drum-prep extra)
+        run: uv sync --extra drum-prep
+
+      - name: Lint (ruff)
+        run: uv run ruff check
+
+      - name: Type-check (mypy)
+        run: uv run mypy
+
+      - name: Test (pytest)
+        run: uv run pytest -q

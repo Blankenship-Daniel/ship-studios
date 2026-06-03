@@ -87,7 +87,7 @@ def detect(src: str, manifest: str | None, write_manifest: str | None, strict: b
 @_SRC
 @_MANIFEST
 @click.option("--out", "out_path", type=click.Path(), default=None,
-              help="Output stereo overhead (default: <SRC>/overheads-merged.aif).")
+              help="Output stereo overhead (default: <SRC>/stereo/overheads-merged.aif).")
 @click.option("--align", is_flag=True, default=False,
               help="Phase-lock R to L (collapses a spaced-pair image; off by default).")
 def overheads(src: str, manifest: str | None, out_path: str | None, align: bool) -> None:
@@ -228,7 +228,8 @@ def tune(path: str, out_path: str | None, target_hz: float | None,
 @main.command(name="verify-tags")
 @_SRC
 def verify_tags_cmd(src: str) -> None:
-    """Verify exported deliverables carry their RIFF INFO LIST chunk + .tags.json sidecar."""
+    """Verify deliverables (WAV/AIFF/FLAC) carry embedded metadata (WAV RIFF INFO /
+    AIFF text chunks) + a .tags.json sidecar."""
     def run() -> dict[str, Any]:
         from drum_prep.qc import verify_dir
 

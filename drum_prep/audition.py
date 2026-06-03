@@ -70,6 +70,10 @@ def render_auditions(kit: Kit, ref_path: str | None = None, aligned_dir: str | N
                      matched_dir: str | None = None, out_dir: str | None = None,
                      t0: float = 44.0, dur: float = 12.0, gap: float = 0.6,
                      ceil: float = 0.95, emit_halves: bool = True) -> dict:
+    # A non-positive window yields an empty excerpt that crashes pick_excerpt with
+    # an opaque numpy broadcast error before the _MIN_MATCH_S guard can report it.
+    if dur <= 0:
+        raise ValueError("--dur must be > 0 for an audition")
     aligned_dir = aligned_dir or os.path.join(kit.src_dir, "phase-aligned")
     matched_dir = matched_dir or os.path.join(kit.src_dir, "ref-matched")
     out_dir = out_dir or os.path.join(kit.src_dir, "auditions")

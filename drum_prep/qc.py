@@ -57,11 +57,13 @@ def container_chunks(path: str) -> tuple[str | None, list[str]]:
                 break
             cid = head[:4].decode("ascii").strip()
             size = struct.unpack(endian, head[4:8])[0]
-            # Don't trust the declared size past EOF — a corrupt/truncated header
-            # would otherwise seek wildly. Record the id, then stop on overflow.
-            ids.append(cid)
+            # Don't trust the declared size past EOF: a truncated/corrupt header
+            # whose body isn't actually present must NOT count as a tag (this is
+            # the QC gate). Check overflow BEFORE recording the id, else a file
+            # missing its metadata payload reports tagged=True.
             if fh.tell() + size > file_size:
                 break
+            ids.append(cid)
             fh.seek(size + (size & 1), 1)  # chunks are word-aligned in both
     return container, ids
 
@@ -116,7 +118,11 @@ def verify_tags(path: str) -> dict:
 
 
 def verify_dir(directory: str) -> dict:
-    """Verify every WAV in a deliverables directory."""
+    """Verify every audio deliverable (WAV/AIFF/FLAC) in a directory.
+
+    WAV metadata is the RIFF INFO ``LIST`` chunk, AIFF the text chunks; FLAC and
+    other containers fall back to the ``.tags.json`` sidecar.
+    """
     results = [verify_tags(os.path.join(directory, f)) for f in io.list_audio(directory)]
     untagged = [r["file"] for r in results if not r["tagged"]]
     corrupt = [r["file"] for r in results if r["sidecar_corrupt"]]

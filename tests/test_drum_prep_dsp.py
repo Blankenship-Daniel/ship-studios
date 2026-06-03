@@ -20,6 +20,18 @@ def test_fractional_delay_and_estimate() -> None:
     assert abs(d - 13.0) < 0.1 and peak > 0
 
 
+def test_estimate_clamps_short_segment_without_crashing() -> None:
+    # n <= max_lag would, unclamped, wrap the circular correlation into a corrupt
+    # out-of-range lag (or IndexError). The clamp must instead return a finite
+    # value bounded by the available correlation range — no crash, no garbage.
+    x = np.random.default_rng(0).standard_normal(64)
+    y = dsp.fractional_delay(x, 5.0)
+    d, peak = dsp.estimate(y, x, 500)          # max_lag (500) >> segment (64)
+    nfft = 1 << int(np.ceil(np.log2(2 * len(x))))
+    assert np.isfinite(d) and np.isfinite(peak)
+    assert abs(d) <= nfft                      # within the clamped range, not wrapped garbage
+
+
 def test_align_recovers_delay_and_polarity() -> None:
     n = SR
     ref = np.random.default_rng(1).standard_normal(n)

@@ -7,11 +7,12 @@ description = "Headless orchestration hub that drives the stemmy-loops + stemmy-
 # is exercised in CI against those deps.
 requires-python = ">=3.12,<3.14"
 dependencies = [
-    # Official MCP SDK — the hub is a *client* of the two sibling servers,
-    # so it only needs the client half (stdio_client + ClientSession). The
-    # [cli] extra is pinned to match the sibling servers' own SDK floor so
-    # all three repos negotiate the same protocol version.
-    "mcp[cli]>=1.23",
+    # Official MCP SDK — the hub is a *client* of the two sibling servers, so it
+    # only needs the client half (stdio_client + ClientSession), both in base
+    # `mcp`; it never runs `mcp` as a CLI, so the [cli] extra (typer/rich) would
+    # be dead weight. The >=1.23 floor matches the sibling servers' own SDK floor
+    # so all three repos negotiate the same protocol version.
+    "mcp>=1.23",
     # The headless CLI surface. click keeps the subcommand wiring declarative
     # and gives `ship-studios doctor` a clean --help even before the servers
     # are reachable.
@@ -53,6 +54,10 @@ dev = [
 # The codebase reads at ~100 cols (dense DSP + tool-arg dicts); match it rather
 # than reflow everything to 88.
 line-length = 100
+# Lint the library + tests, not the one-off experiment/probe helpers under
+# scripts/ and presets/ (deliberately terse; mypy likewise only covers the two
+# packages via [tool.mypy] files). Keeps `ruff check` / CI focused on shipped code.
+extend-exclude = ["scripts", "presets"]
 
 [tool.ruff.lint]
 # Defaults (E4/E7/E9, F) plus bugbear (B — real bug classes like B904/B905),

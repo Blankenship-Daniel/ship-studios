@@ -60,6 +60,34 @@ def test_flat_mode_unity_bounce(tmp_path) -> None:
     assert places["kick_in"] == "center (unity)"    # mono mic centred, not panned
 
 
+def test_plate_return_folded_in(tmp_path) -> None:
+    # The optional plate/FX return is summed as a stereo return at its own offset,
+    # and (drummer perspective) its image is flipped like the overheads.
+    kit = _kit_dir(tmp_path)
+    rng = np.random.default_rng(5)
+    n = SR * 8
+    _w(tmp_path / "plate.wav",
+       np.column_stack([rng.standard_normal(n), rng.standard_normal(n)]).astype(np.float32) * 0.2)
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"),
+                  feel="roomy", perspective="drummer", plate=str(tmp_path / "plate.wav"), dur=0)
+    assert res["plate"] is not None
+    assert res["plate"]["role"] == "fx (return)"
+    assert res["plate"]["offset_db"] == -19.0
+    assert "flipped" in res["plate"]["place"]
+
+
+def test_plate_samplerate_mismatch_raises(tmp_path) -> None:
+    kit = _kit_dir(tmp_path)
+    rng = np.random.default_rng(6)
+    sf.write(str(tmp_path / "plate441.wav"),
+             np.column_stack([rng.standard_normal(44100 * 2),
+                              rng.standard_normal(44100 * 2)]).astype(np.float32),
+             44100, subtype="FLOAT")
+    with pytest.raises(ValueError, match="plate sr"):
+        mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"),
+                plate=str(tmp_path / "plate441.wav"), dur=0)
+
+
 def test_lr_pair_overhead_refused_with_guidance(tmp_path) -> None:
     # A raw L/R overhead pair (no merged stereo overhead) must be refused with a
     # clear message rather than silently mono-collapsed / mis-anchored.

@@ -50,7 +50,12 @@ def merge_overheads(kit: Kit, out_path: str | None = None, align: bool = False) 
         return {"flow": "overheads", "merged": False, "reference": kit.path(oh),
                 "note": "already a stereo overhead — nothing to merge"}
     arr, sr, name = resolve_overhead(kit, align=align)
-    out = out_path or os.path.join(kit.src_dir, name)
+    # Write to a subdir, not src_dir: dropping the merged stereo OH alongside the
+    # raw L/R pair makes a later resolve_kit() re-detect it as a second overhead
+    # and silently mix all three. Every other flow writes a subdir for the same
+    # reason (list_audio is non-recursive, so the subdir is invisible to re-detect).
+    out = out_path or os.path.join(kit.src_dir, "stereo", name)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     io.write_aiff24(out, arr, sr)
     return {"flow": "overheads", "merged": True, "output": out, "sr": sr,
             "aligned": align, "frames": int(arr.shape[0])}

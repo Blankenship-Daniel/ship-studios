@@ -388,6 +388,24 @@ async def test_understand_audio_runs_audio_to_json(recording_hub) -> None:
     }
 
 
+async def test_understand_audio_json_schema_uses_default_prompt(recording_hub) -> None:
+    schema = {"type": "object", "properties": {"bpm": {"type": "number"}}}
+    await pipelines.understand_audio(
+        recording_hub, "a.wav", transcribe=False, json_schema=schema,
+    )
+    assert (recording_hub.args_for("audio-to-json")["prompt"]
+            == "Extract structured data from this audio.")
+
+
+async def test_understand_audio_json_prompt_without_schema_is_noop(recording_hub) -> None:
+    # The schema is the trigger: a json_prompt with no schema records no call
+    # (a documented no-op, not a silent partial extraction).
+    await pipelines.understand_audio(
+        recording_hub, "a.wav", transcribe=False, json_prompt="extract bpm",
+    )
+    assert "audio-to-json" not in recording_hub.tool_sequence
+
+
 @pytest.mark.parametrize(
     "pipeline_result_key, coro_factory",
     [

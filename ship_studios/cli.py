@@ -297,7 +297,8 @@ def reference_match_cmd(
 
 @main.command()
 @click.argument("input_path", type=click.Path())
-@click.option("--bpm", required=True, type=float, help="Known tempo of the source.")
+@click.option("--bpm", required=True, type=click.FloatRange(min=1, max=400),
+              help="Known tempo of the source (1-400 BPM).")
 @click.option("--out-dir", type=click.Path(), default=None,
               help="Where find-loops writes loop WAVs + manifest.json.")
 @click.option("--deliverables-dir", type=click.Path(), default=None)

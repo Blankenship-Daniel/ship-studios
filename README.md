@@ -108,6 +108,24 @@ export GEMINI_API_KEY=...      # every Gemini perceptual tool + loops describe-l
 Pure-DSP tools (`measure-*`, `check-clipping`, `apply-eq`, `render-mastered`,
 …) need no keys.
 
+#### Environment overrides
+
+The hub honours a few optional `SHIP_STUDIOS_*` knobs (defined in
+`ship_studios/config.py`); leave them unset for the defaults:
+
+| Var | Default | Purpose |
+|---|---|---|
+| `SHIP_STUDIOS_LOOPS_DIR` | `../stemmy-loops-mcp` | Loops-server location — the escape hatch when the repos don't share a parent (see the sibling-layout note above). |
+| `SHIP_STUDIOS_GEMINI_DIR` | `../stemmy-gemini-mcp` | Gemini-server location. |
+| `SHIP_STUDIOS_STARTUP_TIMEOUT` | `120` | MCP handshake budget, seconds; `0` disables the timeout. |
+| `SHIP_STUDIOS_CALL_TIMEOUT` | `600` | Per tool-call budget, seconds; `0` disables the timeout. |
+| `SHIP_STUDIOS_ARTIFACTS_DIR` | `<repo>/artifacts` | Override the run-artifacts root (config override). |
+| `SHIP_STUDIOS_PROJECTS_DIR` | `<repo>/projects` | Override the per-track workspace root (config override). |
+
+Server-level overrides the hub *forwards* to the spawned servers
+(`STEMMY_LLM_MODEL`, `STEMMY_MCP_MODEL`, `STEMMY_MCP_THINKING_LEVEL/BUDGET`,
+`STEMMY_MCP_ALLOWED_ROOTS`, …) are documented in `.env.example` and CLAUDE.md.
+
 ### 4. Use it interactively (Claude Code)
 
 Open this directory in Claude Code and approve the two servers from

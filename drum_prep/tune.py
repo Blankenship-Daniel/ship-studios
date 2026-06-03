@@ -39,6 +39,9 @@ def measure_fundamental(path: str, lo: float = 30.0, hi: float = 400.0) -> dict:
 def retune(path: str, out_path: str, target_hz: float | None = None,
            target_midi: int | None = None, semitones: float | None = None) -> dict:
     """Retune by resampling. Give exactly one of target_hz / target_midi / semitones."""
+    provided = sum(v is not None for v in (target_hz, target_midi, semitones))
+    if provided > 1:
+        raise ValueError("give only one of target_hz, target_midi, semitones")
     cur = measure_fundamental(path)
     src = cur["hz"]
     if semitones is not None:
@@ -61,6 +64,10 @@ def retune(path: str, out_path: str, target_hz: float | None = None,
     # pitching up. Approximate 1/ratio as a rational up/down.
     frac = Fraction(1.0 / ratio).limit_denominator(2000)
     up, down = (frac.numerator or 1), frac.denominator
+    # An extreme ratio collapses to up == down == 1 (a silent no-op) once the
+    # denominator is capped — reject it rather than return the input unchanged.
+    if up == down == 1 and abs(np.log2(ratio)) > 0.01:
+        raise ValueError(f"requested pitch ratio {ratio:.3f} is outside the resampling range")
     out = resample_poly(x, up, down, axis=0)  # x is always 2-D (N, ch) -> (new_n, ch)
     new_n = out.shape[0]
     io.write_wav(out_path, out, sr, subtype=io.subtype_of(path))

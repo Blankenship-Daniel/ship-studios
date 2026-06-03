@@ -38,6 +38,9 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
     names = io.list_audio(src_dir)
     if not names:
         raise ValueError(f"no stems found in {src_dir!r}")
+    # A spec key that matches no stem (typo / stale / renamed file) is silently
+    # dropped — surface it so an unapplied override isn't mistaken for applied.
+    ignored_spec_keys = sorted(set(spec) - set(names))
     sr, frames = io.summarize_inputs([os.path.join(src_dir, nm) for nm in names])
     meter = pyln.Meter(sr)
     n = min(frames)
@@ -90,4 +93,5 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
             "peak_dbfs": round(_db(float(np.max(np.abs(mix)))), 2),
             "lufs": round(float(meter.integrated_loudness(mix)), 1),
             "channels": 2, "duration_s": round(n / sr, 2),
-            "truncation_note": trunc_note, "stems": rows}
+            "truncation_note": trunc_note,
+            "ignored_spec_keys": ignored_spec_keys or None, "stems": rows}

@@ -48,6 +48,35 @@ def test_ambiguous_side_raises(tmp_path) -> None:
         stereo_merge.find_pairs(str(tmp_path))
 
 
+def test_subtype_mismatch_reported(tmp_path) -> None:
+    # The merged file carries ONE subtype (the left's); a differing right subtype
+    # is coerced, which must be reported, not lossy-by-stealth.
+    rng = np.random.default_rng(0)
+    base = (rng.standard_normal(SR) * 0.3).astype(np.float32)
+    _w(tmp_path / "oh - left.wav", base, subtype="PCM_24")   # left drives the subtype
+    _w(tmp_path / "oh - right.wav", base, subtype="FLOAT")
+    m = stereo_merge.merge_dir(str(tmp_path))["merged"][0]
+    assert m["subtype_mismatch"] is True
+    assert m["right_subtype"] == "FLOAT"
+    assert io.subtype_of(m["out"]) == "PCM_24"              # output follows the left
+
+
+def test_align_phase_locks_right_to_left(tmp_path) -> None:
+    # align=True opts into phase-locking R to L (collapsing a spaced image); after
+    # it, the two output channels are time-aligned (near-zero inter-channel lag).
+    pytest.importorskip("scipy")
+    from drum_prep import dsp
+
+    base = np.random.default_rng(0).standard_normal(SR * 3) * 0.3
+    _w(tmp_path / "oh - left.wav", base.astype(np.float32))
+    _w(tmp_path / "oh - right.wav", dsp.fractional_delay(base, 30).astype(np.float32))  # R lags L
+    m = stereo_merge.merge_dir(str(tmp_path), align=True)["merged"][0]
+    assert m["aligned"] is True
+    y, _ = sf.read(m["out"], always_2d=True)
+    d, _ = dsp.estimate(y[:, 1], y[:, 0], 100)             # R-vs-L lag after align
+    assert abs(d) < 2
+
+
 def test_reverb_pair_flagged(tmp_path) -> None:
     rng = np.random.default_rng(1)
     L = (rng.standard_normal(SR * 3) * 0.3).astype(np.float32)

@@ -54,3 +54,28 @@ def test_spec_overrides(tmp_path) -> None:
     rows = {r["stem"]: r for r in res["stems"]}
     assert rows["vox.wav"].get("muted") is True
     assert "pan" in rows["bass.wav"]["place"] and rows["bass.wav"]["offset_db"] == -6
+    assert res["ignored_spec_keys"] is None       # every spec key matched a stem
+
+
+def test_unmatched_spec_key_surfaced(tmp_path) -> None:
+    # A spec key that matches no stem (typo / renamed file) is silently dropped by
+    # the mix; surface it so an unapplied override isn't mistaken for applied.
+    rng = np.random.default_rng(4)
+    _w(tmp_path / "bass.wav", (rng.standard_normal(SR * 4) * 0.3).astype(np.float32))
+    res = mix_stems(str(tmp_path), out_dir=str(tmp_path / "mix"),
+                    spec={"typo.wav": {"gain_db": -6}}, dur=0)
+    assert res["ignored_spec_keys"] == ["typo.wav"]
+
+
+def test_truncation_note_on_unequal_stems(tmp_path) -> None:
+    # Stems are summed over the common (shortest) length; the dropped trailing
+    # audio must be flagged and the sum must run to the shorter length.
+    rng = np.random.default_rng(0)
+    _w(tmp_path / "a.wav", (rng.standard_normal(SR * 8) * 0.3).astype(np.float32))
+    _w(tmp_path / "b.wav", (rng.standard_normal(SR * 6) * 0.3).astype(np.float32))   # shorter
+    res = mix_stems(str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+    assert res["truncation_note"] is not None
+    assert str(SR * 6) in res["truncation_note"] and str(SR * 8) in res["truncation_note"]
+    assert res["duration_s"] == round(SR * 6 / SR, 2)
+    y, _ = sf.read(res["out"], always_2d=True)
+    assert y.shape[0] == SR * 6                    # summed over the shortest stem

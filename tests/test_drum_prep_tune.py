@@ -55,3 +55,20 @@ def test_retune_requires_one_target(tmp_path) -> None:
     sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
     with pytest.raises(ValueError):
         retune(str(p), str(tmp_path / "x.wav"))  # no target given
+
+
+def test_retune_rejects_multiple_targets(tmp_path) -> None:
+    # Conflicting targets must error, not silently let if/elif precedence decide.
+    p = tmp_path / "tone.wav"
+    sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
+    with pytest.raises(ValueError, match="only one of"):
+        retune(str(p), str(tmp_path / "x.wav"), target_hz=120.0, semitones=2)
+
+
+def test_retune_rejects_out_of_range_ratio(tmp_path) -> None:
+    # An extreme shift collapses to a no-op once the fraction denominator is
+    # capped; reject it rather than silently return the input unchanged.
+    p = tmp_path / "tone.wav"
+    sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
+    with pytest.raises(ValueError, match="outside the resampling range"):
+        retune(str(p), str(tmp_path / "x.wav"), semitones=180)  # 15 octaves up -> 1/ratio rounds to 0

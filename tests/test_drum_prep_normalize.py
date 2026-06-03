@@ -44,3 +44,7 @@ def test_per_file_each_hits_target(tmp_path) -> None:
     res = normalize_kit(str(tmp_path), target_dbfs=-1.0, mode="per_file")
     for f in res["files"]:
         assert abs(f["out_peak_dbfs"] - (-1.0)) < 0.05
+    # the symmetric guardrail to test_global_preserves_balance: per_file does NOT
+    # preserve the inter-mic balance (each stem gets a different gain).
+    assert res["balance_preserved"] is False
+    assert res["gain_spread_db"] > 0.01           # ~10 dB spread for this 0.6 vs 0.18 set

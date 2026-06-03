@@ -88,3 +88,19 @@ def test_write_wav_preserves_subtype(tmp_path) -> None:
     out = tmp_path / "out.wav"
     io.write_wav(str(out), np.zeros((SR, 2)), SR, subtype=io.subtype_of(str(src)))
     assert io.subtype_of(str(out)) == "PCM_24"
+
+
+def test_write_aiff24_writes_24bit_aiff(tmp_path) -> None:
+    # The alignment/match flows write 24-bit AIFF; pin that container + subtype at
+    # the writer so a regression there is caught regardless of caller.
+    out = tmp_path / "stem.aif"
+    io.write_aiff24(str(out), np.zeros((SR, 2)), SR)
+    info = sf.info(str(out))
+    assert info.format == "AIFF" and info.subtype == "PCM_24"
+
+
+def test_write_wav24_writes_24bit_wav(tmp_path) -> None:
+    out = tmp_path / "bus.wav"
+    io.write_wav24(str(out), np.zeros((SR, 2)), SR)
+    info = sf.info(str(out))
+    assert info.format == "WAV" and info.subtype == "PCM_24"

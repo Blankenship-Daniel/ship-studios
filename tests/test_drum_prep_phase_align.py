@@ -42,6 +42,29 @@ def test_phase_align_recovers_topology(tmp_path) -> None:
 
     out, _ = sf.read(str(tmp_path / "phase-aligned" / "snare top.aif"))
     assert len(out) == n          # length preserved
+    # outputs keep the 24-bit AIFF source format (the alignment writer contract)
+    info = sf.info(str(tmp_path / "phase-aligned" / "snare top.aif"))
+    assert info.format == "AIFF" and info.subtype == "PCM_24"
+
+
+def test_phase_align_room_is_polarity_only(tmp_path) -> None:
+    # Room/ambience is polarity-checked but its TIMING is kept (delay stays 0 —
+    # rooms are deliberately excluded from the partner/anchor alignment). A bug
+    # that delayed the room would otherwise pass unnoticed. Use a room correlated
+    # to the OH (delayed + inverted) so the polarity sign is deterministic.
+    n = SR * 3
+    base = np.random.default_rng(0).standard_normal(n) * 0.2
+    _w(tmp_path / "overheads - stereo.aif", np.column_stack([base, base]))
+    _w(tmp_path / "snare top.aif", dsp.fractional_delay(base, -50))
+    room = -dsp.fractional_delay(base, 400)        # delayed + polarity-flipped vs OH
+    _w(tmp_path / "drum room.aif", np.column_stack([room, room]))
+
+    kit = resolve_kit(str(tmp_path))
+    res = phase_align(kit, max_lag=600, excerpt_s=2.0)
+    by = {r["name"]: r for r in res["results"]}
+    assert by["drum room.aif"]["delay_samples"] == 0.0        # timing kept
+    assert by["drum room.aif"]["polarity"] == -1
+    assert by["drum room.aif"]["note"] == "ambience (timing kept)"
 
 
 def test_phase_align_shorter_close_mic(tmp_path) -> None:

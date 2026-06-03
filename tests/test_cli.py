@@ -209,6 +209,59 @@ def test_understand_region_three_args(runner: CliRunner, patched_pipelines) -> N
     assert kwargs["region"] == (30.0, 45.0, "describe the drop")
 
 
+def test_understand_bare_defaults_to_transcription(runner: CliRunner, patched_pipelines) -> None:
+    # No specific analysis requested -> the default transcribe stays on.
+    result = runner.invoke(cli.main, ["understand", "ref.wav"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["transcribe"] is True
+
+
+def test_understand_specific_request_auto_skips_transcribe(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # A label-only (or region/event/compare/json) ask must NOT also fire a paid
+    # default transcribe-audio call when the user never opted into transcription.
+    result = runner.invoke(cli.main, ["understand", "ref.wav", "--labels", "house,techno"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["transcribe"] is False
+    assert kwargs["labels"] == ["house", "techno"]
+
+
+def test_understand_explicit_transcribe_overrides_auto_skip(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # An explicit --transcribe always wins, even alongside a specific analysis.
+    result = runner.invoke(
+        cli.main, ["understand", "ref.wav", "--transcribe", "--labels", "house"]
+    )
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["transcribe"] is True
+
+
+def test_understand_region_only_auto_skips_transcribe(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    result = runner.invoke(
+        cli.main, ["understand", "ref.wav", "--region", "30", "45", "what is here?"]
+    )
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["transcribe"] is False
+
+
+def test_understand_explicit_no_transcribe_still_works(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # Explicit --no-transcribe with no other request: a valid no-op pipeline.
+    result = runner.invoke(cli.main, ["understand", "ref.wav", "--no-transcribe"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["transcribe"] is False
+
+
 def test_doctor_reports_missing_env(
     runner: CliRunner, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -38,7 +38,7 @@ air-only Maag). Full field guide — real param surface, footguns, recipes, our 
 ## Prerequisites
 
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`). `[G] find-resonances`
-  / `find-sibilance` (optional, `GEMINI_API_KEY`) to target the surgical/de-ess bands.
+  / `find-sibilance` (optional, **pure DSP — no key**) to target the surgical/de-ess bands.
 - **`FabFilter Pro-Q 4.vst3`** — confirm with `[L] list-vst-plugins {name_contains:"Pro-Q 4"}` and take the
   **VST3** path. Screen a new install with `../stemmy-loops-mcp/.venv/bin/python presets/vst/probe_plugin.py "Pro-Q 4"`
   (expect `RENDERS ✓`). No-iLok, but **loads ≠ renders** — always measure detail after.

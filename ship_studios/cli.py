@@ -72,12 +72,19 @@ def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
     click.echo(json.dumps(result, indent=2, default=str))
 
 
-def _default_out(path: str, suffix: str) -> str:
-    """Default output path: ``<dir>/<stem>.<suffix><ext>`` next to ``path``."""
+def _default_master_out(mix_path: str) -> str:
+    """Default master output: ``<project>/masters/<stem>.master<ext>``.
+
+    Honors the project layout (CLAUDE.md: "Always master into ``masters/``, never
+    overwrite ``mix/``"). When the mix sits in a ``mix/`` dir, the master goes to
+    the sibling ``masters/``; otherwise a ``masters/`` dir beside the mix. The
+    loops ``render-mastered`` tool creates the parent dir, so it need not exist.
+    """
     from pathlib import Path
 
-    p = Path(path)
-    return str(p.with_name(f"{p.stem}.{suffix}{p.suffix}"))
+    p = Path(mix_path)
+    project = p.parent.parent if p.parent.name == "mix" else p.parent
+    return str(project / "masters" / f"{p.stem}.master{p.suffix}")
 
 
 def _parse_bars(bars: str | None) -> list[int] | None:
@@ -129,12 +136,14 @@ def _parse_presets(presets: str | None) -> list[str] | None:
     return out or None
 
 
-def _load_eq_bands(path: str | None) -> list[dict[str, Any]] | None:
+def _load_eq_bands(
+    path: str | None, *, hint: str = "--eq-json"
+) -> list[dict[str, Any]] | None:
     """Load corrective EQ bands from a JSON file (a list of band dicts).
 
-    Lets the headless CLI reach the apply-eq branch of mix-check / reference-match
-    (otherwise unreachable). Raises a clean Click error on a missing file or a
-    payload that isn't a JSON list of objects.
+    Lets the headless CLI reach the band-driven steps (apply-eq / apply-dynamic-eq)
+    of mix-check / reference-match (otherwise unreachable). Raises a clean Click
+    error on a missing file or a payload that isn't a JSON list of objects.
     """
     if not path:
         return None
@@ -143,14 +152,14 @@ def _load_eq_bands(path: str | None) -> list[dict[str, Any]] | None:
     try:
         data = json.loads(Path(path).read_text())
     except FileNotFoundError:
-        raise click.BadParameter(f"file not found: {path}", param_hint="--eq-json") from None
+        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from None
     except json.JSONDecodeError as exc:
-        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint="--eq-json") from None
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from None
     if not (isinstance(data, list) and all(isinstance(b, dict) for b in data)):
         raise click.BadParameter(
             "expected a JSON list of band objects, e.g. "
             '[{"freq_hz": 200, "gain_db": -2, "q": 1.0, "type": "bell"}]',
-            param_hint="--eq-json",
+            param_hint=hint,
         )
     return data
 
@@ -182,7 +191,7 @@ def main() -> None:
 @click.argument("mix_path", type=click.Path())
 @click.option("--out", "out_path", type=click.Path(), default=None,
               help="Where to write the rendered master WAV "
-                   "(default: <mix dir>/<stem>.master.wav).")
+                   "(default: <project>/masters/<stem>.master.wav).")
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
 @click.option("--platform", "target_platform", default="spotify", show_default=True,
@@ -195,6 +204,18 @@ def main() -> None:
 @click.option("--bit-depth", type=int, default=None)
 @click.option("--sample-rate", type=int, default=None)
 @click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--assistant", is_flag=True, default=False,
+              help="Use master-assistant (a typed chain plan) for the perceptual "
+                   "step instead of mastering-feedback.")
+@click.option("--intent", default="balanced", show_default=True,
+              type=click.Choice(
+                  ["loud", "dynamic", "warm", "bright", "balanced", "punchy"]),
+              help="master-assistant creative intent (with --assistant).")
+@click.option("--intensity", default="medium", show_default=True,
+              type=click.Choice(["subtle", "medium", "strong"]),
+              help="master-assistant intensity (with --assistant).")
+@click.option("--style", default=None,
+              help="master-assistant style / genre hint (with --assistant).")
 def master(
     mix_path: str,
     out_path: str | None,
@@ -206,12 +227,16 @@ def master(
     bit_depth: int | None,
     sample_rate: int | None,
     deliverables_dir: str | None,
+    assistant: bool,
+    intent: str,
+    intensity: str,
+    style: str | None,
 ) -> None:
     """Master a near-final mix and export the deliverable format matrix."""
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import master_track
 
-    resolved_out = out_path or _default_out(mix_path, "master")
+    resolved_out = out_path or _default_master_out(mix_path)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -227,6 +252,194 @@ def master(
                 bit_depth=bit_depth,
                 sample_rate=sample_rate,
                 deliverables_dir=deliverables_dir,
+                assistant=assistant,
+                intent=intent,
+                intensity=intensity,
+                style=style,
+            )
+
+    _run(_go())
+
+
+@main.command(name="house-curve")
+@click.argument("mix_path", type=click.Path())
+@click.option("--reference", "reference_paths", multiple=True, required=True,
+              type=click.Path(),
+              help="Reference track to fold into the house curve (repeatable).")
+@click.option("--profile-json", "profile_json", type=click.Path(), default=None,
+              help="Where to write/read the shared profile JSON "
+                   "(default: <mix>.house-profile.json). Reuse it across an EP.")
+@click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
+              show_default=True,
+              help="How much of the mix->profile delta match-eq corrects.")
+@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+              default="minimum", show_default=True,
+              help="match-eq filter realization.")
+@click.option("--out", "out_path", type=click.Path(), default=None,
+              help="Where to write the corrected mix "
+                   "(default: <mix>.house-matched.wav).")
+def house_curve_cmd(mix_path: str, reference_paths: tuple[str, ...],
+                    profile_json: str | None, match_strength: float,
+                    match_phase: str, out_path: str | None) -> None:
+    """Build a shared house curve from references and match a mix toward it."""
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import house_curve
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await house_curve(
+                hub, mix_path, list(reference_paths),
+                profile_json=profile_json, match_strength=match_strength,
+                match_phase=match_phase, out_path=out_path,
+            )
+
+    _run(_go())
+
+
+def _expand_mix_paths(paths: tuple[str, ...]) -> list[str]:
+    """Expand CLI mix args: a lone directory -> its sorted ``*.wav`` children.
+
+    Otherwise the paths pass through unchanged (so tests need no filesystem).
+    """
+    from pathlib import Path
+
+    if len(paths) == 1 and Path(paths[0]).is_dir():
+        wavs = sorted(str(p) for p in Path(paths[0]).glob("*.wav"))
+        if not wavs:
+            raise click.BadParameter(
+                f"no .wav files in {paths[0]}", param_hint="MIX_PATHS"
+            )
+        return wavs
+    return list(paths)
+
+
+@main.command(name="batch-master")
+@click.argument("mix_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--target-lufs", default=-14.0, show_default=True, type=float)
+@click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
+@click.option("--platform", "target_platform", default="spotify", show_default=True,
+              type=click.Choice(PLATFORM_CHOICES),
+              help="Shared release target for the whole set.")
+@click.option("--masters-dir", type=click.Path(), default=None,
+              help="Write every master here (default: each mix's project masters/).")
+@click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--bit-depth", type=int, default=None)
+@click.option("--sample-rate", type=int, default=None)
+def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
+                     ceiling_dbtp: float, target_platform: str,
+                     masters_dir: str | None, deliverables_dir: str | None,
+                     bit_depth: int | None, sample_rate: int | None) -> None:
+    """Master a set of mixes to one shared target + a cross-track album pass.
+
+    MIX_PATHS are the mix files; pass a single directory to master every .wav in it.
+    """
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import batch_master
+
+    mixes = _expand_mix_paths(mix_paths)
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await batch_master(
+                hub, mixes,
+                target_lufs=target_lufs, ceiling_dbtp=ceiling_dbtp,
+                target_platform=target_platform, masters_dir=masters_dir,
+                deliverables_dir=deliverables_dir, bit_depth=bit_depth,
+                sample_rate=sample_rate,
+            )
+
+    _run(_go())
+
+
+@main.command(name="unmask-stems")
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+              help="JSON object mapping a stem NAME (filename without extension) to "
+                   "its complementary EQ cuts (eq_bands / dynamic_eq_bands).")
+@click.option("--cross-check", is_flag=True, default=False,
+              help="Also run the loops detect-masking cross-check.")
+@click.option("--max-conflicts", type=int, default=8, show_default=True,
+              help="Max masking conflicts analyze-stem-masking reports.")
+def unmask_stems_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
+                     cross_check: bool, max_conflicts: int) -> None:
+    """Score cross-stem masking, cut the losing stems, and re-score to prove it.
+
+    The masking-only subset of stem-master — no tone/dynamics shaping, no sum,
+    no master. Pass two or more stem files.
+    """
+    from pathlib import Path
+
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import unmask_stems
+
+    if len(stem_paths) < 2:
+        raise click.BadParameter(
+            "pass at least two stem files", param_hint="STEM_PATHS"
+        )
+    stems: dict[str, str] = {}
+    for p in stem_paths:
+        name = Path(p).stem
+        if name in stems:
+            raise click.BadParameter(
+                f"duplicate stem name {name!r} (rename so the names are unique)",
+                param_hint="STEM_PATHS",
+            )
+        stems[name] = p
+    corrections = _load_json_obj(corrections_json, "--corrections-json")
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await unmask_stems(
+                hub, stems, corrections=corrections,
+                cross_check=cross_check, max_conflicts=max_conflicts,
+            )
+
+    _run(_go())
+
+
+@main.command(name="stem-master")
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+              help="JSON object mapping a stem NAME (filename without extension) to "
+                   "its corrective moves (eq_bands / deess / suppress / "
+                   "dynamic_eq_bands / compress / multiband / shape_bands).")
+@click.option("--cross-check", is_flag=True, default=False,
+              help="Also run the loops detect-masking cross-check.")
+@click.option("--max-conflicts", type=int, default=8, show_default=True,
+              help="Max masking conflicts analyze-stem-masking reports.")
+def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
+                    cross_check: bool, max_conflicts: int) -> None:
+    """Per-stem corrective + masking verification (sum + master are separate).
+
+    Pass two or more stem files. Then sum the corrected stems with
+    `drum-prep stem-mix` and master the bus with `ship-studios master` — those
+    stages are local DSP / a separate pipeline, by design.
+    """
+    from pathlib import Path
+
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import stem_master
+
+    if len(stem_paths) < 2:
+        raise click.BadParameter(
+            "pass at least two stem files", param_hint="STEM_PATHS"
+        )
+    stems: dict[str, str] = {}
+    for p in stem_paths:
+        name = Path(p).stem
+        if name in stems:
+            raise click.BadParameter(
+                f"duplicate stem name {name!r} (rename so the names are unique)",
+                param_hint="STEM_PATHS",
+            )
+        stems[name] = p
+    corrections = _load_json_obj(corrections_json, "--corrections-json")
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await stem_master(
+                hub, stems, corrections=corrections,
+                cross_check=cross_check, max_conflicts=max_conflicts,
             )
 
     _run(_go())
@@ -242,21 +455,45 @@ def master(
                    '(e.g. [{"freq_hz":200,"gain_db":-2,"q":1,"type":"bell"}]).')
 @click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
               help="Where to write the EQ'd mix (with --eq-json).")
+@click.option("--deess", is_flag=True, default=False,
+              help="Also de-ess (tame sibilance) with default settings.")
+@click.option("--de-harsh", "de_harsh", is_flag=True, default=False,
+              help="Also run suppress-resonances (Soothe-style de-harsh).")
+@click.option("--dynamic-eq-json", "dynamic_eq_json", type=click.Path(), default=None,
+              help="JSON list of dynamic-EQ bands (level-dependent carves).")
+@click.option("--excite", is_flag=True, default=False,
+              help="Also add band-limited air/presence (excite-loop).")
 @click.option("--compress", is_flag=True, default=False,
-              help="Also run compress-loop after EQ.")
+              help="Also run compress-loop.")
+@click.option("--multiband", is_flag=True, default=False,
+              help="Also run multiband-compress (per-band dynamics).")
 def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
-                  eq_out_path: str | None, compress: bool) -> None:
-    """Diagnose a mix (perceptual + measurement) and surface concrete moves."""
+                  eq_out_path: str | None, deess: bool, de_harsh: bool,
+                  dynamic_eq_json: str | None, excite: bool, compress: bool,
+                  multiband: bool) -> None:
+    """Diagnose a mix (perceptual + measurement) and surface concrete moves.
+
+    The corrective steps are opt-in and chain in order: --eq-json, --deess,
+    --de-harsh, --dynamic-eq-json, --excite, --compress, --multiband. The bool
+    flags run their tool with default settings; the *-json flags carry EQ moves.
+    """
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import mix_check
 
     eq_bands = _load_eq_bands(eq_json)
+    dyn_bands = _load_eq_bands(dynamic_eq_json, hint="--dynamic-eq-json")
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await mix_check(
                 hub, mix_path, severity_threshold=severity_threshold,
-                eq_bands=eq_bands, eq_out_path=eq_out_path, compress=compress,
+                eq_bands=eq_bands, eq_out_path=eq_out_path,
+                deess={} if deess else None,
+                suppress={} if de_harsh else None,
+                dynamic_eq_bands=dyn_bands,
+                excite={} if excite else None,
+                compress=compress,
+                multiband={} if multiband else None,
             )
 
     _run(_go())
@@ -268,16 +505,26 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
               help="Reference track to match the mix toward.")
 @click.option("--goal", default="match the reference tonal balance and loudness",
               show_default=True)
+@click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
+              show_default=True,
+              help="How much of the mix->reference delta match-eq corrects "
+                   "(0=none, 1=fully flatten toward the reference).")
+@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+              default="minimum", show_default=True,
+              help="match-eq filter realization (FIR phase, or 1 kHz tilt shelves).")
+@click.option("--match-out", "match_out_path", type=click.Path(), default=None,
+              help="Where to write the match-eq corrected mix.")
 @click.option("--ab-out", "ab_out_path", type=click.Path(), default=None,
               help="Where to write the A/B audition WAV.")
 @click.option("--eq-json", "eq_json", type=click.Path(), default=None,
-              help="JSON list of corrective EQ bands to close the gap before the "
-                   "A/B (otherwise the A/B compares the RAW mix to the reference).")
+              help="JSON list of SURGICAL residual EQ bands, layered on the "
+                   "match-eq'd mix before the A/B (match-eq always runs first).")
 @click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
-              help="Where to write the corrected mix (with --eq-json).")
+              help="Where to write the residual-EQ'd mix (with --eq-json).")
 def reference_match_cmd(
-    mix_path: str, ref_path: str, goal: str, ab_out_path: str | None,
-    eq_json: str | None, eq_out_path: str | None,
+    mix_path: str, ref_path: str, goal: str,
+    match_strength: float, match_phase: str, match_out_path: str | None,
+    ab_out_path: str | None, eq_json: str | None, eq_out_path: str | None,
 ) -> None:
     """Match a mix to a reference and render a loudness-matched A/B audition."""
     from ship_studios.mcp_client import open_hub
@@ -288,7 +535,9 @@ def reference_match_cmd(
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
             return await reference_match(
-                hub, mix_path, ref_path, goal=goal, ab_out_path=ab_out_path,
+                hub, mix_path, ref_path, goal=goal,
+                match_strength=match_strength, match_phase=match_phase,
+                match_out_path=match_out_path, ab_out_path=ab_out_path,
                 eq_bands=eq_bands, eq_out_path=eq_out_path,
             )
 

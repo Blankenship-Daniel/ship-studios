@@ -63,11 +63,26 @@ no DAW/GUI/audio-device. This skill is the map; reach for a specific `vst-*` ski
 | `[[la-3a]]` | drive the **UADx Teletronix LA-3A** — solid-state opto **LEVELER** (it *reduces* crest, unlike the crest-holding tube `[[fairchild-660]]`) + odd/3rd-harmonic grit; **HF Emphasis = a built-in sidechain HPF** (raise it to keep the kick punching on drums), Peak Reduction has a dead zone ~0–2, `comp_limit`/`meter` are string enums → preset harness for Limit mode; renders headless via `uaudio_la3a.vst3` ([`docs/vst/la-3a.md`](../../../docs/vst/la-3a.md)) |
 | **Pultec Passive EQ Collection** (`[[pultec-eqp-1a]]` · `[[pultec-meq-5]]` · `[[pultec-hlf-3c]]`) | the three UADx passive-tube Pultec boxes — **[[pultec-eqp-1a]]** lows+air program EQ (the low-end trick + air-without-fizz; knobs 0–10 not-dB & nonlinear) · **[[pultec-meq-5]]** the MID-range EQ (LOW PEAK / DIP / HIGH PEAK, 200 Hz–7 kHz; here the **0–10 dial is ~dB** — LOW PEAK +10.7/HIGH PEAK +8.8/DIP saturates −11 — and boost+DIP at the same Hz FOCUSES not cancels) · **[[pultec-hlf-3c]]** the passive HP/LP FILTER (0.000 % THD, only subtracts). Each renders headless via `uaudio_pultec_*.vst3` (iLok account); freq selectors are string enums → preset harness ([`docs/vst/pultec-meq-5.md`](../../../docs/vst/pultec-meq-5.md)) |
 
+### All per-plugin deep-dives (measured)
+
+The table above highlights a few; the **complete set** — each a measured field guide grounded in
+`docs/vst/<plugin>.md`. Reach for the specific skill when you know the box:
+
+- **Channel strips / consoles:** [[api-vision-channel-strip]] · [[ssl-4k-e]] · [[ssl-native-channel-strip-2]] · [[la-6176]] · [[helios-type-69]] · [[kit-bb-a5]] · [[kit-bb-n105]] · [[kit-bb-n73]] · [[manley-voxbox]]
+- **Compressors:** [[fairchild-660]] · [[manley-variable-mu]] · [[la-3a]] · [[dbx-160]] · [[distressor]] · [[ssl-bus-compressor-2]]
+- **EQs:** [[pultec-eqp-1a]] · [[pultec-meq-5]] · [[pultec-hlf-3c]] · [[manley-massive-passive]] · [[hitsville-eq]] · [[hitsville-eq-mastering]]
+- **Tape / saturation / transient:** [[studer-a800]] · [[ampex-atr-102]] · [[oxide-tape]] · [[softube-tape]] · [[vibe-analog-machines]] · [[softube-transient-shaper]] · [[tape-j-37]] (⚠ loads but renders passthrough headless — DAW-only)
+- **FabFilter:** [[fabfilter-pro-q-4]] · [[fabfilter-pro-mb]] · [[fabfilter-saturn-2]] · [[fabfilter-pro-l-2]]
+
 ## Prerequisites
 
 - `[L] apply-vst-chain` / `[L] list-vst-plugins` need `uv sync --extra vst` in `../stemmy-loops-mcp`
-  (installs Pedalboard). The `[G]` pairing steps (find-sibilance/find-resonances) need `GEMINI_API_KEY`.
-- Plugins must be installed **and authorized** on this machine (machine-license, not iLok/UAD-DSP).
+  (installs Pedalboard). The `[G]` find-sibilance / find-resonances pairing steps are **pure DSP — no
+  `GEMINI_API_KEY`** (they sit on the stemmy-gemini server but make no model call; only the §4 "Gemini
+  listens" critique tools need the key).
+- Plugins must be installed **and authorized** on this machine. Most headless-safe boxes are machine-
+  licensed; the UADx `uaudio_*.vst3` deep-dives authorize via an **iLok *account*** (no dongle/UAD-DSP) —
+  see each deep-dive. iLok/PACE-dongle-protected titles are render-farm landmines.
 
 ## Related
 

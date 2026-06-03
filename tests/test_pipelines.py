@@ -129,6 +129,274 @@ async def test_mix_check_diagnostic_sequence(recording_hub) -> None:
     }
 
 
+async def test_master_track_assistant_replaces_feedback(recording_hub) -> None:
+    await pipelines.master_track(
+        recording_hub, "m.wav", "o.wav", assistant=True,
+        intent="warm", intensity="strong", style="indie",
+    )
+    seq = recording_hub.tool_sequence
+    assert "master-assistant" in seq
+    assert "mastering-feedback" not in seq
+    args = recording_hub.args_for("master-assistant")
+    assert args["intent"] == "warm"
+    assert args["intensity"] == "strong"
+    assert args["style"] == "indie"
+    assert args["target_platform"] == "streaming"  # spotify -> streaming mood
+
+
+async def test_master_track_assistant_omits_style_when_none(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", assistant=True)
+    assert "style" not in recording_hub.args_for("master-assistant")
+
+
+async def test_master_track_default_step_is_feedback(recording_hub) -> None:
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav")
+    assert "mastering-feedback" in recording_hub.tool_sequence
+    assert "master-assistant" not in recording_hub.tool_sequence
+
+
+async def test_house_curve_renders_match_eq_from_profile_delta() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={"match-to-profile": {
+        "profile_path": "p.json",
+        "bands": [
+            {"freq_hz": 100.0, "delta_db": 2.0},
+            {"freq_hz": 1000.0, "delta_db": -1.5},
+        ],
+    }})
+    result = await pipelines.house_curve(hub, "mix.wav", ["a.wav", "b.wav"])
+    assert hub.server_tool_sequence == [
+        (LOOPS_SERVER, "build-target-profile"),
+        (LOOPS_SERVER, "match-to-profile"),
+        (LOOPS_SERVER, "match-eq"),
+    ]
+    # build + match share the one profile JSON.
+    prof = hub.args_for("build-target-profile")["out_json"]
+    assert hub.args_for("build-target-profile")["paths"] == ["a.wav", "b.wav"]
+    assert hub.args_for("match-to-profile")["profile_json"] == prof
+    # match-eq is driven by the per-band delta from match-to-profile.
+    assert hub.args_for("match-eq")["delta_db_curve"] == [
+        {"freq_hz": 100.0, "delta_db": 2.0},
+        {"freq_hz": 1000.0, "delta_db": -1.5},
+    ]
+    assert hub.args_for("match-eq")["source_path"] == "mix.wav"
+    assert result["matched"] is True
+    assert result["output"] == hub.args_for("match-eq")["out_path"]
+
+
+async def test_house_curve_analysis_only_without_delta(recording_hub) -> None:
+    # The default hub returns {} -> no recoverable delta -> no match-eq render.
+    result = await pipelines.house_curve(recording_hub, "mix.wav", ["a.wav"])
+    assert recording_hub.server_tool_sequence == [
+        (LOOPS_SERVER, "build-target-profile"),
+        (LOOPS_SERVER, "match-to-profile"),
+    ]
+    assert result["matched"] is False
+    assert result["output"] == "mix.wav"
+
+
+async def test_house_curve_reuses_supplied_profile(recording_hub) -> None:
+    await pipelines.house_curve(
+        recording_hub, "mix.wav", ["a.wav"], profile_json="shared/ep.json"
+    )
+    assert recording_hub.args_for("build-target-profile")["out_json"] == "shared/ep.json"
+    assert recording_hub.args_for("match-to-profile")["profile_json"] == "shared/ep.json"
+
+
+async def test_house_curve_requires_references(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.house_curve(recording_hub, "mix.wav", [])
+
+
+async def test_batch_master_per_track_then_album_pass() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.batch_master(
+        hub, ["projects/ep/mix/a.wav", "projects/ep/mix/b.wav"]
+    )
+    masters = [
+        "projects/ep/masters/a.master.wav",
+        "projects/ep/masters/b.master.wav",
+    ]
+    assert result["pipeline"] == "batch-master"
+    assert result["masters"] == masters
+    seq = hub.tool_sequence
+    # each track went through the full master chain
+    assert seq.count("render-mastered") == 2
+    assert seq.count("export-deliverables") == 2
+    # the album pass closes it out: measure-loudness per master, then album norm
+    assert seq[-3:] == [
+        "measure-loudness",
+        "measure-loudness",
+        "analyze-album-normalization",
+    ]
+    assert hub.args_for("analyze-album-normalization")["paths"] == masters
+    # every render hit the SAME shared target, into masters/
+    renders = [c.args for c in hub.calls if c.tool == "render-mastered"]
+    assert [r["out_path"] for r in renders] == masters
+    assert all(r["target_lufs"] == -14.0 for r in renders)
+
+
+async def test_batch_master_masters_dir_override() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.batch_master(
+        hub, ["a.wav", "b.wav"], masters_dir="out/masters"
+    )
+    assert result["masters"] == [
+        "out/masters/a.master.wav",
+        "out/masters/b.master.wav",
+    ]
+
+
+async def test_batch_master_requires_paths(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.batch_master(recording_hub, [])
+
+
+async def test_stem_master_sequence(recording_hub) -> None:
+    await pipelines.stem_master(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}
+    )
+    assert recording_hub.server_tool_sequence == [
+        (LOOPS_SERVER, "measure-loudness"),
+        (LOOPS_SERVER, "measure-spectrum"),
+        (LOOPS_SERVER, "measure-loudness"),
+        (LOOPS_SERVER, "measure-spectrum"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+    ]
+
+
+async def test_stem_master_passes_stems_dict(recording_hub) -> None:
+    stems = {"kick": "kick.wav", "bass": "bass.wav"}
+    await pipelines.stem_master(recording_hub, stems)
+    # args_for returns the FIRST analyze-stem-masking (the initial map).
+    args = recording_hub.args_for("analyze-stem-masking")
+    assert args["stems"] == stems
+    assert args["max_conflicts"] == 8
+
+
+async def test_stem_master_cross_check_runs_detect_masking(recording_hub) -> None:
+    await pipelines.stem_master(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}, cross_check=True
+    )
+    assert "detect-masking" in recording_hub.tool_sequence
+    assert recording_hub.args_for("detect-masking")["paths"] == ["kick.wav", "bass.wav"]
+
+
+async def test_stem_master_no_cross_check_skips_detect_masking(recording_hub) -> None:
+    await pipelines.stem_master(recording_hub, {"kick": "kick.wav", "bass": "bass.wav"})
+    assert "detect-masking" not in recording_hub.tool_sequence
+
+
+async def test_stem_master_corrects_losing_stem_and_rescores() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.stem_master(
+        hub,
+        {"kick": "kick.wav", "bass": "bass.wav"},
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 60.0, "gain_db": -3.0, "q": 1.0}],
+            "compress": True,
+        }},
+    )
+    # only the losing stem (bass) is corrected, in order, chained.
+    assert hub.args_for("apply-eq")["path"] == "bass.wav"
+    assert hub.args_for("apply-eq")["out_path"] == "bass.eq.wav"
+    assert hub.args_for("compress-loop")["path"] == "bass.eq.wav"
+    assert hub.args_for("compress-loop")["out_path"] == "bass.comp.wav"
+    # the corrected path is tracked and fed to the re-score.
+    assert result["corrected"] == {"kick": "kick.wav", "bass": "bass.comp.wav"}
+    rescore = [c.args for c in hub.calls if c.tool == "analyze-stem-masking"][-1]
+    assert rescore["stems"] == {"kick": "kick.wav", "bass": "bass.comp.wav"}
+
+
+async def test_stem_master_full_corrective_chain_per_stem() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    await pipelines.stem_master(
+        hub,
+        {"kick": "kick.wav", "snare": "snare.wav"},
+        corrections={"snare": {
+            "eq_bands": [{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+            "deess": {}, "suppress": {},
+            "dynamic_eq_bands": [
+                {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+            ],
+            "compress": True, "multiband": {},
+            "shape_bands": {"bands": [{"band": 0}]},
+        }},
+    )
+    chain = [
+        t for t in hub.tool_sequence
+        if t in {
+            "apply-eq", "de-ess", "suppress-resonances", "apply-dynamic-eq",
+            "compress-loop", "multiband-compress", "shape-bands",
+        }
+    ]
+    assert chain == [
+        "apply-eq", "de-ess", "suppress-resonances", "apply-dynamic-eq",
+        "compress-loop", "multiband-compress", "shape-bands",
+    ]
+
+
+async def test_stem_master_requires_two_stems(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.stem_master(recording_hub, {"only": "only.wav"})
+
+
+async def test_unmask_stems_sequence(recording_hub) -> None:
+    await pipelines.unmask_stems(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}
+    )
+    # masking-only: NO per-stem measure baseline (that's stem-master's step 1).
+    assert recording_hub.server_tool_sequence == [
+        (GEMINI_SERVER, "analyze-stem-masking"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+    ]
+
+
+async def test_unmask_stems_has_no_measure_baseline(recording_hub) -> None:
+    await pipelines.unmask_stems(recording_hub, {"kick": "kick.wav", "bass": "bass.wav"})
+    assert "measure-loudness" not in recording_hub.tool_sequence
+    assert "measure-spectrum" not in recording_hub.tool_sequence
+
+
+async def test_unmask_stems_cuts_losing_stem_and_rescores() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.unmask_stems(
+        hub,
+        {"kick": "kick.wav", "bass": "bass.wav"},
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 60.0, "gain_db": -3.0, "q": 1.0}],
+        }},
+    )
+    assert hub.args_for("apply-eq")["path"] == "bass.wav"
+    assert result["corrected"] == {"kick": "kick.wav", "bass": "bass.eq.wav"}
+    rescore = [c.args for c in hub.calls if c.tool == "analyze-stem-masking"][-1]
+    assert rescore["stems"] == {"kick": "kick.wav", "bass": "bass.eq.wav"}
+
+
+async def test_unmask_stems_cross_check_runs_detect_masking(recording_hub) -> None:
+    await pipelines.unmask_stems(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}, cross_check=True
+    )
+    assert recording_hub.args_for("detect-masking")["paths"] == ["kick.wav", "bass.wav"]
+
+
+async def test_unmask_stems_requires_two_stems(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.unmask_stems(recording_hub, {"only": "only.wav"})
+
+
 async def test_mix_check_default_severity_is_server_valid(recording_hub) -> None:
     # Bare mix-check must send a floor the real detect-mix-issues accepts.
     await pipelines.mix_check(recording_hub, "mix.wav")
@@ -162,12 +430,87 @@ async def test_mix_check_no_mutation_without_moves(recording_hub) -> None:
     assert "compress-loop" not in recording_hub.tool_sequence
 
 
+async def test_mix_check_corrective_chain_order(recording_hub) -> None:
+    # Every corrective step, in the doc's order, each chaining off the previous.
+    await pipelines.mix_check(
+        recording_hub,
+        "mix.wav",
+        eq_bands=[{"type": "bell", "freq_hz": 320.0, "gain_db": -2.0, "q": 1.4}],
+        deess={},
+        suppress={},
+        dynamic_eq_bands=[
+            {"freq_hz": 200.0, "gain_db": -3.0, "q": 1.0, "threshold_db": -24.0}
+        ],
+        excite={},
+        compress=True,
+        multiband={},
+    )
+    assert recording_hub.tool_sequence[-7:] == [
+        "apply-eq",
+        "de-ess",
+        "suppress-resonances",
+        "apply-dynamic-eq",
+        "excite-loop",
+        "compress-loop",
+        "multiband-compress",
+    ]
+    # Each step reads the previous step's output — the chain is wired correctly.
+    a = recording_hub
+    assert a.args_for("de-ess")["path"] == a.args_for("apply-eq")["out_path"]
+    assert a.args_for("suppress-resonances")["path"] == a.args_for("de-ess")["out_path"]
+    assert (
+        a.args_for("apply-dynamic-eq")["path"]
+        == a.args_for("suppress-resonances")["out_path"]
+    )
+    assert a.args_for("excite-loop")["path"] == a.args_for("apply-dynamic-eq")["out_path"]
+    assert a.args_for("compress-loop")["path"] == a.args_for("excite-loop")["out_path"]
+    assert (
+        a.args_for("multiband-compress")["path"] == a.args_for("compress-loop")["out_path"]
+    )
+
+
+async def test_mix_check_output_is_last_corrective_file(recording_hub) -> None:
+    result = await pipelines.mix_check(recording_hub, "mix.wav", deess={})
+    # output points at the final corrective render, not the raw mix.
+    assert result["output"] == recording_hub.args_for("de-ess")["out_path"]
+    assert result["output"] != "mix.wav"
+
+
+async def test_mix_check_output_is_input_when_no_moves(recording_hub) -> None:
+    result = await pipelines.mix_check(recording_hub, "mix.wav")
+    assert result["output"] == "mix.wav"
+
+
+async def test_mix_check_deess_settings_forwarded_path_protected(recording_hub) -> None:
+    # Tuning kwargs pass through; an out_path inside the dict can't hijack the
+    # chain (the pipeline injects path/out_path last).
+    await pipelines.mix_check(
+        recording_hub,
+        "mix.wav",
+        deess={"center_hz": 7000.0, "reduction_db": 5.0, "out_path": "HACKED.wav"},
+    )
+    args = recording_hub.args_for("de-ess")
+    assert args["center_hz"] == 7000.0
+    assert args["reduction_db"] == 5.0
+    assert args["path"] == "mix.wav"
+    assert args["out_path"] != "HACKED.wav"
+
+
+async def test_mix_check_multiband_is_a_compress_alternative(recording_hub) -> None:
+    await pipelines.mix_check(recording_hub, "mix.wav", multiband={})
+    seq = recording_hub.tool_sequence
+    assert "multiband-compress" in seq
+    assert "compress-loop" not in seq
+    assert recording_hub.args_for("multiband-compress")["path"] == "mix.wav"
+
+
 async def test_reference_match_sequence(recording_hub) -> None:
     await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     assert recording_hub.server_tool_sequence == [
         (GEMINI_SERVER, "match-reference-numeric"),
         (GEMINI_SERVER, "compare-to-reference"),
         (LOOPS_SERVER, "compare-tonality"),
+        (LOOPS_SERVER, "match-eq"),
         (LOOPS_SERVER, "render-ab"),
     ]
 
@@ -187,12 +530,27 @@ async def test_reference_match_numeric_uses_mix_and_reference_keys(
     }
 
 
+async def test_reference_match_match_eq_uses_source_and_reference(
+    recording_hub,
+) -> None:
+    # match-eq is the primary corrective: it measures source-minus-reference
+    # itself, so it takes source_path + reference_path (not a band list).
+    await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
+    args = recording_hub.args_for("match-eq")
+    assert args["source_path"] == "mix.wav"
+    assert args["reference_path"] == "ref.wav"
+    assert args["match_strength"] == 0.5
+    assert args["phase"] == "minimum"
+    assert "out_path" in args
+
+
 async def test_reference_match_render_ab_uses_processed_and_reference(
     recording_hub,
 ) -> None:
     await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     args = recording_hub.args_for("render-ab")
-    assert args["processed"] == "mix.wav"
+    # The A/B plays the match-eq'd output, not the raw mix.
+    assert args["processed"] == recording_hub.args_for("match-eq")["out_path"]
     assert args["reference"] == "ref.wav"
     assert "out_path" in args
 
@@ -205,9 +563,13 @@ async def test_reference_match_eq_feeds_render_ab(recording_hub) -> None:
         "match-reference-numeric",
         "compare-to-reference",
         "compare-tonality",
+        "match-eq",
         "apply-eq",
         "render-ab",
     ]
+    # Residual apply-eq layers on the matched output, then the A/B plays that.
+    match_out = recording_hub.args_for("match-eq")["out_path"]
+    assert recording_hub.args_for("apply-eq")["path"] == match_out
     eq_out = recording_hub.args_for("apply-eq")["out_path"]
     assert recording_hub.args_for("render-ab")["processed"] == eq_out
 
@@ -404,6 +766,30 @@ async def test_understand_audio_json_prompt_without_schema_is_noop(recording_hub
         recording_hub, "a.wav", transcribe=False, json_prompt="extract bpm",
     )
     assert "audio-to-json" not in recording_hub.tool_sequence
+
+
+async def test_understand_audio_full_ordered_sequence(recording_hub) -> None:
+    # All flags on: the six understanding tools fire in source order, ending
+    # with audio-to-json — pins its ordered POSITION, not just its args.
+    schema = {"type": "object", "properties": {"bpm": {"type": "number"}}}
+    await pipelines.understand_audio(
+        recording_hub,
+        "ref.wav",
+        transcribe=True,
+        region=(60.0, 75.0, "what happens here?"),
+        event_description="kick drum hits",
+        labels=["house", "techno"],
+        compare_paths=["other.wav"],
+        json_schema=schema,
+    )
+    assert recording_hub.server_tool_sequence == [
+        (GEMINI_SERVER, "transcribe-audio"),
+        (GEMINI_SERVER, "describe-audio-region"),
+        (GEMINI_SERVER, "extract-audio-events"),
+        (GEMINI_SERVER, "classify-audio"),
+        (GEMINI_SERVER, "compare-audio-files"),
+        (GEMINI_SERVER, "audio-to-json"),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -610,11 +996,23 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
     await pipelines.master_track(h, "m.wav", "o.wav", target_platform="spotify")
     _collect(h)
 
-    # mix-check with BOTH corrective branches (apply-eq + compress-loop).
+    # master-track via the master-assistant plan step (covers master-assistant).
+    h = RecordingHub()
+    await pipelines.master_track(h, "m.wav", "o.wav", assistant=True, style="indie")
+    _collect(h)
+
+    # mix-check with EVERY corrective branch so the live contract sees them all
+    # (apply-eq, de-ess, suppress-resonances, apply-dynamic-eq, excite-loop,
+    # compress-loop, multiband-compress).
     h = RecordingHub()
     await pipelines.mix_check(
-        h, "m.wav", eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
-        compress=True,
+        h, "m.wav",
+        eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+        deess={}, suppress={},
+        dynamic_eq_bands=[
+            {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+        ],
+        excite={}, compress=True, multiband={},
     )
     _collect(h)
 
@@ -637,6 +1035,38 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
         h, "a.wav", transcribe=True, region=(0.0, 1.0, "?"),
         event_description="kick", labels=["x"], compare_paths=["b.wav"],
         json_schema={"type": "object"},
+    )
+    _collect(h)
+
+    # house-curve (build-target-profile -> match-to-profile -> match-eq), with a
+    # canned profile delta so the match-eq render branch fires.
+    h = RecordingHub(
+        canned={"match-to-profile": {"bands": [{"freq_hz": 1.0, "delta_db": 0.0}]}}
+    )
+    await pipelines.house_curve(h, "m.wav", ["r.wav"])
+    _collect(h)
+
+    # batch-master (per-track master chain + analyze-album-normalization).
+    h = RecordingHub()
+    await pipelines.batch_master(h, ["m.wav"])
+    _collect(h)
+
+    # stem-master (per-stem corrective + masking map + cross-check + re-score);
+    # covers analyze-stem-masking, detect-masking, and shape-bands.
+    h = RecordingHub()
+    await pipelines.stem_master(
+        h,
+        {"kick": "k.wav", "bass": "b.wav"},
+        cross_check=True,
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+            "deess": {}, "suppress": {},
+            "dynamic_eq_bands": [
+                {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+            ],
+            "compress": True, "multiband": {},
+            "shape_bands": {"bands": [{"band": 0, "transient_db": 0.0, "gain_db": 0.0}]},
+        }},
     )
     _collect(h)
 

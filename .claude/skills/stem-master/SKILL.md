@@ -21,7 +21,8 @@ The actual loudness/limiting/compliance/export is **not** done here — it is
 - Both `stemmy-loops` and `stemmy-gemini` registered and up.
 - Pure DSP, no key: `[G] analyze-stem-masking`, `[G] find-resonances`,
   `[G] find-sibilance`, `[G]`/`[L] measure-*`. `[L] apply-eq`,
-  `compress-loop`, `shape-bands` are core/`mixing` DSP, no key.
+  `compress-loop`, `shape-bands` run on the base install (the loudness reads
+  need the `mixing` extra); no key. (There is no `core` extra.)
 - **Summing is local:** `drum-prep stem-mix` is the drum-prep CLI
   (`uv sync --extra drum-prep`), not an MCP tool. No MCP tool sums an
   arbitrary named-stem set.

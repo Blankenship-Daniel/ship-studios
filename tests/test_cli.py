@@ -42,6 +42,10 @@ def patched_pipelines(monkeypatch: pytest.MonkeyPatch):
         "master_track",
         "mix_check",
         "reference_match",
+        "house_curve",
+        "batch_master",
+        "stem_master",
+        "unmask_stems",
         "loops_to_deliverables",
         "understand_audio",
     ):
@@ -76,17 +80,32 @@ def test_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert kwargs["target_platform"] == "club"
 
 
-def test_master_defaults_out_path_next_to_mix(
+def test_master_defaults_out_into_masters_dir(
     runner: CliRunner, patched_pipelines
 ) -> None:
     # README documents `ship-studios master <mix> --target-lufs ...` with no
-    # --out, so it must default sensibly rather than error.
+    # --out, so it must default sensibly. Per CLAUDE.md the master lands in the
+    # project's masters/ dir (sibling of mix/), never inside mix/.
     result = runner.invoke(
         cli.main, ["master", "projects/song/mix/final.wav", "--target-lufs", "-14"]
     )
     assert result.exit_code == 0, result.output
     _, args, _ = patched_pipelines[0]
-    assert args == ("projects/song/mix/final.wav", "projects/song/mix/final.master.wav")
+    assert args == (
+        "projects/song/mix/final.wav",
+        "projects/song/masters/final.master.wav",
+    )
+
+
+def test_master_default_out_falls_back_to_masters_sibling(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # A loose mix not under a mix/ dir still lands in a masters/ dir beside it,
+    # never overwriting the source next to it.
+    result = runner.invoke(cli.main, ["master", "song/bounce.wav"])
+    assert result.exit_code == 0, result.output
+    _, args, _ = patched_pipelines[0]
+    assert args == ("song/bounce.wav", "song/masters/bounce.master.wav")
 
 
 def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:
@@ -98,6 +117,37 @@ def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert name == "mix_check"
     assert args == ("mix.wav",)
     assert kwargs["severity_threshold"] == "serious"
+
+
+def test_mix_check_corrective_flags(runner: CliRunner, patched_pipelines) -> None:
+    # The bool corrective flags enable each tool with default settings ({}).
+    result = runner.invoke(
+        cli.main,
+        ["mix-check", "mix.wav", "--deess", "--de-harsh", "--excite",
+         "--compress", "--multiband"],
+    )
+    assert result.exit_code == 0, result.output
+    name, _, kwargs = patched_pipelines[0]
+    assert name == "mix_check"
+    assert kwargs["deess"] == {}
+    assert kwargs["suppress"] == {}
+    assert kwargs["excite"] == {}
+    assert kwargs["multiband"] == {}
+    assert kwargs["compress"] is True
+
+
+def test_mix_check_no_corrective_flags_is_diagnose_only(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    result = runner.invoke(cli.main, ["mix-check", "mix.wav"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["deess"] is None
+    assert kwargs["suppress"] is None
+    assert kwargs["excite"] is None
+    assert kwargs["multiband"] is None
+    assert kwargs["dynamic_eq_bands"] is None
+    assert kwargs["compress"] is False
 
 
 def test_mix_check_rejects_invalid_severity(runner: CliRunner, patched_pipelines) -> None:
@@ -125,6 +175,96 @@ def test_reference_match_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert name == "reference_match"
     assert args == ("mix.wav", "ref.wav")
     assert kwargs["goal"] == "warmer low end"
+
+
+def test_master_assistant_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main,
+        ["master", "mix.wav", "--assistant", "--intent", "warm",
+         "--intensity", "strong", "--style", "indie"],
+    )
+    assert result.exit_code == 0, result.output
+    name, _, kwargs = patched_pipelines[0]
+    assert name == "master_track"
+    assert kwargs["assistant"] is True
+    assert kwargs["intent"] == "warm"
+    assert kwargs["intensity"] == "strong"
+    assert kwargs["style"] == "indie"
+
+
+def test_house_curve_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main,
+        ["house-curve", "mix.wav", "--reference", "a.wav", "--reference", "b.wav",
+         "--match-strength", "0.75"],
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "house_curve"
+    assert args == ("mix.wav", ["a.wav", "b.wav"])
+    assert kwargs["match_strength"] == 0.75
+
+
+def test_house_curve_requires_a_reference(runner: CliRunner, patched_pipelines) -> None:
+    # --reference is required (multiple); missing it is a usage error, not a crash.
+    result = runner.invoke(cli.main, ["house-curve", "mix.wav"])
+    assert result.exit_code == 2
+
+
+def test_batch_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["batch-master", "a.wav", "b.wav", "--target-lufs", "-12"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "batch_master"
+    assert args == (["a.wav", "b.wav"],)
+    assert kwargs["target_lufs"] == -12.0
+
+
+def test_batch_master_requires_a_mix(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["batch-master"])
+    assert result.exit_code == 2
+
+
+def test_stem_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["stem-master", "kick.wav", "bass.wav", "--cross-check"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "stem_master"
+    # the dict is keyed by filename stem (no extension).
+    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert kwargs["cross_check"] is True
+
+
+def test_stem_master_requires_two_stems(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["stem-master", "only.wav"])
+    assert result.exit_code == 2
+
+
+def test_stem_master_rejects_duplicate_names(runner: CliRunner, patched_pipelines) -> None:
+    # Same basename in two dirs would collide in the name->path dict.
+    result = runner.invoke(cli.main, ["stem-master", "a/kick.wav", "b/kick.wav"])
+    assert result.exit_code == 2
+    assert "duplicate stem name" in result.output
+
+
+def test_unmask_stems_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["unmask-stems", "kick.wav", "bass.wav", "--cross-check"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "unmask_stems"
+    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert kwargs["cross_check"] is True
+
+
+def test_unmask_stems_requires_two_stems(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["unmask-stems", "only.wav"])
+    assert result.exit_code == 2
 
 
 def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> None:
@@ -336,8 +476,12 @@ def test_doctor_flags_present_but_unsynced_sibling(
 def test_main_group_has_all_subcommands() -> None:
     assert set(cli.main.commands) >= {
         "master",
+        "batch-master",
         "mix-check",
         "reference-match",
+        "house-curve",
+        "stem-master",
+        "unmask-stems",
         "loops",
         "understand",
         "doctor",

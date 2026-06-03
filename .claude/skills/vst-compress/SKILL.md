@@ -48,5 +48,9 @@ Goal: apply a real **compressor** — FET (1176-style: `Black 76`, `Comp FET-76`
 
 ## Related
 
+- **If the user names a specific box, prefer its measured deep-dive:** [[fairchild-660]] / [[manley-variable-mu]]
+  (tube glue) · [[la-3a]] (opto leveler) · [[dbx-160]] (VCA punch) · [[distressor]] (aggressive/parallel) ·
+  [[ssl-bus-compressor-2]] (VCA bus glue) · [[la-6176]] (1176/LA-2A channel). This generic skill is the fallback
+  for compressors lacking a deep-dive.
 - `[[vst-chain]]` · `[[vst-eq]]` (order matters — decide EQ↔comp) · `[[vst-channel-strip]]` (both in one)
 - `[[drum-punch]]` (pure-DSP transient design) · `[[vst]]` — index/doctrine

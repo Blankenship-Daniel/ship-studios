@@ -19,9 +19,10 @@ use [[stem-master]]; this is the lighter standalone carve.
 ## Prerequisites
 
 - Both `stemmy-loops` and `stemmy-gemini` registered and up.
-- `[G] analyze-stem-masking` and `[G] measure-spectrum` are **pure DSP** —
-  no `GEMINI_API_KEY`. `[L] apply-eq` / `[L] detect-masking` are core DSP,
-  no key.
+- `[G] analyze-stem-masking` is **pure DSP** — no `GEMINI_API_KEY`.
+  `[L] measure-spectrum` / `[L] apply-eq` / `[L] detect-masking` are core DSP,
+  no key. (The recipe and the canonical stem-master pipeline use `[L]
+  measure-spectrum`.)
 - Input is a **map of named stems** (`{kick: ..., bass: ..., vox: ...}`),
   not a stereo bounce. Resolve the stem paths up front.
 - Optional audible A/B only: `drum-prep stem-mix` is the **local** drum-prep

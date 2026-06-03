@@ -1,6 +1,6 @@
 ---
 name: vst-master
-description: "Use when the user wants to master a mix with their own plugins instead of the pure-DSP chain — 'master this with FabFilter/Ozone', 'plugin mastering chain', 'master using my Pro-L limiter', 'EQ+comp+limit this with my plugins'. Builds a measured plugin mastering chain (EQ → comp/MB → limiter) and verifies streaming compliance. The opt-in VST sibling of master-track. Stemmy MCP, the `vst` extra (+ GEMINI_API_KEY for compliance)."
+description: "Use when the user wants to master a mix with their own plugins instead of the pure-DSP chain — 'master this with FabFilter/Ozone', 'plugin mastering chain', 'master using my Pro-L limiter', 'EQ+comp+limit this with my plugins'. Builds a measured plugin mastering chain (EQ → comp/MB → limiter) and verifies streaming compliance. The opt-in VST sibling of master-track. Stemmy MCP, the `vst` extra (streaming compliance is pure DSP — no key; GEMINI_API_KEY only for the optional perceptual read)."
 argument-hint: <mix.wav> [--platform spotify] [target LUFS]
 ---
 
@@ -13,12 +13,14 @@ reach here when the user specifically wants their own mastering plugins.
 
 ## Prerequisites
 
-- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`); `[G] check-streaming-targets`
-  + `[G] mastering-feedback` need `GEMINI_API_KEY`. Input = a clean **stereo mix bus** (run
-  `[[mix-check]]`/`[[finalize-mix]]` first if needed).
+- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] check-streaming-targets`
+  is **pure DSP — no key**; only the optional `[G] mastering-feedback` (step 2) needs
+  `GEMINI_API_KEY`. Input = a clean **stereo mix bus** (run `[[mix-check]]`/`[[finalize-mix]]`
+  first if needed).
 - Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)): EQ `FabFilter Pro-Q 4` /
   `Maag EQ4`; comp `FabFilter Pro-C 2` / `SSL Native Bus Compressor 2`; limiter `FabFilter Pro-L 2`
-  / `Brickwall Limiter`. (The clean `Ozone 11 …` VST3s are blocked here — prefer FabFilter/SSL.)
+  / `Brickwall Limiter`. (Only `Ozone 11 Equalizer` loads here; the Ozone 11 mastering modules —
+  Maximizer / Dynamics — are iLok-blocked, so prefer FabFilter/SSL for the comp + limiter.)
 
 ## Recipe
 

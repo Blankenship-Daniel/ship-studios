@@ -57,7 +57,7 @@ Measured-LUFS warm spread (bright stem **down**, body/room **up**), one global �
 
 ### Stage 4b — FX-return decide-by-ear (Gemini), then promote
 
-Loudness-match the two warm buses (peak-safe gain to a common LUFS) and A/B by ear: `compare-audio-files` (which is better for a warm/tight bus?) **plus** `detect-mix-issues` on the with-FX bus (does the reverb add wash/mud?). Promote the winner → `projects/<slug>/mix/bus_warm.wav`.
+Loudness-match the two warm buses (peak-safe gain to a common LUFS) and A/B by ear: `compare-audio-files` (which is better for a warm/tight bus?) **plus** `detect-mix-issues` on the with-FX bus (does the reverb add wash/mud?). Promote the winner → `projects/<slug>/mix/bus_warm.wav`. For a rigorous, meter-grounded pick, run the **`warm-bus-shootout` workflow** instead (one Gemini lens agent per bus × {warmth, tightness, life}, ranked with dissent) — pass both level-matched buses as `variants:[{name,path(ABSOLUTE),meters}]`.
 - **Gemini hears ~16 kbps MONO → cross-check every claim against the meters** (`[[gemini-audio-understanding]]`): a "serious boominess / cut the lows" flag is often the mono downmix exaggerating centered kick/bass — trust the *stereo* tilt vs the approved signature. Gemini may also **hallucinate content over near-silence** (it once reported a "spoken-word voiceover" on a −65 dBFS tail) — verify structure with a meter/energy scan, not Gemini's ears.
 
 ## Stage 5 — create loops (raw + mastered)

@@ -90,7 +90,7 @@ surgical. Full field guide — param surface, curve tables, recipes, history —
 
 | Goal | MEQ-5 move | Shipped preset |
 |---|---|---|
-| **De-honk / de-box** ★ (its signature) | DIP `500–1000 CPS` @4–6 (boxy/cardboard mids), small HIGH PEAK to restore | `pultec-meq5-mid-scoop` (DIP 700 @5 + HP 4k @3 + LP 200 @2) |
+| **De-honk / de-box** ★ (its signature) | DIP `500–1000 CPS` @4–6 (boxy/cardboard mids), small HIGH PEAK to restore | `pultec-meq5-mid-scoop` (DIP 700 @5 + HIGH PEAK 4k @3 + LOW PEAK 200 @2) |
 | **Drum presence / attack** ★ | LOW PEAK `200 @3` body + DIP `500 @4` de-box + HIGH PEAK `3k @5` attack | `pultec-meq5-drum-presence` (centroid 2223→2261, high-mid 0.035→0.051) |
 | **Warmth / body** | LOW PEAK `200–500 CPS` @4–6 (low-mid weight), gentle DIP `2k` to keep honk down | `pultec-meq5-warm-body` (low-mid 0.327→0.433, centroid 2223→2069, crest held) |
 | **Snare/tom presence** | HIGH PEAK `3–5 KCS` @4–6 (5 KCS = focused, 1.5 KCS = broad) | — |

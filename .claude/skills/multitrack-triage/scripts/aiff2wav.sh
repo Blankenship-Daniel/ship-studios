@@ -11,7 +11,12 @@
 set -uo pipefail
 src="${1:?usage: aiff2wav.sh <src-dir-or-file> <dst-dir>}"; dst="${2:?dst dir}"
 mkdir -p "$dst"
-conv(){ sox "$1" -e float -b 32 "$dst/$(basename "${1%.*}").wav" && echo "  $(basename "$1") -> $(basename "${1%.*}").wav"; }
+conv(){
+  out="$dst/$(basename "${1%.*}").wav"
+  if [ "$out" -ef "$1" ] 2>/dev/null; then echo "  skip (would overwrite source): $(basename "$1")" >&2; return; fi
+  [ -e "$out" ] && { echo "  skip (target exists, refusing to clobber): $(basename "$out")" >&2; return; }
+  sox "$1" -e float -b 32 "$out" && echo "  $(basename "$1") -> $(basename "$out")"
+}
 if [ -d "$src" ]; then
   shopt -s nullglob
   for f in "$src"/*.wav "$src"/*.aif "$src"/*.aiff; do [ -e "$f" ] && conv "$f"; done

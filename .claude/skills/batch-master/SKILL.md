@@ -11,7 +11,10 @@ shared** loudness/true-peak target and sit together as a coherent release.
 The per-track work is [[master-track]]'s chain in a loop; the load-bearing
 novel piece — the thing no single-file tool can give — is the **cross-track
 consistency read**: every master measured against the album median so
-outliers surface as numbers, not vibes.
+outliers surface as numbers, not vibes. **At scale / for parallelism**, the
+`batch-master` *workflow* runs this same per-track chain as one agent per track
+(renders are pure-DSP `[L]`, no UADx contention → safe to parallelize) and
+computes the identical consistency table; this skill is the single-session form.
 
 ## Prerequisites
 
@@ -30,7 +33,12 @@ Per track (loop the folder):
 1. **Baseline** — `[L] measure-loudness` + `[L] measure-spectrum` +
    `[L] check-clipping`.
 2. **Perceptual read** — `[G] mastering-feedback {path, target_platform}`.
-   Release-readiness + harshness flags to steer that track's render.
+   Release-readiness + harshness flags to steer that track's render. **Map the
+   shared platform first:** `mastering-feedback`'s `target_platform` is a critique
+   *mood* (`general`/`streaming`/`club`/`broadcast`/`vinyl`), **not** a service
+   name — collapse a streaming service (spotify / apple_music / youtube / tidal)
+   to `streaming`; the literal service name goes only to `check-streaming-targets`
+   (step 4). The two take disjoint vocabularies and each rejects the other's value.
 3. **Render** — `[L] render-mastered` to the **shared** `target_lufs` /
    `ceiling_dbtp` → `projects/<album>/masters/`.
 4. **Compliance** — `[G] check-streaming-targets` on the rendered master;
@@ -82,6 +90,7 @@ masters without it is just [[master-track]] run N times.
 ## Related
 
 - [[master-track]] — the single-file master this loops and extends
+- `batch-master` (workflow) — the parallel multi-agent form (one agent per track, same consistency reduce)
 - [[house-curve]] — make the set tonally consistent (this does loudness)
 - [[delivery-qc]] — the ship/don't-ship gate + tag-survival check
 - [[variant-shootout]] — pick a loudness target before committing the batch

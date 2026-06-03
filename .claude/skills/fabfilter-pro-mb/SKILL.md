@@ -43,7 +43,7 @@ This skill is the workflow.
 ## Prerequisites
 
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`). `[G] find-resonances`
-  / `find-sibilance` (optional, `GEMINI_API_KEY`) to target the band(s).
+  / `find-sibilance` (optional, **pure DSP — no key**) to target the band(s).
 - **`FabFilter Pro-MB.vst3`** — confirm with `[L] list-vst-plugins {name_contains:"Pro-MB"}` and take the
   **VST3** path. Screen a new install with `../stemmy-loops-mcp/.venv/bin/python presets/vst/probe_plugin.py "Pro-MB"`
   (expect `RENDERS ✓`). No-iLok, but **loads ≠ renders** — always measure detail after.
@@ -64,7 +64,7 @@ This skill is the workflow.
 4. **Build a preset** (`presets/vst/fabfilter-promb-*.json`): for each band set `band_N_state="Enabled"`,
    `band_N_low_crossover`/`high_crossover` (+`_low_slope`/`_high_slope`), `band_N_dynamics_mode`,
    `band_N_threshold`, **a NONZERO `band_N_range`**, `band_N_ratio`, `band_N_attack`/`release`/`knee`/`lookahead`
-   (attack/release are a **normalized 0–100** scale here, not ms), `band_N_level`; plus globals `processing_mode`,
+   (attack/release are **0–100 % percentages, not ms** — no published ms mapping, program/frequency-dependent), `band_N_level`; plus globals `processing_mode`,
    `mix` (0–200 %, <100 = parallel), `oversampling`. Apply: `../stemmy-loops-mcp/.venv/bin/python
    presets/vst/apply_vst_preset.py <preset.json> <in> projects/<track>/mix/<stem>_promb.wav`. Set `dump_state=true`
    (via `apply-vst-chain`) once dialed for a byte-stable re-render.
@@ -112,7 +112,8 @@ that it ran headless (no-iLok), and the preset/`.state` path. A/B loudness-match
   either (can't enable a band / set string enums → `changed:false`). Use the [[vst-preset]] harness or a `dump_state`.
 - **Expansion threshold is inverted** — a downward expander only acts *below* threshold; set the threshold up
   into the quiet passages or it never engages (measured no-op at threshold −35 on a loud band).
-- **attack/release are normalized 0–100 here**, not ms — read the doc for the real ms mapping; verify by ear/meter.
+- **attack/release are 0–100 % percentages, NOT ms** — there is no published ms mapping (realized ms is
+  program/frequency-dependent); below ~50 % = faster, above ~50 % = slower — calibrate by isolation render/ear.
 - **Linear Phase pre-rings transients** — use Dynamic Phase (default) or Minimum Phase on drum/lead material.
 - **Pro-MB ≠ Pro-Q dynamic EQ** — Pro-MB band-SPLITS (true multiband, sidechain, M/S, parallel); Pro-Q dynamic EQ
   is parametric with no band-split. Reach for Pro-MB when you need band isolation / sidechain / parallel / M/S

@@ -201,7 +201,7 @@ unmask-stems is the masking-only subset (steps 2 + 4 + re-score), when you don't
 1. `[G] match-reference-numeric` — per-third-octave delta-dB curve + LUFS/TP/RMS/crest/tilt deltas.
 2. `[G] compare-to-reference` — perceptual A/B deltas + actionable moves (`goal`).
 3. `[L] compare-tonality` — second numeric per-band delta + confidence (cross-check).
-4. `[L] match-eq` — render the reconciled delta curve directly to a corrective FIR (pass `source_path`+`reference_path`, or the `delta_db_curve` from step 1/3; tune `match_strength` ~0.5, `phase` min/linear). For surgical residual moves, follow with `[L] apply-eq` bells/tilt.
+4. `[L] apply-eq` — collapse the reconciled delta into a few shelves/bells (+ `tilt_db_per_octave`) and render the corrected mix (runs only when reconciled `eq_bands` are supplied). For a faithful render of the *whole* delta curve rather than a few bands, drive `[L] match-eq` instead (reconciled delta → a min/linear-phase corrective FIR; pass `source_path`+`reference_path`, or the `delta_db_curve` from step 1/3; `match_strength` ~0.5, `phase` min/linear) and follow with `[L] apply-eq` only for surgical residuals.
 5. `[L] render-ab` — `processed`=corrected mix, `reference`=ref → single A/B WAV in `projects/<track>/mix/`. Report residual deltas (`[L] compare-tonality` again; `match-eq` also returns `residual_delta_db`).
 
 For a whole EP/album, capture **one shared house curve** with `[L] build-target-profile` over the references, then match each mix to it with `[L] match-to-profile` → `[L] match-eq` — a single consistent target across the set ([[house-curve]]).
@@ -261,6 +261,30 @@ raw multitrack (a Logic session, an interface dump) two **local-DSP skills**
   misreads → use sox / `aiff2wav.sh`); `kit.json` file fields need the `.wav`
   extension; `adeclip` overshoots 0 dBFS (renormalize); multi-input ffmpeg trims
   need `atrim` in the filtergraph (input `-ss/-t` only affects the first input).
+
+---
+
+## Workflows (multi-agent fan-out)
+
+Reusable Claude Code **dynamic workflows** live in `.claude/workflows/*.js` — JS
+scripts that orchestrate parallel subagents (invoked via `ultracode` / "use a
+workflow", or as `/<name>`). Use them for **parallel fan-out / judge-panels /
+batch / cross-checked verification**, NOT sequential file-mutating DSP (that
+stays a skill). A workflow script has **no filesystem/bash access** — render the
+variants / gather the lists **inline first**, pass them via `args`, and the
+script returns a structured object the session writes out.
+
+| Workflow | Fans out | Render / gather inline first |
+|---|---|---|
+| `audio-shootout` | one Gemini lens agent per (variant × criterion) → ranked pick + dissent | render + **level-match** the variant WAVs; pack `meters` |
+| `warm-bus-shootout` | a warm-drum-bus preset over `audio-shootout` (warmth/tightness/life) | the warm-bus variants (e.g. via `scripts/mix/warm_bus.py`) |
+| `vst-probe-inventory` | chunked parallel `presets/vst/probe_plugin.py` → render-verified inventory | the plugin list (`list-vst-plugins` / `demo/headless-safe-titles.txt`) |
+| `batch-master` | one agent per track runs the master chain → cross-track consistency table | the folder + the ONE shared `target_lufs` / `ceiling_dbtp` |
+| `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / frontmatter drift | the skill-dir list + valid-target sets |
+| `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift | (agents read the files themselves) |
+
+Reference a workflow in prose as `name` / `/name` (a slash command) — **not** as
+a `[[name]]` wikilink (those resolve to skills/docs only).
 
 ---
 
@@ -373,13 +397,17 @@ The same pipelines run without an interactive Claude session via the `ship-studi
 ```bash
 ship-studios doctor          # check env vars + sibling repos before first run
 ship-studios master          projects/<track>/mix/final.wav --platform spotify
+ship-studios batch-master    projects/<album>/mix/*.wav --platform spotify
 ship-studios mix-check       projects/<track>/mix/draft.wav
 ship-studios reference-match projects/<track>/mix/draft.wav --reference projects/<track>/refs/ref.wav
+ship-studios house-curve     projects/<track>/mix/draft.wav --reference refs/a.wav --reference refs/b.wav
+ship-studios stem-master     projects/<track>/stems/kick.wav projects/<track>/stems/bass.wav  # then drum-prep stem-mix + master
+ship-studios unmask-stems    projects/<track>/stems/kick.wav projects/<track>/stems/bass.wav  # masking-only subset
 ship-studios loops           projects/<track>/stems/drums.wav --bpm 120
 ship-studios understand      projects/<track>/refs/ref.wav
 ```
 
-The five pipeline subcommands (`master`, `mix-check`, `reference-match`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
+The nine pipeline subcommands (`master`, `batch-master`, `mix-check`, `reference-match`, `house-curve`, `stem-master`, `unmask-stems`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). `stem-master` drives only the MCP-side per-stem corrective + masking-verify steps — summing the corrected stems (`drum-prep stem-mix`) and mastering the bus (`ship-studios master`) are separate local-DSP / pipeline stages, by design. Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
 
 ---
 

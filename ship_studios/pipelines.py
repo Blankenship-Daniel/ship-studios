@@ -266,15 +266,21 @@ async def reference_match(
     ref_path: str,
     *,
     goal: str = "match the reference tonal balance and loudness",
+    match_strength: float = 0.5,
+    match_phase: str = "minimum",
+    match_out_path: str | None = None,
     eq_bands: list[dict[str, Any]] | None = None,
     eq_out_path: str | None = None,
     ab_out_path: str | None = None,
 ) -> dict[str, Any]:
-    """Pipeline 3 — derive numeric + perceptual deltas, EQ, render an A/B.
+    """Pipeline 3 — derive numeric + perceptual deltas, EQ-match, render an A/B.
 
     Order (verified tools): match-reference-numeric / compare-to-reference
-    (gemini) -> compare-tonality (loops) -> apply-eq (loops) -> render-ab
-    (loops). apply-eq runs only when reconciled bands are supplied.
+    (gemini) -> compare-tonality (loops) -> match-eq (loops) -> apply-eq
+    (loops) -> render-ab (loops). match-eq is the primary corrective: it renders
+    the source-minus-reference delta as a min/linear-phase FIR toward the
+    reference. apply-eq runs only when reconciled residual bands are supplied,
+    layered on the matched output for surgical bells/tilt.
     """
     rec = _Recorder(hub)
 
@@ -294,14 +300,27 @@ async def reference_match(
         {"loop_path": mix_path, "reference_path": ref_path},
     )
 
-    corrected = mix_path
+    corrected = match_out_path or _suffix_path(mix_path, "matched")
+    await rec.run(
+        LOOPS_SERVER,
+        "match-eq",
+        {
+            "source_path": mix_path,
+            "reference_path": ref_path,
+            "out_path": corrected,
+            "match_strength": match_strength,
+            "phase": match_phase,
+        },
+    )
+
     if eq_bands is not None:
-        corrected = eq_out_path or _suffix_path(mix_path, "matched")
+        residual = eq_out_path or _suffix_path(mix_path, "matched-eq")
         await rec.run(
             LOOPS_SERVER,
             "apply-eq",
-            {"path": mix_path, "out_path": corrected, "bands": eq_bands},
+            {"path": corrected, "out_path": residual, "bands": eq_bands},
         )
+        corrected = residual
 
     await rec.run(
         LOOPS_SERVER,

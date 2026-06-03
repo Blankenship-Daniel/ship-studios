@@ -161,7 +161,9 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
             gain_db = _db(gain)
             if s.role in _STEREO:
                 ch = io.to_stereo(x)
-                if s.role == Role.ROOM:
+                # Channel-balance only a GENUINE stereo room pair; a mono room mic
+                # (to_stereo duplicates it to both channels) passes through unchanged.
+                if s.role == Role.ROOM and x.shape[1] == 2:
                     ch = _balance_channels(ch)
                 if flip:
                     ch = ch[:, ::-1]

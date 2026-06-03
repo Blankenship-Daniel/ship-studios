@@ -18,17 +18,34 @@ import os
 import numpy as np
 
 from drum_prep import dsp, io
-from drum_prep.kit import Kit
+from drum_prep.kit import Kit, overhead_reference
 
 THIRD = dsp.THIRD_OCT
 
 
-def _measure(aligned_dir: str, ref_path: str, nperseg: int) -> dict:
+def _kit_keep(kit: Kit) -> set[str] | None:
+    """Basenames of the files THIS kit writes into aligned/ref-matched dirs:
+    every stem plus the resolved overhead name. Used to drop ORPHANS (a renamed/
+    removed stem left in the output dir) from the coherent sum + ownership shares,
+    which would otherwise double-count it. ``None`` when the kit has no stems
+    (callers fall back to summing the whole dir, the historical behavior)."""
+    keep = {s.name for s in kit.stems}
+    if not keep:
+        return None
+    oh = overhead_reference(kit)
+    keep.add(oh.name if oh is not None else "overheads-merged.aif")  # lr_pair merge name
+    return keep
+
+
+def _measure(aligned_dir: str, ref_path: str, nperseg: int,
+             keep: set[str] | None = None) -> dict:
     rx, rsr = io.read_mono(ref_path)
     fr, pr = dsp.psd(rx, rsr, nperseg)
     ref_db = dsp.band_db(fr, pr, THIRD)
 
     names = io.list_audio(aligned_dir)
+    if keep is not None:  # drop orphans (files not written by this kit's run)
+        names = [n for n in names if n in keep]
     if not names:
         raise ValueError(f"no aligned stems found in {aligned_dir!r}")
     # All stems must share one SR (the coherent sum below is time-domain), and
@@ -67,7 +84,7 @@ def analyze(kit: Kit, ref_path: str | None = None, aligned_dir: str | None = Non
     ref_path = ref_path or kit.reference
     if not ref_path:
         raise ValueError("no reference given (pass ref_path or set it in kit.json)")
-    m = _measure(aligned_dir, ref_path, nperseg)
+    m = _measure(aligned_dir, ref_path, nperseg, keep=_kit_keep(kit))
     delta = dsp.shape(m["ref_db"], THIRD) - dsp.shape(m["cur_db"], THIRD)
     # dominant stem per macro band (informational)
     share = m["share"]
@@ -98,7 +115,7 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
     if not ref_path:
         raise ValueError("no reference given (pass ref_path or set it in kit.json)")
 
-    m = _measure(aligned_dir, ref_path, nperseg)
+    m = _measure(aligned_dir, ref_path, nperseg, keep=_kit_keep(kit))
     sr, names, raw, share = m["sr"], m["names"], m["raw"], m["share"]
 
     # corrective curve: smoothed, strength-scaled, capped

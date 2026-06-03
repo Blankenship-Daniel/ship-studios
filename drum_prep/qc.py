@@ -6,11 +6,13 @@ catches the silent failures hit in practice: ``export-deliverables tag=true``
 dropping the RIFF INFO ``LIST`` chunk, and missing ``.tags.json`` sidecars. Parse
 chunk headers only (cheap, no full read) and confirm a metadata chunk + sidecar.
 
-Both deliverable containers are handled: WAV (``RIFF``, little-endian; metadata in
-the ``LIST`` chunk) and AIFF (``FORM``, big-endian; metadata in the text chunks
-``NAME``/``AUTH``/``ANNO``/``(c)``/``COMT``/``ID3``) — AIFF is a first-class
-drum_prep output, so a chunk parser that only understood RIFF reported every AIFF
-as untagged.
+Three deliverable containers are handled: WAV (``RIFF``, little-endian; tag
+metadata in a ``LIST`` chunk whose form-type is ``INFO`` — an ``adtl`` cue-label
+``LIST`` is NOT tag metadata), AIFF (``FORM``, big-endian; metadata in the text
+chunks ``NAME``/``AUTH``/``ANNO``/``(c)``/``COMT``/``ID3``) and FLAC (``fLaC``
+magic + a metadata-block stream; a ``VORBIS_COMMENT`` block is the tag metadata) —
+AIFF/FLAC are first-class drum_prep outputs, so a parser that only understood RIFF
+reported every AIFF/FLAC as untagged.
 """
 from __future__ import annotations
 
@@ -30,8 +32,11 @@ def container_chunks(path: str) -> tuple[str | None, list[str]]:
     """Return ``(container, chunk_ids)`` reading headers only (seeks past data).
 
     ``container`` is ``"WAVE"`` for a RIFF/WAVE file, ``"AIFF"``/``"AIFC"`` for a
-    FORM/AIFF file, or ``None`` if neither magic matches. Chunk sizes are
-    little-endian for RIFF and big-endian for AIFF.
+    FORM/AIFF file, ``"FLAC"`` for a native ``fLaC`` stream, or ``None`` if no
+    magic matches. Chunk sizes are little-endian for RIFF, big-endian for AIFF.
+    FLAC has its own block layout (see :func:`_flac_has_vorbis_comment`), so its
+    ``chunk_ids`` are returned empty here — embedded-metadata detection for FLAC
+    walks the block stream separately.
     """
     ids: list[str] = []
     with open(path, "rb") as fh:
@@ -43,6 +48,8 @@ def container_chunks(path: str) -> tuple[str | None, list[str]]:
             endian, container = "<I", fh.read(8)[4:8].decode("latin1")
         elif magic == b"FORM":
             endian, container = ">I", fh.read(8)[4:8].decode("latin1")
+        elif magic == b"fLaC":
+            return "FLAC", ids  # block stream, not RIFF/IFF chunks
         else:
             return None, ids
         while True:
@@ -74,13 +81,75 @@ def riff_chunks(path: str) -> list[str]:
     return ids if container == "WAVE" else []
 
 
-def _has_metadata_chunk(container: str | None, ids: list[str]) -> bool:
+def _wav_has_info_list(path: str) -> bool:
+    """Whether a RIFF/WAVE file carries a ``LIST`` chunk of form-type ``INFO``.
+
+    A RIFF ``LIST`` chunk's first 4 body bytes are its form-type: ``INFO`` (the
+    RIFF INFO tag metadata this gate verifies) vs ``adtl`` (cue/playlist labels —
+    NOT tag metadata). ``container_chunks`` only records the chunk id and seeks
+    past the body, so re-walk and peek the LIST form-type to avoid counting an
+    ``adtl`` (or other-form) LIST as tags. Returns ``False`` for non-WAVE.
+    """
+    with open(path, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        file_size = fh.tell()
+        fh.seek(0)
+        if fh.read(4) != b"RIFF" or fh.read(8)[4:8] != b"WAVE":
+            return False
+        while True:
+            head = fh.read(8)
+            if len(head) < 8 or any(b < 0x20 or b > 0x7E for b in head[:4]):
+                break
+            cid = head[:4]
+            size = struct.unpack("<I", head[4:8])[0]
+            if fh.tell() + size > file_size:
+                break  # body past EOF — not a real chunk (mirrors container_chunks)
+            if cid == b"LIST" and size >= 4 and fh.read(4) == b"INFO":
+                return True
+            fh.seek((size + (size & 1)) - (4 if cid == b"LIST" and size >= 4 else 0), 1)
+    return False
+
+
+def _has_metadata_chunk(path: str, container: str | None, ids: list[str]) -> bool:
     """Whether the parsed chunks carry an embedded-metadata chunk for the format."""
     if container == "WAVE":
-        return "LIST" in ids
+        return _wav_has_info_list(path)  # an adtl/other-form LIST is not tag metadata
     if container in ("AIFF", "AIFC"):
         return any(cid in _AIFF_TAG_CHUNKS for cid in ids)
-    return False  # FLAC/unknown: rely on the sidecar
+    if container == "FLAC":
+        return _flac_has_vorbis_comment(path)
+    return False  # unknown container: rely on the sidecar
+
+
+def _flac_has_vorbis_comment(path: str) -> bool:
+    """Whether a native FLAC stream carries a VORBIS_COMMENT metadata block.
+
+    FLAC layout: 4-byte ``fLaC`` magic, then a chain of metadata blocks, each a
+    4-byte header (top bit of byte 0 = last-block flag, low 7 bits = block type;
+    bytes 1-3 = big-endian body length) followed by the body. Block type 4 is
+    VORBIS_COMMENT (the tag metadata). Walk blocks until the last-block flag.
+    """
+    with open(path, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        file_size = fh.tell()
+        fh.seek(0)
+        if fh.read(4) != b"fLaC":
+            return False
+        while True:
+            head = fh.read(4)
+            if len(head) < 4:
+                break
+            last = bool(head[0] & 0x80)
+            block_type = head[0] & 0x7F
+            length = int.from_bytes(head[1:4], "big")
+            if fh.tell() + length > file_size:
+                break  # body past EOF — corrupt/truncated, don't count it as tagged
+            if block_type == 4:  # VORBIS_COMMENT
+                return True
+            if last:
+                break
+            fh.seek(length, 1)
+    return False
 
 
 def verify_tags(path: str) -> dict:
@@ -104,11 +173,12 @@ def verify_tags(path: str) -> dict:
             data = {}
             sidecar_corrupt = True
     info = sf.info(path)
-    has_metadata = _has_metadata_chunk(container, ids)
+    has_metadata = _has_metadata_chunk(path, container, ids)
     sidecar_ok = has_sidecar and not sidecar_corrupt and bool(data)
     return {"file": os.path.basename(path),
-            # has_list_chunk kept for back-compat (WAV LIST); has_metadata_chunk
-            # is the container-aware flag that actually drives `tagged`.
+            # has_list_chunk kept for back-compat (any WAV LIST, incl. adtl);
+            # has_metadata_chunk is the container-aware flag (WAV: LIST/INFO only)
+            # that actually drives `tagged`.
             "has_list_chunk": container == "WAVE" and "LIST" in ids,
             "has_metadata_chunk": has_metadata,
             "has_sidecar": has_sidecar, "sidecar_corrupt": sidecar_corrupt,
@@ -120,8 +190,9 @@ def verify_tags(path: str) -> dict:
 def verify_dir(directory: str) -> dict:
     """Verify every audio deliverable (WAV/AIFF/FLAC) in a directory.
 
-    WAV metadata is the RIFF INFO ``LIST`` chunk, AIFF the text chunks; FLAC and
-    other containers fall back to the ``.tags.json`` sidecar.
+    WAV metadata is the RIFF INFO ``LIST`` chunk (form-type ``INFO`` — an ``adtl``
+    cue-label LIST doesn't count), AIFF the text chunks, FLAC a VORBIS_COMMENT
+    block; an unknown container falls back to the ``.tags.json`` sidecar.
     """
     results = [verify_tags(os.path.join(directory, f)) for f in io.list_audio(directory)]
     untagged = [r["file"] for r in results if not r["tagged"]]

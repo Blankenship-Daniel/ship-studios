@@ -18,11 +18,30 @@ from __future__ import annotations
 import os
 from dataclasses import asdict, dataclass
 
+import numpy as np
+
 from drum_prep import dsp, io
 from drum_prep.kit import Kit, ambience_stems, anchored_to_oh, partner_pairs
 from drum_prep.overheads import resolve_overhead
 
 SOUND_CMS = 34300.0  # speed of sound, cm/s — for the distance sanity column
+_MIN_OVERLAP = 64    # samples — below this an FFT correlation is meaningless
+
+
+def _excerpt_overlap(sig: np.ndarray, sl: slice) -> tuple[slice, bool]:
+    """Slice of ``sig`` overlapping the OH excerpt window ``sl``.
+
+    The excerpt slice is derived from the (full-length) overheads; a close mic
+    shorter than ``sl.start`` would give ``sig[sl]`` an EMPTY array, and the bare
+    ``np.fft.rfft([])`` downstream raises a cryptic 'Invalid number of FFT data
+    points (0)'. Clamp the window to the stem's actual length so we align over
+    the real overlap instead. Returns ``(local_slice, ok)`` where ``ok`` is False
+    when the overlap is too short to align meaningfully (caller skips + notes).
+    """
+    stop = min(sl.stop, len(sig))
+    if sl.start >= len(sig) or stop - sl.start < _MIN_OVERLAP:
+        return slice(0, 0), False
+    return slice(sl.start, stop), True
 
 
 @dataclass
@@ -44,7 +63,6 @@ def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
     oh_arr, sr, oh_name = resolve_overhead(kit)
     ref_m = dsp.mono(oh_arr)
     sl = dsp.pick_excerpt(ref_m, sr, excerpt_s)
-    ref_seg = ref_m[sl]
     io.write_aiff24(os.path.join(out_dir, oh_name), oh_arr, sr)  # OH passthrough
 
     results = [AlignResult(oh_name, "overhead", 0.0, 1, 1.0, 1.0, "reference (fixed)")]
@@ -57,7 +75,14 @@ def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
         sig = io.read_mono(kit.path(s))[0]
         is_kick = s.role.value.startswith("kick")
         band = s.lowpass_hz if s.lowpass_hz is not None else (kick_lowpass if is_kick else None)
-        d, pol, pre, post = dsp.align_to(sig[sl], ref_seg, max_lag, sr, band=band)
+        sub, ok = _excerpt_overlap(sig, sl)
+        if not ok:  # stem shorter than the excerpt window — skip, keep timing, note it
+            anchor_delay[s.name] = (0.0, 1.0)
+            warn = f"{s.name}: shorter than the OH excerpt window — alignment skipped"
+            kit.warnings.append(warn)
+            plan.append((s, sig, 0.0, 1.0, 0.0, 0.0, "-> OH (skipped: too short)"))
+            continue
+        d, pol, pre, post = dsp.align_to(sig[sub], ref_m[sub], max_lag, sr, band=band)
         if s.polarity_lock is not None:
             pol = float(s.polarity_lock)
         anchor_delay[s.name] = (d, pol)
@@ -68,7 +93,20 @@ def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
     for partner, anchor in partner_pairs(kit):
         psig = io.read_mono(kit.path(partner))[0]
         asig = io.read_mono(kit.path(anchor))[0]
-        d_pa, pol_pa, pre, post = dsp.align_to(psig[sl], asig[sl], max_lag, sr)
+        # clamp the excerpt to BOTH signals' lengths (either may be short)
+        stop = min(sl.stop, len(psig), len(asig))
+        ok = sl.start < min(len(psig), len(asig)) and stop - sl.start >= _MIN_OVERLAP
+        if not ok:  # too little overlap to align the pair — keep timing, note it
+            warn = f"{partner.name}: too short to align to {anchor.name} — alignment skipped"
+            kit.warnings.append(warn)
+            d_anchor, pol_anchor = anchor_delay.get(anchor.name, (0.0, 1.0))
+            pol_total = (float(partner.polarity_lock) if partner.polarity_lock is not None
+                         else pol_anchor)
+            plan.append((partner, psig, d_anchor, pol_total, 0.0, 0.0,
+                         f"-> {anchor.name} (skipped: too short)"))
+            continue
+        sub = slice(sl.start, stop)
+        d_pa, pol_pa, pre, post = dsp.align_to(psig[sub], asig[sub], max_lag, sr)
         d_anchor, pol_anchor = anchor_delay.get(anchor.name, (0.0, 1.0))
         d_total = d_pa + d_anchor
         pol_total = (float(partner.polarity_lock) if partner.polarity_lock is not None
@@ -89,8 +127,15 @@ def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
         if s.polarity_lock is not None:
             rpol = float(s.polarity_lock)
         else:
-            _, rpeak = dsp.estimate(dsp.mono(rx)[sl], ref_seg, max_lag)
-            rpol = -1.0 if rpeak < 0 else 1.0
+            rmono = dsp.mono(rx)
+            sub, ok = _excerpt_overlap(rmono, sl)
+            if not ok:  # too short to read polarity — keep as-is (+1), note it
+                rpol = 1.0
+                kit.warnings.append(f"{s.name}: shorter than the OH excerpt window — "
+                                    "polarity check skipped (kept +1)")
+            else:
+                _, rpeak = dsp.estimate(rmono[sub], ref_m[sub], max_lag)
+                rpol = -1.0 if rpeak < 0 else 1.0
         io.write_aiff24(os.path.join(out_dir, s.name), rx * rpol, sr)
         results.append(AlignResult(s.name, s.role.value, 0.0, int(rpol), 0.0, 0.0,
                                    "ambience (timing kept)"))

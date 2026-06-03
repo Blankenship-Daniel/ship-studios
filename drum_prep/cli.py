@@ -9,6 +9,7 @@ installed), and JSON pretty-printed results.
 from __future__ import annotations
 
 import json
+import math
 import os
 from collections.abc import Callable
 from typing import Any
@@ -19,8 +20,27 @@ from drum_prep import __version__
 from drum_prep.kit import KitError
 
 
+def _json_safe(obj: Any) -> Any:
+    """Recursively replace non-finite floats (inf/-inf/nan) with None.
+
+    The flows put ``float('-inf')`` (silence -> -inf dBFS) and pyloudnorm's -inf
+    into result dicts; ``json.dumps`` would emit the non-standard tokens
+    ``-Infinity``/``NaN`` that strict parsers reject. Map them to JSON ``null``
+    so the output round-trips through any conformant parser.
+    """
+    if isinstance(obj, float):
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
 def _echo(result: dict[str, Any]) -> None:
-    click.echo(json.dumps(result, indent=2, default=str))
+    # allow_nan=False is a backstop: a non-finite float the sanitizer missed
+    # raises here (loud) rather than emitting an invalid -Infinity/NaN token.
+    click.echo(json.dumps(_json_safe(result), indent=2, default=str, allow_nan=False))
 
 
 #: soundfile raises ``LibsndfileError`` (MRO: …RuntimeError, NOT ValueError) on a
@@ -107,7 +127,8 @@ def overheads(src: str, manifest: str | None, out_path: str | None, align: bool)
 @click.option("--align", is_flag=True, default=False,
               help="Phase-lock R to L (collapses a spaced image; off by default).")
 def stereo_merge_cmd(src: str, out_dir: str | None, align: bool) -> None:
-    """Merge every '<name> - left/right' pair into a stereo file (format-preserving)."""
+    """Merge every '<name> - left/right' pair into a stereo file (subtype-preserving;
+    container follows the output extension)."""
     def run() -> dict[str, Any]:
         from drum_prep.stereo_merge import merge_dir
 

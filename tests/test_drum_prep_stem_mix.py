@@ -67,6 +67,27 @@ def test_unmatched_spec_key_surfaced(tmp_path) -> None:
     assert res["ignored_spec_keys"] == ["typo.wav"]
 
 
+def test_pan_clamped_no_polarity_flip(tmp_path) -> None:
+    # pan > 1 from user JSON must be clamped to 1: unclamped, the stereo balance
+    # path computes a NEGATIVE left-channel gain (1 - 1.5 = -0.5), inverting
+    # polarity. After the clamp the left channel is fully attenuated (>= 0), never
+    # a phase-flipped copy of the input.
+    rng = np.random.default_rng(7)
+    n = SR * 4
+    sig = (rng.standard_normal(n) * 0.4).astype(np.float32)
+    # a single, isolated stereo stem so the bus IS this stem (scaled): no other
+    # source to mask a polarity inversion.
+    _w(tmp_path / "wide.wav", np.column_stack([sig, sig]).astype(np.float32))
+    res = mix_stems(str(tmp_path), out_dir=str(tmp_path / "mix"),
+                    spec={"wide.wav": {"pan": 1.5}}, dur=0)
+    y, _ = sf.read(res["out"], always_2d=True)
+    # hard-right clamp: left channel attenuated to ~silence, NOT an inverted copy.
+    assert np.max(np.abs(y[:, 0])) < 1e-3
+    # the right channel must stay in-polarity with the source (positive correlation).
+    rr = y[: len(sig), 1]
+    assert float(np.dot(rr, sig[: len(rr)])) > 0
+
+
 def test_truncation_note_on_unequal_stems(tmp_path) -> None:
     # Stems are summed over the common (shortest) length; the dropped trailing
     # audio must be flagged and the sum must run to the shorter length.

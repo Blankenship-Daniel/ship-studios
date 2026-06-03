@@ -17,15 +17,30 @@ import numpy as np
 import pyloudnorm as pyln
 
 from drum_prep import dsp, io
-from drum_prep.kit import Kit
+from drum_prep.kit import Kit, overhead_reference
 
 # ITU-R BS.1770 integrates over 400 ms blocks; shorter audio yields -inf LUFS and
 # would silently skip the loudness match. Require at least one block + margin.
 _MIN_MATCH_S = 0.5
 
 
-def _kit_sum(directory: str) -> tuple[np.ndarray, int]:
+def _kit_keep(kit: Kit) -> set[str] | None:
+    """Basenames of the files THIS kit writes (every stem + the resolved overhead
+    name) so a renamed/removed ORPHAN left in the aligned/ref-matched dir is not
+    double-counted into the coherent sum. ``None`` when the kit has no stems
+    (callers then sum the whole dir, the historical behavior)."""
+    keep = {s.name for s in kit.stems}
+    if not keep:
+        return None
+    oh = overhead_reference(kit)
+    keep.add(oh.name if oh is not None else "overheads-merged.aif")  # lr_pair merge name
+    return keep
+
+
+def _kit_sum(directory: str, keep: set[str] | None = None) -> tuple[np.ndarray, int]:
     names = io.list_audio(directory)
+    if keep is not None:  # drop orphans (files not written by this kit's run)
+        names = [n for n in names if n in keep]
     if not names:
         raise ValueError(f"no stems found in {directory!r}")
     sr = io.common_samplerate([os.path.join(directory, nm) for nm in names])
@@ -82,8 +97,9 @@ def render_auditions(kit: Kit, ref_path: str | None = None, aligned_dir: str | N
     if not ref_path:
         raise ValueError("no reference given (pass ref_path or set it in kit.json)")
 
-    before, sr = _kit_sum(aligned_dir)
-    after, sr2 = _kit_sum(matched_dir)
+    keep = _kit_keep(kit)
+    before, sr = _kit_sum(aligned_dir, keep)
+    after, sr2 = _kit_sum(matched_dir, keep)
     if sr != sr2:
         raise ValueError(f"aligned/matched sample-rate mismatch: {sr} vs {sr2}")
     refx, rsr = io.read(ref_path)

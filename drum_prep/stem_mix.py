@@ -60,7 +60,9 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
         # Silent/immeasurable stem (-inf LUFS) -> unity, matching mix_kit; don't
         # boost a dead channel by its offset (that would just amplify noise).
         gain = 10 ** ((target_lufs + off - lufs) / 20.0) if np.isfinite(lufs) else 1.0
-        pan = float(s.get("pan", 0.0))
+        # Clamp pan to [-1, 1]: an out-of-range value from the user JSON would make
+        # a channel gain negative (1 - |pan| < 0), silently inverting polarity.
+        pan = float(np.clip(s.get("pan", 0.0), -1.0, 1.0))
         if x.shape[1] == 2:
             ch = io.to_stereo(x)[:n] * gain
             if pan:  # balance a stereo stem toward a side

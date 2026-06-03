@@ -3,9 +3,11 @@
 The alignment/match flows read/write 24-bit AIFF via :func:`write_aiff24`
 (matching the source DAW stems); auditions/mixes use 24-bit WAV via
 :func:`write_wav24` (matching ship-studios' render-ab convention).
-:func:`write_wav` is the generic, *format-preserving* writer (default subtype
-FLOAT) used by the normalize/stereo-merge flows that carry the source format
-through. Everything is float64 in memory.
+:func:`write_wav` is the generic *bit-depth/subtype-preserving* writer (default
+subtype FLOAT) used by the normalize/stereo-merge flows that carry the source
+SUBTYPE through; the output CONTAINER follows the destination extension (no
+``format=`` is passed), so a ``.wav`` name always yields a real WAV regardless
+of the source container. Everything is float64 in memory.
 """
 from __future__ import annotations
 
@@ -122,10 +124,12 @@ def subtype_of(path: str) -> str:
 
 
 def write_wav(path: str, data: np.ndarray, sr: int, subtype: str = "FLOAT") -> None:
-    """Write a little-endian WAV at an explicit subtype (default 32-bit float).
+    """Write at an explicit libsndfile subtype (default 32-bit float).
 
-    Used by the format-preserving flows (stereo-merge, normalize) to keep the
-    source bit/format rather than forcing the 24-bit AIFF the alignment/match
-    flows write.
+    Used by the bit-depth/subtype-preserving flows (stereo-merge, normalize) to
+    keep the source SUBTYPE (bit depth) rather than forcing the 24-bit AIFF the
+    alignment/match flows write. No ``format=`` is passed, so the output
+    CONTAINER follows the destination extension — a ``.wav`` name yields a real
+    WAV even when the source was a (mislabeled) AIFF.
     """
     sf.write(path, collapse_if_mono(data), sr, subtype=subtype)

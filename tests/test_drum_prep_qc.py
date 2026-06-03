@@ -9,7 +9,13 @@ import pytest
 np = pytest.importorskip("numpy")
 sf = pytest.importorskip("soundfile")
 
-from drum_prep.qc import container_chunks, riff_chunks, verify_dir, verify_tags  # noqa: E402
+from drum_prep.qc import (  # noqa: E402
+    _flac_has_vorbis_comment,
+    container_chunks,
+    riff_chunks,
+    verify_dir,
+    verify_tags,
+)
 
 SR = 48000
 
@@ -18,9 +24,10 @@ def _plain_wav(p) -> None:
     sf.write(str(p), np.zeros((SR, 2), dtype=np.float32), SR, subtype="PCM_24")
 
 
-def _append_list_chunk(p) -> None:
+def _append_list_chunk(p, form: bytes = b"INFO") -> None:
     raw = open(p, "rb").read()
-    payload = b"INFO" + b"ICMT" + struct.pack("<I", 4) + b"hi\x00\x00"
+    # form-type is the LIST body's first 4 bytes: INFO = tag metadata, adtl = cues.
+    payload = form + b"ICMT" + struct.pack("<I", 4) + b"hi\x00\x00"
     chunk = b"LIST" + struct.pack("<I", len(payload)) + payload
     new = raw + chunk
     new = new[:4] + struct.pack("<I", len(new) - 8) + new[8:]  # fix RIFF size
@@ -122,3 +129,79 @@ def test_non_ascii_chunk_id_stops_parsing(tmp_path) -> None:
     assert container == "WAVE"
     assert "LIST" not in ids               # parsing stopped at the bogus chunk
     assert verify_tags(str(p))["has_metadata_chunk"] is False
+
+
+def test_adtl_list_chunk_not_counted_as_tag(tmp_path) -> None:
+    # A LIST chunk's form-type is its first 4 body bytes: 'INFO' = the RIFF INFO
+    # tag metadata this gate verifies, 'adtl' = cue/playlist labels (NOT tags). An
+    # adtl LIST must report has_metadata_chunk/tagged False even though the raw
+    # chunk id is 'LIST' (has_list_chunk stays True for back-compat).
+    p = tmp_path / "adtl.wav"
+    _plain_wav(p)
+    _append_list_chunk(p, form=b"adtl")
+    assert "LIST" in riff_chunks(str(p))          # raw id is still LIST
+    r = verify_tags(str(p))
+    assert r["has_list_chunk"] is True            # back-compat: any LIST
+    assert r["has_metadata_chunk"] is False       # but adtl is not tag metadata
+    assert r["tagged"] is False
+
+
+def test_info_list_still_counted_as_tag(tmp_path) -> None:
+    # Guard the INFO path didn't regress when adtl was excluded.
+    p = tmp_path / "info.wav"
+    _plain_wav(p)
+    _append_list_chunk(p, form=b"INFO")
+    r = verify_tags(str(p))
+    assert r["has_metadata_chunk"] is True and r["tagged"] is True
+
+
+# --- FLAC: VORBIS_COMMENT detection ------------------------------------------
+# libsndfile always writes a VORBIS_COMMENT block, so a genuinely bare FLAC must
+# be hand-built. We exercise the block-walk on minimal hand-built streams (no
+# audio frames → don't round-trip through sf.info) and the sidecar fallback on a
+# real soundfile FLAC.
+
+def _flac_block(block_type: int, body: bytes, last: bool) -> bytes:
+    """A FLAC metadata block: 1-byte (last<<7 | type) + 3-byte BE length + body."""
+    head = bytes([(0x80 if last else 0) | (block_type & 0x7F)])
+    return head + len(body).to_bytes(3, "big") + body
+
+
+_FLAC_STREAMINFO = _flac_block(0, b"\x00" * 34, last=False)  # type 0, minimal
+
+
+def test_flac_with_vorbis_comment_detected(tmp_path) -> None:
+    # STREAMINFO + VORBIS_COMMENT (block type 4) → embedded metadata present.
+    p = tmp_path / "tagged.flac"
+    stream = b"fLaC" + _FLAC_STREAMINFO + _flac_block(4, b"\x00" * 16, last=True)
+    p.write_bytes(stream)
+    assert container_chunks(str(p))[0] == "FLAC"
+    assert _flac_has_vorbis_comment(str(p)) is True
+
+
+def test_bare_flac_no_vorbis_comment_untagged(tmp_path) -> None:
+    # STREAMINFO only (last-block) → no VORBIS_COMMENT → not embedded-tagged.
+    p = tmp_path / "bare.flac"
+    streaminfo_last = _flac_block(0, b"\x00" * 34, last=True)
+    p.write_bytes(b"fLaC" + streaminfo_last)
+    assert container_chunks(str(p))[0] == "FLAC"
+    assert _flac_has_vorbis_comment(str(p)) is False
+
+
+def test_flac_truncated_vorbis_comment_not_counted(tmp_path) -> None:
+    # A VORBIS_COMMENT header whose declared body runs past EOF (aborted write)
+    # must NOT count — the body isn't there. This is the QC gate.
+    p = tmp_path / "trunc.flac"
+    bogus_vc = bytes([0x84]) + (9999).to_bytes(3, "big")  # last + type 4, no body
+    p.write_bytes(b"fLaC" + _FLAC_STREAMINFO + bogus_vc)
+    assert _flac_has_vorbis_comment(str(p)) is False
+
+
+def test_flac_tagged_via_sidecar(tmp_path) -> None:
+    # A real (soundfile) FLAC with a .tags.json sidecar reports tagged via the
+    # sidecar fallback; this also round-trips through sf.info (a valid stream).
+    p = tmp_path / "kit.flac"
+    sf.write(str(p), np.zeros((SR, 2), dtype=np.float32), SR, format="FLAC")
+    json.dump({"bpm": 128}, open(str(p) + ".tags.json", "w"))
+    r = verify_tags(str(p))
+    assert r["has_sidecar"] is True and r["tagged"] is True

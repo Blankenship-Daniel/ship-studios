@@ -51,18 +51,23 @@ a tool — every name below is verified.
    after the render.
 6. **Perceptual mastering read** — `stemmy-gemini:mastering-feedback {path,
    target_platform}`. Master-bus critique with platform guidance and a
-   release-readiness boolean. Use this to steer the render target (e.g. if it
-   flags harshness, set `high_pass_hz` modestly and/or back off
+   release-readiness boolean. **Map the platform first:** `target_platform` here
+   is a critique *mood* (`general`/`streaming`/`club`/`broadcast`/`vinyl`),
+   **not** a service name — collapse any streaming service (spotify / apple_music
+   / youtube / tidal) to `streaming`; the literal service name goes only to
+   `check-streaming-targets` in step 8 (the two tools take disjoint vocabularies
+   and each rejects the other's value). Use this to steer the render target (e.g.
+   if it flags harshness, set `high_pass_hz` modestly and/or back off
    `transient_shape`). *Alternative:* for a complete, typed starting chain
    rather than a critique, run [[mastering-plan]] (`master-assistant` from a
    creative brief, or `recommend-mastering-chain` measure-first) and drive
    step 7 from its `eq_moves` / `expected_lufs` / limiter ceiling.
 7. **Render the master** — `stemmy-loops:render-mastered {path, out_path,
-   target_lufs, ceiling_dbtp, ...}`. HPF → transient shape → loudness
-   normalize → hard-clip limiter → optional resample + dither. Pass
-   `high_pass_hz`, `transient_shape`, `bit_depth`, `sample_rate` only when
-   the measurements/feedback called for them. Write to
-   `projects/<track>/masters/`.
+   target_lufs, ceiling_dbtp, ...}`. HPF → transient shape → optional zero-phase
+   EQ → loudness normalize → limiter → optional resample + dither. Pass
+   `eq_bands` (a zero-phase corrective move), `high_pass_hz`, `transient_shape`,
+   `bit_depth`, `sample_rate` only when the measurements/feedback called for
+   them. Write to `projects/<track>/masters/`.
 8. **Verify streaming compliance** — `stemmy-gemini:check-streaming-targets
    {path: <rendered master>, platforms}`. Per-platform LUFS-I + true-peak
    compliance with recommended attenuation.

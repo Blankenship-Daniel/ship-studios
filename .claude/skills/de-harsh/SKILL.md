@@ -1,6 +1,6 @@
 ---
 name: de-harsh
-description: Use when a mix/stem rings or sounds harsh/brittle/fatiguing — "tame the harshness", "it's brittle/edgy/abrasive", "Soothe this", "there's a ringing resonance", "the 3–5 kHz is fatiguing", "smooth out the top without dulling it". Soothe-STYLE dynamic resonance suppressor: ducks narrow peaks ONLY when they ring above the spectral envelope, leaving broadband tone intact. Pure DSP; find-resonances (optional) is Gemini. Stemmy MCP.
+description: Use when a mix/stem rings or sounds harsh/brittle/fatiguing — "tame the harshness", "it's brittle/edgy/abrasive", "Soothe this", "there's a ringing resonance", "the 3–5 kHz is fatiguing", "smooth out the top without dulling it". Soothe-STYLE dynamic resonance suppressor: ducks narrow peaks ONLY when they ring above the spectral envelope, leaving broadband tone intact. Pure DSP; find-resonances (optional) is also pure DSP (no key). Stemmy MCP.
 argument-hint: <mix-or-stem.wav>
 ---
 
@@ -27,8 +27,8 @@ hits) use `[[dynamic-eq]]` instead.
 
 - `stemmy-loops` up. `[L] suppress-resonances` / `measure-spectrum` are pure
   DSP, no key.
-- `[G] find-resonances` (optional, to pinpoint peaks first) needs
-  `GEMINI_API_KEY`.
+- `[G] find-resonances` (optional, to pinpoint peaks first) is **pure DSP — no
+  `GEMINI_API_KEY`** (it lives on the stemmy-gemini server but makes no model call).
 - Input is **one stereo WAV** (mix, bus, or stem) — works on any stereo file,
   not just loops.
 

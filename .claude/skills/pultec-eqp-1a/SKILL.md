@@ -93,7 +93,7 @@ moves: the **low-end trick** (boost + atten the *same* low freq → big-but-tigh
 
 | Goal | Pultec move |
 |---|---|
-| **Drum bus — warm + tight** ★ | low-end trick `60 CPS` B5/A4 (+ `5 KCS` atten 2 de-harsh, `16 KCS` boost 4 sheen) → low up, low-mid scoop 0.18→0.12, centroid 1593→1231, crest held (shipped `pultec-drum-lowend-glue`). |
+| **Drum bus — warm + tight** ★ | low-end trick `60 CPS` B5/A4 (+ `5 KCS` atten 2 de-harsh, `16 KCS` boost 4 sheen) → low up, low-mid scoop 0.18→0.12, centroid 1593→1231, crest −1.2 dB (14.6→13.4 — the low-end boost slightly densifies; the one shipped preset that does NOT hold crest) (shipped `pultec-drum-lowend-glue`). |
 | **Kick — weight + tight** | low-end trick `30–60 CPS`, boost ~4–5 / atten ~4–5 (thump + clean low-mid scoop). |
 | **Bass — tight + de-mud** | low-end trick `30 CPS` (or 60), boost ≈ atten 4–6. |
 | **Snare — body + snap** | low boost `100 CPS` body; HF boost `5–8 KCS` for crack. |

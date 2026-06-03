@@ -36,9 +36,11 @@ sampler instrument patch (no `.sfz` / `.exs` generation).
    (see Scope).
 3. **Measure fundamentals** — `[L] tune-kick` on each pitched hit → fundamental
    Hz / note / cents off (or `drum-prep tune <hit>` for the same read).
-4. **Retune to the song root** — `drum-prep tune <hit> --out <f>` resamples the
-   pitched hit toward the target note from `track.md`. Resampling shifts pitch
-   **and** length/timbre — right for a sub-y kick/tom, judge by ear.
+4. **Retune to the song root** — `drum-prep tune <hit> --out <f> --target-midi <root>`
+   resamples the pitched hit toward the target note. **Exactly one of `--target-midi`
+   / `--target-hz` / `--semitones` is required** — the CLI does **not** read
+   `track.md`, so pass the root from it explicitly (no flag → it errors). Resampling
+   shifts pitch **and** length/timbre — right for a sub-y kick/tom, judge by ear.
 5. **Level + QC** — `[L] check-clipping` on the retuned hits and renormalize if
    the resample overshot 0 dBFS; drop duds. **Not `inspect-loop`** (vacuous on
    one-shots).

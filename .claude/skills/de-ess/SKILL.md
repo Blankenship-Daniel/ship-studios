@@ -1,6 +1,6 @@
 ---
 name: de-ess
-description: Use when sibilance ("ess"/"sh"/"t") is harsh on a vocal, lead, or bright bus — "de-ess the vocal", "the esses are spitty/harsh", "tame the sibilance", "too much 's' on the lead", "the hi-hat/cymbals are spitting". Finds the sibilant band with find-sibilance, then ducks ONLY that band with the native split-band de-ess (no plugin), proven by the 4–9 kHz band-energy delta. Pure DSP for the render; find-sibilance is Gemini. Stemmy MCP.
+description: Use when sibilance ("ess"/"sh"/"t") is harsh on a vocal, lead, or bright bus — "de-ess the vocal", "the esses are spitty/harsh", "tame the sibilance", "too much 's' on the lead", "the hi-hat/cymbals are spitting". Finds the sibilant band with find-sibilance, then ducks ONLY that band with the native split-band de-ess (no plugin), proven by the 4–9 kHz band-energy delta. Pure DSP — find-sibilance is also pure DSP (no key). Stemmy MCP.
 argument-hint: <vocal-or-bus.wav>
 ---
 
@@ -21,9 +21,9 @@ unless the user specifically wants a plugin. It is also not a high-shelf cut
 ## Prerequisites
 
 - `stemmy-loops` up. `[L] de-ess` / `measure-spectrum` are pure DSP, no key.
-- `[G] find-sibilance` needs `GEMINI_API_KEY` (it listens). If no key, skip it
-  and dial `de-ess` by hand from `measure-spectrum` (sibilance usually lives
-  5–9 kHz; start `center_hz 6500`, `q 2`).
+- `[G] find-sibilance` is **pure DSP — no `GEMINI_API_KEY`, no network** (it lives
+  on the stemmy-gemini server but makes no model call). To skip the locate step and
+  dial `de-ess` by hand, sibilance usually sits 5–9 kHz; start `center_hz 6500`, `q 2`.
 - Input is **one stereo WAV** — a vocal/lead stem or a bus. Despite the schema
   wording, `de-ess` is not loop-only; it works on any stereo file.
 

@@ -1,0 +1,33 @@
+{
+  "name": "oxide-master-glue",
+  "description": "Transparent 2-bus / master tape finish via the UADx Oxide Tape Recorder. Repro, 15 IPS, NAB, NR on, gentle input_level +4 for near-transparent dynamics (crest ~14.0 from 14.6) + a touch of low-order body. A color insert BEFORE the limiter, not the limiter. The fast/light alternative to the Ampex ATR-102 master-glue preset.",
+  "intended_for": "a near-final stereo mix / 2-bus wanting subtle tape cohesion before [[master-track]] / render-mastered. Insert before the limiter; do NOT limit here.",
+  "plugin_build": "uaudio_oxide_tape.vst3 (UADx native — renders headless; the 'UAD Oxide Tape.component' twin passes audio through unprocessed offline, do NOT use it).",
+  "target_signature": {
+    "comment": "measured dry -> processed on watercolors_drums_104bpm_8bar_a (peak-normed). dry centroid 3007, crest 14.63. +0 default measured cen 2990 / crest 14.33 (~0.3 dB compression); +4 sits just past that.",
+    "centroid_hz": 3010, "band_low": 0.945, "band_high": 0.0072, "crest_db": 14.0
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_oxide_tape.vst3", "params": {
+        "path_select": "Repro",
+        "ips": "15 IPS",
+        "emphasis_eq": "NAB",
+        "noise_reduct": true,
+        "input_level": 4.0,
+        "output_level": -4.0
+      }}
+    ]
+  },
+  "notes": [
+    "Keep it gentle on a master: +4 drive only. Add cohesion until crest drops ~0.5-1 dB, then stop. Drive harder = audible odd-3rd grit on a full mix.",
+    "Use Path Select = Input (electronics only, no tape) for a near-clean transformer-flavored 2nd-harmonic sheen with NO tape compression -- a subtler option still.",
+    "15 IPS / NAB = the warm, full-low master tone; CCIR = brighter top; 30 IPS does not exist on Oxide (7.5 / 15 only).",
+    "It is a color insert, NOT a limiter -- hand loudness/ceiling to render-mastered ([[master-track]]).",
+    "Verify: measure-loudness (crest barely moves), measure-spectrum, check-clipping, render-ab loudness-matched.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/oxide-master-glue.json <in.wav> <out.wav>"
+  ]
+}

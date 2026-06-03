@@ -1,0 +1,33 @@
+{
+  "name": "oxide-warm-drum-glue",
+  "description": "Warm tape glue + low-end weight on a drum bus via the UADx Oxide Tape Recorder. Repro path, 15 IPS (the warm/low-end setting), NAB (warmer top), NR on. input_level +7 drives ~1 dB of tape compression (crest 14.6 -> ~13.7) + odd-3rd body and a small LF lift (20-200 energy 0.918 -> 0.944). The simple/fast warm finisher; the lighter, lower-CPU cousin of the Ampex ATR-102 / Studer A800 drum-glue presets.",
+  "intended_for": "a balanced stereo DRUM bus that wants quick warmth + gentle glue. Insert before the master; do NOT limit here.",
+  "plugin_build": "uaudio_oxide_tape.vst3 (UADx native — renders headless; the 'UAD Oxide Tape.component' twin passes audio through unprocessed offline, do NOT use it).",
+  "target_signature": {
+    "comment": "measured dry -> processed on watercolors_drums_104bpm_8bar_a (peak-normed). dry centroid 3007, crest 14.63.",
+    "centroid_hz": 3027, "band_low": 0.944, "band_high": 0.0073, "crest_db": 13.68
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_oxide_tape.vst3", "params": {
+        "path_select": "Repro",
+        "ips": "15 IPS",
+        "emphasis_eq": "NAB",
+        "noise_reduct": true,
+        "input_level": 7.0,
+        "output_level": -7.0
+      }}
+    ]
+  },
+  "notes": [
+    "input_level IS the drive (the primary color). +7 = ~1 dB glue; push to +10..+14 for audible saturation (crest -> ~12) but the odd-3rd stack climbs into grit past ~+16.",
+    "output_level is plugin make-up; here it offsets the +7 drive for ~unity so the A/B is loudness-matched (the harness still peak-trims to -1 dBFS).",
+    "For a brighter top swap emphasis_eq -> CCIR (centroid +~450); for more lo-fi color/frequency-shift go ips -> 7.5 IPS (leaner lows, more upper color).",
+    "NR (default on) only removes the modeled hiss/hum floor -> tonally transparent on a hot bus; it is NOT a tone control.",
+    "Verify: measure-loudness (crest), measure-spectrum (centroid/tilt/bands), render-ab loudness-matched. Pairs with [[warm-drum-bus]] / [[drum-bus-warm-tight-preference]].",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/oxide-warm-drum-glue.json <in.wav> <out.wav>"
+  ]
+}

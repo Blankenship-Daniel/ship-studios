@@ -1,0 +1,30 @@
+{
+  "name": "massive-passive-master-polish",
+  "description": "Gentle UADx Manley Massive Passive MST mastering polish on a stereo 2-bus: broad WIDE-bandwidth low-shelf weight + a touch of low-mid de-mud + broad air shelf — the classic 'everything sounds better' musical tilt. WIDE bandwidths (bw 1.0) keep the moves broad/gentle; subtle dB; crest essentially held (it's EQ, not dynamics). Measured on the Watercolors drum loop (peak-normalized A/B): band_ratio_low 0.798->0.829 (low weight), low-mid 0.176->0.153 (390 Hz de-mud), centroid 1593->1688 (a touch of air), tilt -2.71->-2.69 (~held), crest 14.63->14.08 (held), TP -0.98 dBTP.",
+  "intended_for": "a near-final stereo mix / 2-bus that wants subtle broad mastering EQ (low weight + air + a hair of low-mid clarity); the colour insert BEFORE the limiter, not a limiter",
+  "plugin_build": "uaudio_manley_massive_passive_m.vst3 (UADx native MST build — renders headless & processes offline; the /Components/UAD Manley Massive Passive MST.component AU twin PASSES THROUGH offline, do not use it). UADx native = no-iLok lineage here, but re-verify changed:true elsewhere.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_massive_passive_m.vst3", "params": {
+        "ch1loenable": "BOOST", "ch1loshape": "SHELF", "ch1logain": 4.4, "ch1lobw": 1.0, "ch1lofreq": 47.0,
+        "ch1lomidenable": "CUT", "ch1lomidshape": "BELL", "ch1lomidgain": 2.93, "ch1lomidbw": 1.0, "ch1lomidfreq": 390.0,
+        "ch1hienable": "BOOST", "ch1hishape": "SHELF", "ch1higain": 5.13, "ch1hibw": 1.0, "ch1hifreq": 16000.0,
+        "ch1lopass": "OFF", "ch1hipass": "OFF", "ch1gain": 0.0, "ch1enable": "IN",
+        "ch2loenable": "BOOST", "ch2loshape": "SHELF", "ch2logain": 4.4, "ch2lobw": 1.0, "ch2lofreq": 47.0,
+        "ch2lomidenable": "CUT", "ch2lomidshape": "BELL", "ch2lomidgain": 2.93, "ch2lomidbw": 1.0, "ch2lomidfreq": 390.0,
+        "ch2hienable": "BOOST", "ch2hishape": "SHELF", "ch2higain": 5.13, "ch2hibw": 1.0, "ch2hifreq": 16000.0,
+        "ch2lopass": "OFF", "ch2hipass": "OFF", "ch2gain": 0.0, "ch2enable": "IN",
+        "ctrllink": "LINKED", "power": true, "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "EVERY engaged band needs its enable set to BOOST or CUT (default is OUT = band removed from circuit). enable/shape are STRING enums -> the apply-vst-chain float dict can't set them; this MUST go through apply_vst_preset.py.",
+    "Set BOTH ch1* and ch2* identically (even with ctrllink LINKED) so the render EQs both channels regardless of how Pedalboard mirrors the link.",
+    "GAIN dial 0-11 is NONLINEAR and BANDWIDTH-COUPLED: the dB you get = gain x bandwidth. WIDE bandwidth (bw 1.0) keeps these moves broad and gentle (a g4.4 wide low shelf is only a couple dB but spans the whole low end).",
+    "This is the MASTERING version (MST): stepped/detented controls + a precise +-2.5 dB / 0.5-step make-up trim (ch1gain/ch2gain). It's a clean EQ (~0.13% THD at unity) -> a tonal polish, NOT a limiter; hand the result to render-mastered / [[fabfilter-pro-l-2]] for loudness."
+  ]
+}

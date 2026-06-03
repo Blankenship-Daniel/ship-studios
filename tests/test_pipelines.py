@@ -162,6 +162,80 @@ async def test_mix_check_no_mutation_without_moves(recording_hub) -> None:
     assert "compress-loop" not in recording_hub.tool_sequence
 
 
+async def test_mix_check_corrective_chain_order(recording_hub) -> None:
+    # Every corrective step, in the doc's order, each chaining off the previous.
+    await pipelines.mix_check(
+        recording_hub,
+        "mix.wav",
+        eq_bands=[{"type": "bell", "freq_hz": 320.0, "gain_db": -2.0, "q": 1.4}],
+        deess={},
+        suppress={},
+        dynamic_eq_bands=[
+            {"freq_hz": 200.0, "gain_db": -3.0, "q": 1.0, "threshold_db": -24.0}
+        ],
+        excite={},
+        compress=True,
+        multiband={},
+    )
+    assert recording_hub.tool_sequence[-7:] == [
+        "apply-eq",
+        "de-ess",
+        "suppress-resonances",
+        "apply-dynamic-eq",
+        "excite-loop",
+        "compress-loop",
+        "multiband-compress",
+    ]
+    # Each step reads the previous step's output — the chain is wired correctly.
+    a = recording_hub
+    assert a.args_for("de-ess")["path"] == a.args_for("apply-eq")["out_path"]
+    assert a.args_for("suppress-resonances")["path"] == a.args_for("de-ess")["out_path"]
+    assert (
+        a.args_for("apply-dynamic-eq")["path"]
+        == a.args_for("suppress-resonances")["out_path"]
+    )
+    assert a.args_for("excite-loop")["path"] == a.args_for("apply-dynamic-eq")["out_path"]
+    assert a.args_for("compress-loop")["path"] == a.args_for("excite-loop")["out_path"]
+    assert (
+        a.args_for("multiband-compress")["path"] == a.args_for("compress-loop")["out_path"]
+    )
+
+
+async def test_mix_check_output_is_last_corrective_file(recording_hub) -> None:
+    result = await pipelines.mix_check(recording_hub, "mix.wav", deess={})
+    # output points at the final corrective render, not the raw mix.
+    assert result["output"] == recording_hub.args_for("de-ess")["out_path"]
+    assert result["output"] != "mix.wav"
+
+
+async def test_mix_check_output_is_input_when_no_moves(recording_hub) -> None:
+    result = await pipelines.mix_check(recording_hub, "mix.wav")
+    assert result["output"] == "mix.wav"
+
+
+async def test_mix_check_deess_settings_forwarded_path_protected(recording_hub) -> None:
+    # Tuning kwargs pass through; an out_path inside the dict can't hijack the
+    # chain (the pipeline injects path/out_path last).
+    await pipelines.mix_check(
+        recording_hub,
+        "mix.wav",
+        deess={"center_hz": 7000.0, "reduction_db": 5.0, "out_path": "HACKED.wav"},
+    )
+    args = recording_hub.args_for("de-ess")
+    assert args["center_hz"] == 7000.0
+    assert args["reduction_db"] == 5.0
+    assert args["path"] == "mix.wav"
+    assert args["out_path"] != "HACKED.wav"
+
+
+async def test_mix_check_multiband_is_a_compress_alternative(recording_hub) -> None:
+    await pipelines.mix_check(recording_hub, "mix.wav", multiband={})
+    seq = recording_hub.tool_sequence
+    assert "multiband-compress" in seq
+    assert "compress-loop" not in seq
+    assert recording_hub.args_for("multiband-compress")["path"] == "mix.wav"
+
+
 async def test_reference_match_sequence(recording_hub) -> None:
     await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     assert recording_hub.server_tool_sequence == [
@@ -630,11 +704,18 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
     await pipelines.master_track(h, "m.wav", "o.wav", target_platform="spotify")
     _collect(h)
 
-    # mix-check with BOTH corrective branches (apply-eq + compress-loop).
+    # mix-check with EVERY corrective branch so the live contract sees them all
+    # (apply-eq, de-ess, suppress-resonances, apply-dynamic-eq, excite-loop,
+    # compress-loop, multiband-compress).
     h = RecordingHub()
     await pipelines.mix_check(
-        h, "m.wav", eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
-        compress=True,
+        h, "m.wav",
+        eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+        deess={}, suppress={},
+        dynamic_eq_bands=[
+            {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+        ],
+        excite={}, compress=True, multiband={},
     )
     _collect(h)
 

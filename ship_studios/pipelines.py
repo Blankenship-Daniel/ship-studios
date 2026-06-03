@@ -208,16 +208,27 @@ async def mix_check(
     severity_threshold: str = "any",
     eq_bands: list[dict[str, Any]] | None = None,
     eq_out_path: str | None = None,
+    deess: dict[str, Any] | None = None,
+    suppress: dict[str, Any] | None = None,
+    dynamic_eq_bands: list[dict[str, Any]] | None = None,
+    excite: dict[str, Any] | None = None,
     compress: bool = False,
     compress_out_path: str | None = None,
+    multiband: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Pipeline 2 — fuse perceptual + measurement views into corrective moves.
 
     Order (verified tools): detect-mix-issues / analyze-mix-balance (gemini)
     -> measure-loudness / measure-spectrum / measure-stereo (loops) ->
-    find-resonances / find-sibilance / analyze-phase-mono (gemini) ->
-    apply-eq [+ compress-loop] (loops). The EQ/compression steps only run
-    when concrete moves are supplied — diagnosis alone never mutates audio.
+    find-resonances / find-sibilance / analyze-phase-mono (gemini) -> the
+    corrective chain (loops), each step reading the previous step's output:
+    apply-eq -> de-ess -> suppress-resonances -> apply-dynamic-eq ->
+    excite-loop -> compress-loop -> multiband-compress. Every corrective step is
+    opt-in (gated on a supplied move) — diagnosis alone never mutates audio.
+    ``deess`` / ``suppress`` / ``excite`` / ``multiband`` are tuning-kwarg dicts
+    (``{}`` = the tool's defaults); ``eq_bands`` / ``dynamic_eq_bands`` carry the
+    EQ moves. Returns ``output`` = the final corrected WAV (== ``input`` if no
+    corrective move ran).
     """
     rec = _Recorder(hub)
 
@@ -236,28 +247,54 @@ async def mix_check(
     await rec.run(GEMINI_SERVER, "find-sibilance", {"path": mix_path})
     await rec.run(GEMINI_SERVER, "analyze-phase-mono", {"path": mix_path})
 
+    # Corrective chain — each step reads the running ``cur`` (the prior step's
+    # output) and writes a fresh suffixed file, so order matches the doc recipe.
+    cur = mix_path
     if eq_bands is not None:
+        out = eq_out_path or _suffix_path(mix_path, "eq")
+        await rec.run(
+            LOOPS_SERVER, "apply-eq", {"path": cur, "out_path": out, "bands": eq_bands}
+        )
+        cur = out
+    if deess is not None:
+        out = _suffix_path(mix_path, "deess")
+        await rec.run(LOOPS_SERVER, "de-ess", {**deess, "path": cur, "out_path": out})
+        cur = out
+    if suppress is not None:
+        out = _suffix_path(mix_path, "deharsh")
+        await rec.run(
+            LOOPS_SERVER, "suppress-resonances", {**suppress, "path": cur, "out_path": out}
+        )
+        cur = out
+    if dynamic_eq_bands is not None:
+        out = _suffix_path(mix_path, "dyneq")
         await rec.run(
             LOOPS_SERVER,
-            "apply-eq",
-            {
-                "path": mix_path,
-                "out_path": eq_out_path or _suffix_path(mix_path, "eq"),
-                "bands": eq_bands,
-            },
+            "apply-dynamic-eq",
+            {"path": cur, "out_path": out, "bands": dynamic_eq_bands},
         )
+        cur = out
+    if excite is not None:
+        out = _suffix_path(mix_path, "excite")
+        await rec.run(LOOPS_SERVER, "excite-loop", {**excite, "path": cur, "out_path": out})
+        cur = out
     if compress:
-        comp_in = (eq_out_path or _suffix_path(mix_path, "eq")) if eq_bands else mix_path
+        out = compress_out_path or _suffix_path(mix_path, "comp")
+        await rec.run(LOOPS_SERVER, "compress-loop", {"path": cur, "out_path": out})
+        cur = out
+    if multiband is not None:
+        out = _suffix_path(mix_path, "mbcomp")
         await rec.run(
-            LOOPS_SERVER,
-            "compress-loop",
-            {
-                "path": comp_in,
-                "out_path": compress_out_path or _suffix_path(mix_path, "comp"),
-            },
+            LOOPS_SERVER, "multiband-compress", {**multiband, "path": cur, "out_path": out}
         )
+        cur = out
 
-    return {"pipeline": "mix-check", "input": mix_path, "steps": rec.steps}
+    return {
+        "pipeline": "mix-check",
+        "input": mix_path,
+        "output": cur,
+        "steps": rec.steps,
+    }
 
 
 async def reference_match(

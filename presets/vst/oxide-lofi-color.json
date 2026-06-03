@@ -1,0 +1,33 @@
+{
+  "name": "oxide-lofi-color",
+  "description": "Lo-fi / driven tape color via the UADx Oxide Tape Recorder. Repro, 7.5 IPS (the 'more colored, greater frequency shift' speed -> leaner lows, more upper color), NAB, NR off (let the modeled hiss/hum add vibe), input_level +14 for heavy odd-3rd saturation (~7-10% THD) + tape compression (crest 14.6 -> ~12). The grit/character setting, not the polite glue.",
+  "intended_for": "a drum bus, loop, beat, or stem you want to make sound 'recorded to cheap tape' — color over cleanliness.",
+  "plugin_build": "uaudio_oxide_tape.vst3 (UADx native — renders headless; the 'UAD Oxide Tape.component' twin passes audio through unprocessed offline, do NOT use it).",
+  "target_signature": {
+    "comment": "measured dry -> processed on watercolors_drums_104bpm_8bar_a (peak-normed). dry centroid 3007, crest 14.63. drive +12 on the SAME chain measured cen 3145 / crest 12.45 / THD 7.7% odd.",
+    "centroid_hz": 3145, "band_low": 0.912, "band_high": 0.0127, "crest_db": 12.4
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_oxide_tape.vst3", "params": {
+        "path_select": "Repro",
+        "ips": "7.5 IPS",
+        "emphasis_eq": "NAB",
+        "noise_reduct": false,
+        "input_level": 14.0,
+        "output_level": -12.0
+      }}
+    ]
+  },
+  "notes": [
+    "input_level is the drive AND the saturation: +12 = ~7.7% THD, +18 = ~24%, +24 = ~38% (odd ladder 3rd -> 5th). The harmonics are ODD (3rd-dominant) like real tape; brightness RISES as you drive (centroid 2990 -> 3800 over +0 -> +24).",
+    "7.5 IPS is the 'colored/frequency-shift' setting here (leaner 20-200, more 4-16k) -- the textbook 'slow = bigger bass bump' is INVERTED on this model; switch to 15 IPS if you want the warm low-end instead.",
+    "NR off keeps the modeled tape hiss/hum for vibe; flip on if it distracts (tonally transparent either way).",
+    "For brighter lo-fi swap emphasis_eq -> CCIR. To tame the grit, drop input_level. Place before any bus comp.",
+    "Verify: measure-distortion (THD), measure-loudness (crest), measure-spectrum (centroid up = the drive). Pairs with [[vst-saturate]] / [[vibe-analog-machines]].",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/oxide-lofi-color.json <in.wav> <out.wav>"
+  ]
+}

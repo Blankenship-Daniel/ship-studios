@@ -1,6 +1,7 @@
 ---
 name: hitsville-eq
 description: "Use when running the UADx Hitsville EQ — the single-channel Studio EQ (UA's model of the custom Motown / Hitsville U.S.A. 7-band graphic EQ built by Mike McLean) — for fast, forgiving 'Motown' tone on drums, drum bus, bass, vocals, guitars or a mix bus — 'Hitsville EQ', 'Motown EQ', 'that Motown sound / butter EQ', 'Motown drum / bass / vocal tone', 'use the Hitsville EQ', '7-band Motown graphic EQ', or when you want a clean, hard-to-make-harsh fixed-frequency character EQ. The measured, plugin-specific deep-dive of [[vst-eq]] — a 7-fixed-band (50/130/320/800/2k/5k/12.5k), ±8 dB stepped, inductor-based proportional-Q graphic EQ + a master GAIN + a 3-way In/Out/Off switch; grounded in the real 11-param surface + isolation/THD/proportional-Q render numbers in docs/vst/hitsville-eq.md. The single-channel CHANNEL counterpart to the Mid/Side mastering twin [[hitsville-eq-mastering]]; pair with [[fabfilter-pro-q-4]] for surgery. Stemmy MCP, the `vst` extra. UADx native (iLok account, no dongle; verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: motown-drums/warm-bus/mix-glue/air/soften/bass]
 ---
 
 # hitsville-eq — drive the UADx Hitsville EQ (the Motown Studio EQ, measured)

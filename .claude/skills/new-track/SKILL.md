@@ -1,6 +1,7 @@
 ---
 name: new-track
 description: Use when the user starts a new project — "new track", "start a new song", "scaffold a project", "set up a working dir for <name>", "make me a folder for the remix". Pure filesystem scaffolding under projects/<slug>/; calls NO MCP tools. Sets up the stems/mix/masters/refs/loops/deliverables layout the other skills read from, then points the user at the next skill.
+argument-hint: <track name>
 ---
 
 # Scaffold a new track working directory

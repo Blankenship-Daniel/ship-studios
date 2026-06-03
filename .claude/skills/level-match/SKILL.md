@@ -1,6 +1,7 @@
 ---
 name: level-match
 description: Use when you need two files at the same loudness for an honest comparison, or one file brought to a loudness without mastering it — "level-match these so I can A/B fairly", "normalize this to the reference's loudness", "match the loudness of <ref> without limiting", "bring this to -14 LUFS, gain only", "is it actually better or just louder?". Applies ONE peak-safe linear gain (a clamp, not a limiter). Pure DSP, no API key. Stemmy MCP.
+argument-hint: <file.wav> [--reference <ref.wav> | --lufs <-14>]
 ---
 
 # Level-match — gain-only, peak-safe loudness match

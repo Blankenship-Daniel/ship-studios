@@ -1,6 +1,7 @@
 ---
 name: drum-punch
 description: Use when a drum loop or drum bus needs more punch/attack — "make the drums punchier", "give the kick more attack", "the snare has no snap", "tighten the low end and add slam", "more transient on the drums", "the drums sound flat/soft". Measure-driven multiband transient design via shape-bands (per-band LR4 transient + gain), proven before/after with crest/PLR so louder-transient isn't just louder. Works on ONE stereo drum file (loop or bus) — a multi-mic kit goes through [[drum-prep]] first.
+argument-hint: <drum-loop-or-bus.wav>
 ---
 
 # Drum punch — multiband transient design, measured before/after

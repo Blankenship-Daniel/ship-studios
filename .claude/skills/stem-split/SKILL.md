@@ -1,6 +1,7 @@
 ---
 name: stem-split
 description: "Use when the user wants to separate a mixdown into stems — 'split this song into stems', 'isolate the drums from this track', 'get the drum stem out of this mix', 'separate for a remix/sample'. Runs Demucs source separation via the stemmy-loops server. Stemmy MCP, not local."
+argument-hint: <mix.wav> <bpm>
 ---
 
 # Split a mixdown into stems (Demucs source separation)

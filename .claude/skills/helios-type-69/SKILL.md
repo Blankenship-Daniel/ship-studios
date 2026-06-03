@@ -1,6 +1,7 @@
 ---
 name: helios-type-69
 description: "Use when running the UAD/UADx Helios Type 69 Preamp and EQ for warm, characterful British-console tone or colour on drums, bus, bass, guitar, or vocals — 'Helios Type 69', 'Helios EQ', 'that Olympic Studios / Led Zeppelin console sound', 'warm vintage British EQ', 'drive the preamp for colour', 'use the Helios', or when you want its passive-style 3-band EQ + transformer-preamp saturation dialed for warmth/glue. The measured, plugin-specific deep-dive of [[vst-eq]] / [[vst-channel-strip]] (a preamp+EQ, no compressor) — grounded in the real 14-param surface + isolation/drive/EQ numbers in docs/vst/helios-type-69.md. A WARM, rock-leaning British counterpart to [[kit-bb-n105]] (Neve) and the cleaner [[ssl-4k-e]]. Stemmy MCP, the `vst` extra. UADx native (no iLok)."
+argument-hint: <audio.wav> [goal: warm-glue|clean-eq|air|de-box|tighten|colour]
 ---
 
 # helios-type-69 — drive the UADx Helios Type 69 Preamp & EQ (measured)
@@ -17,7 +18,7 @@ British member of [[vst-eq]] / [[vst-channel-strip]], next to the Neve-flavoured
 
 1. **Renders headless — use the `uaudio_` build.** `uaudio_helios_type_69.vst3` loads + processes (UADx native).
    The `UAD Helios Type 69.component` / `… Legacy.component` twins are the **passthrough** offline build — never
-   load those ([[uadx-uaudio-build-renders-headless]]). UADx native = **no iLok** needed for the render.
+   load those ([[vst-verify]]). UADx native = **no iLok** needed for the render.
 2. **`gain` is a TONE control, not just level — it's the drive/colour.** Measured on a 1 kHz tone: Line g20 =
    **0.002 % THD** (clean), Mic g20 = 0.049 %, **Mic g40 = 53 %**, Mic g70 = 61 % — **even-harmonic dominant**
    (transformer/tube warmth, 2nd harmonic −8 dB at g40). `gain` saturates in **both** modes; **Mic reaches it
@@ -83,7 +84,7 @@ British member of [[vst-eq]] / [[vst-channel-strip]], next to the Neve-flavoured
    fill**; **clean EQ → crest UP** (the tell), centroid/tilt move with the shelves. A 0.00 delta = passthrough twin.
    A/B loudness-matched ([[level-match]] / `[L] render-ab`).
 6. **QC** — `[G] detect-mix-issues` / `mastering-feedback` (genre/intent set) for over-drive (harsh/distorted) or
-   over-air; cross-check any mono "dark/harsh" flag against the meters ([[gemini-mastering-feedback-cross-check]]).
+   over-air; cross-check any mono "dark/harsh" flag against the meters ([[gemini-audio-understanding]]).
    It's a per-track/bus colour+EQ insert, not a master — hand the result to [[master-track]] for loudness.
 
 ## Move table (measured)
@@ -128,4 +129,4 @@ headless via the `uaudio_` build, and the preset/`.state` path. A/B loudness-mat
   [[vst-preset]] — apply enum/all-explicit chains · [[vst-verify]] — prove the build renders · [[vst-chain]] — the backbone · [[vst]] — index/doctrine
 - Warm/colour siblings: [[kit-bb-n105]] (Neve 8078, warm) · [[ssl-4k-e]] (clean British) · [[api-vision-channel-strip]] / [[kit-bb-a5]] (punchy API) · [[studer-a800]] / [[ampex-atr-102]] (tape warmth)
 - Pure-DSP twins (no plugin): tube/tape colour → `[L] saturate-loop`; air/presence → [[excite]]; surgical/tilt EQ → `[L] apply-eq`; low-end weight → `[L] apply-eq` / [[sub-design]]
-- [[mix-check]] (find the problems first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where a warm console colour fits) · [[uadx-uaudio-build-renders-headless]] (why the build matters)
+- [[mix-check]] (find the problems first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where a warm console colour fits) · [[vst-verify]] (why the build matters)

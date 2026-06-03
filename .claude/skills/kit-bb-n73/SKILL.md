@@ -1,6 +1,7 @@
 ---
 name: kit-bb-n73
 description: "Use when running the KIT Plugins BB N73 (Blackbird Studio Neve 1073 channel strip) for warm, weighty, vintage 1073 tone on drums, bus, bass, guitar, or vocals — 'KIT BB N73', 'Blackbird Neve 1073', 'Neve 1073 channel', 'that classic 1073 sound', 'use the BB N73', or when you need the fixed-12k HF shelf + sweepable mid bell + low shelf + Mic-mode transformer drive dialed for warmth and low-end weight without harshness. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real 18-param surface + isolation/drive/EQ numbers in docs/vst/kit-bb-n73.md. The classic 3-band 1073 counterpart to the 4-band Neve [[kit-bb-n105]] and the punchy API [[kit-bb-a5]] / [[api-vision-channel-strip]]. Stemmy MCP, the `vst` extra. iLok/PACE (verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: warm-bus/weight/de-box/air/glue]
 ---
 
 # kit-bb-n73 — drive the KIT Plugins BB N73 (Blackbird Neve 1073 channel, measured)

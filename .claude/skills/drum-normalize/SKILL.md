@@ -1,6 +1,7 @@
 ---
 name: drum-normalize
 description: Use when the user wants to normalize or gain-stage a multi-mic drum kit — "normalize the drums", "bring the kit to -1 dB", "gain-stage these stems". Applies a balance-preserving GLOBAL gain by default (per-file optional, with a warning) so the inter-mic balance and stereo image survive. Local drum-prep CLI, not the stemmy MCP servers.
+argument-hint: <stems dir> [target dBFS]
 ---
 
 # Normalize / gain-stage a multi-mic drum kit

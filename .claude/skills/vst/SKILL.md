@@ -1,6 +1,7 @@
 ---
 name: vst
 description: "Use when the user wants to use their own VST3/AU plugins in the pipeline or asks which VST skill applies — 'use my plugins', 'run a VST chain', 'add a real compressor/EQ/reverb plugin', 'what VST skills are there', 'can I use Pultec/SSL/FabFilter here'. The index + doctrine for the VST suite; routes to the per-task vst-* skills. Reference, not a pipeline — it points at the skills and the headless-safe inventory. Stemmy MCP, the `vst` extra."
+argument-hint: [what you want to do]
 ---
 
 # vst — the VST-plugin skill suite (index + doctrine)

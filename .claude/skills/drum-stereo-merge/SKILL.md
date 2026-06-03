@@ -1,6 +1,7 @@
 ---
 name: drum-stereo-merge
 description: Use when the user has separate L/R mono files for drum mics and wants stereo tracks — "merge the overhead left/right", "make stereo tracks from these L/R pairs", "combine the room mics into stereo". Consolidates every "<name> - left/right" pair into one format-preserving stereo file and reviews each (inter-channel correlation, polarity, mono-compatibility, reverb-vs-mic). Local drum-prep CLI, not the stemmy MCP servers.
+argument-hint: <stems dir>
 ---
 
 # Merge L/R mono drum mics into stereo tracks

@@ -1,6 +1,7 @@
 ---
 name: loops-to-deliverables
 description: Use when the user wants finished loop deliverables from a drum stem or full mix — "slice this into loops and master them", "make tagged loops from this drum stem", "loop pack from this track", "export these as a sample pack", "rip drums and clean them up for sale". Extracts loops, cleans + seam-fixes each, masters, tags, and exports the format matrix. Optionally attaches audible descriptions. Primarily stemmy-loops, with an optional stemmy-gemini describe step.
+argument-hint: <stem-or-mix.wav> <bpm>
 ---
 
 # Turn a stem or mix into tagged, mastered loop deliverables

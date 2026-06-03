@@ -1,6 +1,7 @@
 ---
 name: logic-extract
 description: Use when the user wants the raw recordings out of a Logic Pro project — "get the stems out of Logic", "pull the raw tracks from my Logic project", "where are my Logic audio files", "I have a .logicx, extract the multitrack", "grab the untrimmed recordings before processing". Copies the original per-input recordings out of the project package into the workspace, organized by take, without ever mutating the package. Filesystem + ffprobe/afinfo only — no MCP servers. Hands off to [[multitrack-triage]].
+argument-hint: <path/to/Project.logicx>
 ---
 
 # Extract raw recordings from a Logic Pro project

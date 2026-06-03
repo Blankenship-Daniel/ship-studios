@@ -1,6 +1,7 @@
 ---
 name: vst-reverb
 description: "Use when the user wants reverb/space on a stem or send via their own plugin — 'add a plate to the snare', 'put this vocal in a hall', 'make a reverb send', 'give the mix some room/space', 'wash this in Valhalla'. Applies a headless-safe reverb (ValhallaPlate, FabFilter Pro-R 2, SSL Native FlexVerb), favouring a parallel/wet send with a mono-compatibility check. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [space: plate/room/hall]
 ---
 
 # vst-reverb — reverb / space with your own plugin

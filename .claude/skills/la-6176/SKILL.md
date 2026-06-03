@@ -1,6 +1,7 @@
 ---
 name: la-6176
 description: "Use when running the UAD/UADx LA-6176 Signature Channel Strip — a complete one-pass console channel (610 tube preamp + 2-band EQ + a switchable 1176-OR-LA-2A compressor) — on a vocal, bass, guitar, drum bus, or any source: 'LA-6176', '6176 channel strip', 'UA channel strip on the vocal', '610 preamp + 1176', 'put the LA-2A / 1176 on this', 'that Coldplay/Adele vocal chain', 'tube preamp + compressor in one', or when you want to pick FET-fast (1176) vs opto-smooth (LA-2A) compression in one strip. The measured, plugin-specific deep-dive of [[vst-channel-strip]] (preamp+EQ+comp, with a real compressor unlike [[helios-type-69]]) — grounded in the real 26-enum-param surface + isolation/THD/dynamics numbers in docs/vst/la-6176.md. Stemmy MCP, the `vst` extra. UADx native (no iLok)."
+argument-hint: <audio.wav> [goal: vocal|drum-glue|la2a-punch|warm|smash|bus-glue|color|tighten]
 ---
 
 # la-6176 — drive the UADx LA-6176 Signature Channel Strip (measured)
@@ -18,7 +19,7 @@ is the workflow.
 
 1. **Renders headless — use the `uaudio_` build.** `uaudio_la_6176.vst3` loads + processes (UADx native, **no iLok**).
    The `UAD LA-6176 Channel Strip.component` is the UAD-2/Apollo **passthrough** twin — never load it
-   ([[uadx-uaudio-build-renders-headless]]). `probe_plugin.py` *passes* here (it has a numeric output knob), but a
+   ([[vst-verify]]). `probe_plugin.py` *passes* here (it has a numeric output knob), but a
    bare-load render is **NOT a clean reference** — see #2.
 2. **A bare load already compresses.** Default = `Dyn In` + 1176 @ input 3 / 8:1 / mix 10 (~5 dB GR; default-load
    crest 14.6 → 12.3). For a clean A/B set `dyn_bypass:"Dyn Byp"` + `eq_bypass:"EQ Byp"` (or `master_bypass:true`,
@@ -85,7 +86,7 @@ is the workflow.
    passthrough twin. A/B loudness-matched ([[level-match]] / `[L] render-ab`).
 7. **QC** — `[G] detect-mix-issues` / `mastering-feedback` (genre/intent set) for over-drive (harsh/distorted),
    over-compression (pumping/lifeless), or sibilance (the strip has no de-esser → follow with [[de-ess]]). Cross-check
-   any mono "dark/harsh" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a per-track/bus
+   any mono "dark/harsh" flag against the meters ([[gemini-audio-understanding]]). It's a per-track/bus
    colour+EQ+comp insert, **not** a master — hand the result to [[master-track]] for loudness.
 
 ## Move table (measured)
@@ -137,4 +138,4 @@ drums up), that it ran headless via the `uaudio_` build, and the preset/`.state`
 - Pure-DSP twins (no plugin): FET-style grab → `[L] compress-loop`; tube/transformer colour → `[L] saturate-loop`;
   surgical/tilt EQ → `[L] apply-eq`; air → [[excite]]
 - [[mix-check]] (find the problems first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where a warm console colour fits) ·
-  [[uadx-uaudio-build-renders-headless]] (why the build matters)
+  [[vst-verify]] (why the build matters)

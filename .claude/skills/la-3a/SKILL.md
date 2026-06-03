@@ -1,6 +1,7 @@
 ---
 name: la-3a
 description: "Use when running the UADx Teletronix LA-3A for solid-state opto leveling / glue / parallel 'smash' on a drum bus, electric guitar, vocal, bass, room mics, or any source that wants smooth program-dependent leveling with a touch of grit — 'LA-3A', 'Teletronix', 'opto compressor on the guitar/drums', 'audio leveler', 'parallel-compress the drums with the LA-3A', 'level this vocal', 'that aggressive opto sound'. The measured, plugin-specific deep-dive of [[vst-compress]] — a solid-state electro-optical (T4) compressor that LEVELS (reduces crest, unlike the crest-holding tube [[fairchild-660]]) and colors with ODD/3rd-harmonic grit, grounded in the real 8-enum-param Pedalboard surface + peak-reduction / comp-vs-limit / HF-emphasis / parallel render numbers in docs/vst/la-3a.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: drum-glue|bus-level|parallel|guitar|vocal]
 ---
 
 # la-3a — drive the UADx Teletronix LA-3A (measured)
@@ -53,7 +54,7 @@ harmonic signature, recipes, pitfalls, sources — lives in
 - **Load the `uaudio_la3a.vst3` UADx native build** — it **renders headless & processes offline**
   (`RENDERS ✓` here). The `/Library/Audio/Plug-Ins/Components/UAD Teletronix LA-3A.component` twin is the
   legacy UAD-2 build and **passes audio through unprocessed** offline — never use it ([[vst-verify]] /
-  [[vst-hosting-outside-daw]]). UADx native is the no-iLok-dongle perpetual lineage, but re-verify
+  [[vst]]). UADx native is the no-iLok-dongle perpetual lineage, but re-verify
   `RENDERS ✓` on a new machine.
 - Balance the bus first ([[mix-balance]]); hand the leveled/glued result to [[master-track]] — this is a
   leveling/glue stage, **not** a master/limiter.
@@ -76,7 +77,7 @@ harmonic signature, recipes, pitfalls, sources — lives in
    isn't just "louder."
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch pumping (too much GR / hf too low on a
    bass-heavy bus) or a dull/over-leveled bus; reconcile any mono "dull/dynamics" flag against the stereo
-   meters ([[gemini-mastering-feedback-cross-check]]).
+   meters ([[gemini-audio-understanding]]).
 
 ## Recipes (measured starting points — re-dial to your level)
 
@@ -126,4 +127,4 @@ harmonic grit** (not tube warmth, not crest-holding color). A/B loudness-matched
 - [[vst-compress]] — the generic compressor skill this specializes · [[fairchild-660]] — tube COLOR sibling (holds crest, even-harmonic) vs the LA-3A's LEVELING (drops crest, odd-harmonic) · [[dbx-160]] — clean feed-forward true-RMS VCA that ADDS punch (RAISES crest) on drums, the opposite of the LA-3A's leveling · [[ssl-bus-compressor-2]] — VCA stereo glue
 - [[vst-preset]] — apply enum chains (required for Limit mode) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[finalize-mix]] / [[stem-master]] — stages this fits · [[drum-punch]] — pure-DSP transient design (no plugin) · [[multiband-compress]] — band-split dynamics
-- [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR
+- [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR

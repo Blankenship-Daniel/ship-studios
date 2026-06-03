@@ -1,6 +1,7 @@
 ---
 name: mix-check
 description: Use when the user wants a mix diagnosed before mastering — "what's wrong with this mix", "is this mix balanced", "check my mix", "find the problems", "too harsh / muddy / boomy / honky", "any phase issues", "why does this sound off". Fuses Gemini perceptual listening with loops + gemini DSP measurement into one prioritized report and concrete corrective EQ / compression moves. Does NOT master — hands off to [[master-track]].
+argument-hint: <mix.wav>
 ---
 
 # Diagnose a mix (perceptual + measurement, then fix)

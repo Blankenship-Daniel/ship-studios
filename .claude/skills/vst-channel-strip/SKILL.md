@@ -1,6 +1,7 @@
 ---
 name: vst-channel-strip
 description: "Use when the user wants a console channel strip on a stem or bus via their own plugins — 'put an SSL/Neve/API channel strip on this', 'run the vocal through a console strip', 'give the drum bus that console sound', 'channel-strip the bass'. Applies a headless-safe channel-strip plugin (British Channel, bx_console, SSL Native Channel Strip, UAD Neve/API) with measured before/after. Stemmy MCP, the `vst` extra."
+argument-hint: <stem.wav> [console/character]
 ---
 
 # vst-channel-strip — console channel strip on a stem/bus

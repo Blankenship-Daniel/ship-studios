@@ -1,6 +1,7 @@
 ---
 name: vst-saturate
 description: "Use when the user wants tape/analog color or harmonic saturation via their own plugin — 'run this through tape', 'add some Saturn drive', 'warm up the mix with a tape machine', 'add harmonics/grit', 'console color this stem'. Applies a headless-safe tape/saturation plugin (Tape Machine 80, FabFilter Saturn 2, Airwindows Consolidated) with added-harmonic/HF measured before/after. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [flavor: tape/console/drive]
 ---
 
 # vst-saturate — tape / harmonic color with your own plugin

@@ -1,6 +1,7 @@
 ---
 name: vst-browse
 description: "Use when the user wants to see what plugins they can use here — 'what VST plugins do I have', 'list my installed plugins', 'find a compressor/reverb plugin I own', 'which plugins load headless', 'is <plugin> usable in the pipeline', 'show my EQ plugins'. Read-only discovery over installed VST3/AU plugins, filtered to the headless-safe inventory and grouped by task. Stemmy MCP, the `vst` extra."
+argument-hint: [search term, e.g. "comp" or a vendor]
 ---
 
 # vst-browse — discover installed, headless-safe plugins

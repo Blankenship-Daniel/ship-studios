@@ -1,6 +1,7 @@
 ---
 name: drum-reference-match
 description: Use when the user wants a multi-mic drum kit's tone matched to a reference, per stem — "make my drums sound like this reference", "match the kit tone to this loop", "EQ each drum stem to the reference", "get that vintage drum sound on my kit". Measures the coherent kit sum, builds one corrective curve toward the reference, and distributes it per-stem (cuts to all, boosts to band owners) with zero-phase EQ. Local drum-prep CLI, not the MCP servers.
+argument-hint: <stems dir> <reference.wav>
 ---
 
 # Reference-match a drum kit's tonal balance, per stem

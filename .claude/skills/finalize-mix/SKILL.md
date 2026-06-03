@@ -1,6 +1,7 @@
 ---
 name: finalize-mix
 description: "Use when a mix needs bus 'glue'/density BEFORE mastering — 'glue the mix bus', 'make it gel', 'add some bus compression/saturation', 'tighten the low end and widen the top before mastering'. Gentle mix-bus processing — the stage between mixing and [[master-track]] — WITHOUT limiting. Stemmy MCP."
+argument-hint: <mix.wav>
 ---
 
 # Finalize a mix — bus glue + density before mastering

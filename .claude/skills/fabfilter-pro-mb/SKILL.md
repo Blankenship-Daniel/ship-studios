@@ -1,6 +1,7 @@
 ---
 name: fabfilter-pro-mb
 description: "Use when running FabFilter Pro-MB for multiband dynamics — band-split compression/expansion, dynamic-EQ-style resonance/mud/boom taming, de-ess, multiband bus glue, parallel multiband, M/S dynamics, or adding dynamic presence/air — 'Pro-MB', 'FabFilter multiband', 'multiband compress this bus', 'tame the harshness only when it spikes', 'dynamic de-ess', 'glue the drum bus per band', 'upward-expand the presence', 'gate the tails dynamically'. The measured, plugin-specific deep-dive of [[vst-compress]] / [[multiband-compress]] — a 6-band dynamics processor (compression AND expansion, up/down) with dynamic crossovers, per-band sidechain + M/S, and Dynamic/Minimum/Linear phase, grounded in the real 156-param Pedalboard surface + our render results in docs/vst/fabfilter-pro-mb.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: de-harsh|de-ess|multiband-glue|tame-mud|tame-boom|add-presence|tighten|m-s|parallel]
 ---
 
 # fabfilter-pro-mb — drive FabFilter Pro-MB (measured)
@@ -18,7 +19,7 @@ This skill is the workflow.
 
 1. **Renders headless AND no-iLok — uniquely safe here.** It loads + processes through Pedalboard 0.9.23
    (probe: pushed `output_level` → Δ 2.44; **156 params**), and FabFilter uses a **simple license key, no
-   iLok/PACE/UAD dongle** — so unlike the [[vst-hosting-outside-daw]] landmines it's a clean render-farm
+   iLok/PACE/UAD dongle** — so unlike the [[vst]] landmines it's a clean render-farm
    candidate (same as [[fabfilter-pro-q-4]]). Use the **VST3** path (an AU `.component` twin is also installed).
 2. **A bare load is a TRUE passthrough — the OPPOSITE of Pro-Q.** All 6 band slots default to `Unused`, and a
    fresh `load_plugin` measured **0.0000 dB** vs the input across every band. So **you do NOT flatten Pro-MB**
@@ -72,7 +73,7 @@ This skill is the workflow.
    range-0 / disabled-band footgun). For a dynamic band the cut shows on peaks while steady level holds. A/B
    loudness-matched (`[L] render-ab` / [[level-match]]).
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch over-processing (pumping/thin/dull); cross-check
-   any mono "dark/boxy" flag against the stereo bands ([[gemini-mastering-feedback-cross-check]]). It's a
+   any mono "dark/boxy" flag against the stereo bands ([[gemini-audio-understanding]]). It's a
    per-track/bus insert, not a master — hand the result to [[master-track]] for loudness.
 
 ## Move table (quadrant in **bold**)

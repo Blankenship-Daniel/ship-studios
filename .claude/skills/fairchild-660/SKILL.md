@@ -1,6 +1,7 @@
 ---
 name: fairchild-660
 description: "Use when running the UADx Fairchild 660 for vintage tube COLOR + glue/leveling on a drum bus, mix bus, vocal, bass, or any source that wants 'larger-than-life' weight — 'Fairchild 660', 'Fairchild compressor', 'vari-mu tube glue', 'put the Fairchild on the drums/vocal/bus', 'that thick tube drum sound', 'parallel-smash the drums with the Fairchild', 'add tube weight/density'. The measured, plugin-specific deep-dive of [[vst-compress]] — a variable-mu tube compressor that COLORS more than it crushes (low-mid thickening, crest held), grounded in the real 12-enum-param Pedalboard surface + input/threshold/time-constant/SC-filter/parallel render numbers in docs/vst/fairchild-660.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: color|bus-glue|parallel|tight]
 ---
 
 # fairchild-660 — drive the UADx Fairchild 660 (measured)
@@ -53,7 +54,7 @@ the color signature, recipes, pitfalls, the 660-vs-670 note, sources — lives i
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - **Load the `uaudio_fairchild_660.vst3` UADx native build** — it **renders headless & processes offline**
   (`changed:true` here). The `/Library/Audio/Plug-Ins/Components/UAD Fairchild 660.component` twin **passes
-  audio through unprocessed** offline — never use it ([[vst-verify]] / [[vst-hosting-outside-daw]]). UADx
+  audio through unprocessed** offline — never use it ([[vst-verify]] / [[vst]]). UADx
   native is the no-iLok perpetual lineage (like [[ampex-atr-102]] / Pultec), but re-verify `changed:true`
   on a new machine.
 - Balance the bus first ([[mix-balance]]); hand the colored/glued result to [[master-track]] — this is a
@@ -75,7 +76,7 @@ the color signature, recipes, pitfalls, the 660-vs-670 note, sources — lives i
    retained (tc4) or deliberately denser (parallel), true-peak safe. **A/B loudness-matched** so "bigger"
    isn't just "louder."
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch pumping (too-fast TC / too much GR) or a
-   choked/dull bus; reconcile any mono "dull" flag against the stereo meters ([[gemini-mastering-feedback-cross-check]]).
+   choked/dull bus; reconcile any mono "dull" flag against the stereo meters ([[gemini-audio-understanding]]).
 
 ## Recipes (measured starting points — re-dial to your level)
 
@@ -118,4 +119,4 @@ loudness-matched so "bigger" isn't just "louder."
 - [[vst-compress]] — the generic compressor skill this specializes · [[ssl-bus-compressor-2]] — VCA glue sibling (crush vs color) · [[dbx-160]] — feed-forward true-RMS VCA that ADDS punch (raises crest) vs the Fairchild's crest-holding tube color · [[la-3a]] — opto leveler (drops crest) · [[finalize-mix]] / [[stem-master]] — stages this fits
 - [[vst-preset]] — apply enum chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[ampex-atr-102]] / [[studer-a800]] — tube/tape color siblings · [[kit-bb-n105]] — warm Neve tone · [[drum-punch]] — pure-DSP transient design (no plugin)
-- [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR
+- [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR

@@ -1,6 +1,7 @@
 ---
 name: vst-master
 description: "Use when the user wants to master a mix with their own plugins instead of the pure-DSP chain — 'master this with FabFilter/Ozone', 'plugin mastering chain', 'master using my Pro-L limiter', 'EQ+comp+limit this with my plugins'. Builds a measured plugin mastering chain (EQ → comp/MB → limiter) and verifies streaming compliance. The opt-in VST sibling of master-track. Stemmy MCP, the `vst` extra (+ GEMINI_API_KEY for compliance)."
+argument-hint: <mix.wav> [--platform spotify] [target LUFS]
 ---
 
 # vst-master — master a mix with your own plugins

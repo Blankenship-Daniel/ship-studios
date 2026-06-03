@@ -1,6 +1,7 @@
 ---
 name: stem-master
 description: Use when the user wants to mix-and-master starting from individual stems instead of one stereo bounce — "master from stems", "stem mastering", "I have drum/bass/vocal/music stems, master them", "fix each stem then master", "the kick and bass mask each other, sort it on the stems". Treats each stem correctively (resolve cross-stem masking, de-harsh, transient-shape), sums via drum-prep stem-mix, then hands the bus to [[master-track]]. The unique value is per-stem corrective access BEFORE the limiter — a stereo-bus master physically can't do that.
+argument-hint: <stems-dir-or-map> [target platform/LUFS]
 ---
 
 # Stem master — per-stem corrective mixdown, then hand to mastering

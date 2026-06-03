@@ -1,6 +1,7 @@
 ---
 name: bleed-gate
 description: "Use when a close mic carries too much of another instrument — 'too much hi-hat in the overheads / snare mic', 'reduce the bleed/spill', 'gate the snare mic', 'cancel the hi-hat out of the overheads', 'the close mic has too much spill'. Reduces mic bleed two ways: gate a close mic between its hits, or least-squares cancel a correlated source out of a target. Do this BEFORE balancing — turning a mic up turns its bleed up too. Local DSP."
+argument-hint: gate <mic.wav> | cancel <target.wav> <bleedsource.wav>
 ---
 
 # bleed-gate — reduce mic bleed before mixing

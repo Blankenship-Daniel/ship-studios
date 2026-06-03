@@ -1,6 +1,7 @@
 ---
 name: gemini-audio-understanding
 description: Use when the user asks how Gemini analyzes audio as INPUT or about its limits — "how does gemini transcribe / analyze audio", "gemini speaker diarization", "audio token cost / 32 tokens per second", "gemini audio file-size or duration limit", "what audio formats does gemini accept", "does gemini hear stereo / phase", "get structured JSON from audio", "which gemini model for audio analysis". Reference for the audio-IN side — the only Gemini audio area this repo wires up (the stemmy-gemini perceptual tools). Points to docs/gemini-audio/audio-understanding.md. Reference, not a pipeline.
+argument-hint: [topic, e.g. "diarization" | "file size limit" | "token cost"]
 ---
 
 # Gemini audio understanding — reference (audio in → text/JSON)

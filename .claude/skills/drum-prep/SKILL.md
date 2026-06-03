@@ -1,6 +1,7 @@
 ---
 name: drum-prep
 description: Use when the user has a folder of individual multi-mic drum stems (overheads, snare top/bottom, kick in/beater, hi-hat, toms, room) and wants them prepped — "phase-align my drum kit", "prep these drum stems", "align the drums to the overheads and match them to this reference", "tighten up my multi-mic drums". Runs the local drum-prep CLI: detect roles → phase-align to the overheads → per-stem reference-match EQ → loudness-matched A/B auditions. Local DSP, NOT the stemmy MCP servers.
+argument-hint: <stems dir> <reference.wav>
 ---
 
 # Prep a multi-mic drum kit (phase-align → reference-match → audition)

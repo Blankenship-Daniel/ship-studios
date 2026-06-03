@@ -1,6 +1,7 @@
 ---
 name: unmask-stems
 description: Use when stems are fighting in the same frequency range — "the kick and bass are masking", "vocal gets buried by the guitars", "carve space between my stems", "fix the frequency clashes", "unmask the mix", "make room for the lead". Scores cross-stem masking, applies complementary EQ cuts to the LOSING stem of each collision, then re-scores to prove the overlap shrank. The corrective-only sibling of [[stem-master]] — no summing, no mastering. Pure DSP, no API key.
+argument-hint: <stems-dir-or-map>
 ---
 
 # Unmask stems — resolve frequency collisions between stems

@@ -1,6 +1,7 @@
 ---
 name: de-harsh
 description: Use when a mix/stem rings or sounds harsh/brittle/fatiguing — "tame the harshness", "it's brittle/edgy/abrasive", "Soothe this", "there's a ringing resonance", "the 3–5 kHz is fatiguing", "smooth out the top without dulling it". Soothe-STYLE dynamic resonance suppressor: ducks narrow peaks ONLY when they ring above the spectral envelope, leaving broadband tone intact. Pure DSP; find-resonances (optional) is Gemini. Stemmy MCP.
+argument-hint: <mix-or-stem.wav>
 ---
 
 # De-harsh — Soothe-style dynamic resonance / harshness suppression

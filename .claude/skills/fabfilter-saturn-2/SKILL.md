@@ -1,6 +1,7 @@
 ---
 name: fabfilter-saturn-2
 description: "Use when running FabFilter Saturn 2 for multiband distortion / saturation / harmonic color on a stem, bus, or loop — 'Saturn 2', 'FabFilter Saturn', 'saturate this', 'multiband saturation', 'tube/tape/amp/transformer warmth', 'add harmonics/grit/drive', 'tape glue on the drum bus', 'parallel smash the drums', 'make the bass cut on small speakers', 'lo-fi/destroy/bitcrush', 'add air with saturation'. The measured, plugin-specific deep-dive of [[vst-saturate]] — a 6-band distortion engine with 28 styles (tube/tape/amp/transformer/saturation + Foldback/Rectify/Destroy FX), per-band Drive/Dynamics/Feedback/Tone/Mix, Mid-Side, Linear-phase + HQ oversampling, grounded in the real 956-param Pedalboard surface + our render/harmonic results in docs/vst/fabfilter-saturn-2.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: warm|parallel|bass|air|density|lofi|master]
 ---
 
 # fabfilter-saturn-2 — drive FabFilter Saturn 2 (measured)
@@ -18,7 +19,7 @@ The **color/saturation** member of [[vst-saturate]] (vs the EQ [[fabfilter-pro-q
 
 1. **Renders headless AND no-iLok — uniquely safe here.** It loads + processes through Pedalboard 0.9.23 (probe
    Δparam = 8.6e-01), and FabFilter uses a **simple license key, no iLok/PACE/dongle** — a clean render-farm
-   candidate like its Pro-Q 4 sibling (unlike the [[vst-hosting-outside-daw]] landmines). Use the **VST3** path
+   candidate like its Pro-Q 4 sibling (unlike the [[vst]] landmines). Use the **VST3** path
    (the AU `.component` twin is also installed — don't grab it).
 2. **A bare load is NOT neutral — it restores FabFilter's last-saved GUI state** (ours: 1 band, style `Warm Tape`,
    drive 20, output −1 dB, HQ Off). So every "fresh" render rides a leftover preset. **Set every param explicitly**
@@ -75,7 +76,7 @@ The **color/saturation** member of [[vst-saturate]] (vs the EQ [[fabfilter-pro-q
 5. **A/B level-matched** (`[L] render-ab` / [[level-match]]) — Saturn's drive auto-compensation is not a LUFS match,
    so louder-isn't-better is the trap.
 6. **QC** — `[G] detect-mix-issues` / `mastering-feedback` (genre/intent set) to catch over-drive (harsh/fizzy);
-   cross-check any mono "harsh" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a
+   cross-check any mono "harsh" flag against the meters ([[gemini-audio-understanding]]). It's a
    per-track/bus insert — hand the result to [[master-track]] for loudness; don't drive on the 2-bus loudness stage.
 
 ## Move table
@@ -126,4 +127,4 @@ so taste isn't a level illusion; flag if drive crushed the crest and how you pro
 - Other tape/saturation color: [[ampex-atr-102]] · [[studer-a800]] · [[softube-tape]] · [[helios-type-69]]
 - Pure-DSP twins (no plugin, deterministic): [[vst-saturate]]'s `[L] saturate-loop` · [[excite]] (excite-loop) ·
   [[multiband-compress]] · [[sub-design]] · [[de-harsh]] / [[de-ess]]
-- [[mix-check]] (find the problem first) · [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini) own the read
+- [[mix-check]] (find the problem first) · [[gemini-audio-understanding]] — why meters (not Gemini) own the read

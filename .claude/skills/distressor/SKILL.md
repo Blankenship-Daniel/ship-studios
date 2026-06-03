@@ -1,6 +1,7 @@
 ---
 name: distressor
 description: "Use when running the UADx Empirical Labs Distressor (EL8) for aggressive/forward compression, drum smack, parallel 'smash', NUKE room-mic explosion, opto vocal leveling, bass thickness, or harmonic warmth/grit — 'Distressor', 'Empirical Labs', 'EL8', 'put the Distressor on the drums/snare/room/bass/vocal', 'NUKE the room mics', 'parallel smash the drums', '10:1 British-style drums', 'Dist 2/Dist 3 warmth', 'opto-level this vocal', 'that forward in-your-face compression'. The measured, plugin-specific deep-dive of [[vst-compress]] / [[vst-saturate]] — an 8-curve 'knee' compressor + 2nd/3rd-harmonic distortion box, grounded in the real 12-enum-param Pedalboard surface + ratio/input/attack/release/detector/distortion/mix render numbers in docs/vst/distressor.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: drum-glue|aggressive|parallel|opto|2bus]
 ---
 
 # distressor — drive the UADx Empirical Labs Distressor (measured)
@@ -50,7 +51,7 @@ lives in [`docs/vst/distressor.md`](../../../docs/vst/distressor.md). This skill
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - **Load the `uaudio_distressor.vst3` UADx native build** — it **renders headless & processes offline**
   (`RENDERS ✓` here). The `/Components/UAD Empirical Labs Distressor.component` twin passes audio through
-  offline — never use it ([[vst-verify]] / [[vst-hosting-outside-daw]]). UADx native is the iLok-account
+  offline — never use it ([[vst-verify]] / [[vst]]). UADx native is the iLok-account
   (no-dongle) lineage, but re-verify `changed:true` on a new machine.
 - Balance the bus first ([[mix-balance]]); hand the compressed/colored result to [[finalize-mix]] /
   [[master-track]] — this is a comp/color/glue stage, **not** a master/limiter.
@@ -75,7 +76,7 @@ lives in [`docs/vst/distressor.md`](../../../docs/vst/distressor.md). This skill
    ([[level-match]] / `render-ab`) so "bigger" isn't just "louder."
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch over-pumping (too-fast attack/release + heavy
    GR), harshness from Dist 3, or a choked bus; reconcile any mono "dull/harsh" flag against the meters
-   ([[gemini-mastering-feedback-cross-check]]).
+   ([[gemini-audio-understanding]]).
 
 ## Recipes (measured starting points — re-dial to your GR)
 
@@ -121,4 +122,4 @@ color, or both. A/B loudness-matched so "bigger" isn't just "louder."
 - [[vst-compress]] / [[vst-saturate]] — the generic skills this specializes · [[finalize-mix]] / [[stem-master]] — stages this fits
 - [[fairchild-660]] — tube COLOR comp (holds crest) · [[la-3a]] — solid-state opto leveler · [[ssl-bus-compressor-2]] — VCA glue · [[fabfilter-pro-mb]] — multiband dynamics — the dynamics family
 - [[vst-preset]] — apply enum chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge ratio/attack variants · [[drum-punch]] — pure-DSP transient design (no plugin)
-- [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR/THD
+- [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR/THD

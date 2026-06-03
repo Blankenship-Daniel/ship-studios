@@ -1,6 +1,7 @@
 ---
 name: softube-transient-shaper
 description: "Use when running the Softube Transient Shaper to tighten or punch drums/transients — 'Softube Transient Shaper', 'transient shaper on the drums', 'tighten the transients / tighten the kick tail', 'add snare crack/attack', 'control the cymbal wash', 'less ring/boom on the drum bus', or any attack/sustain shaping with that plugin. The measured, plugin-specific deep-dive of [[drum-punch]] / [[vst-chain]] — a 2-band, level-independent attack(PUNCH)/decay(SUSTAIN) shaper, grounded in the real Pedalboard param surface + the manual recipes + our render results in docs/vst/softube-transient-shaper.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: tighten|kick-click|snare|overheads|bus]
 ---
 
 # softube-transient-shaper — drive the Softube Transient Shaper (measured)
@@ -16,7 +17,7 @@ field guide (param surface, manual recipes, our numbers, pitfalls, sources) →
 
 1. **"Tighten" = reduce SUSTAIN, not add PUNCH.** Sustain < 0 cuts the tail/ring (tighter). PUNCH adds *attack*
    and, pushed, an **unnatural click** (we made a snare clicky with `punch +3`; Gemini flagged it — the same
-   over-shape trap as [[drum-bus-dry-punchy-variant]]). Clean tighten = **punch 0**, negative sustain.
+   over-shape trap as [[drum-punch]]). Clean tighten = **punch 0**, negative sustain.
 2. **WIDE sustain cut chokes cymbals/hats.** Full-band negative sustain gates the HF decay (unnatural). Use
    **`sustain_band=LOW`** (xover ~700) to tighten the kick/snare *body/boom* while highs keep natural decay —
    the manual's own Lo/Hi-band logic. (Measured: LOW-band −5 kept centroid 2447 vs WIDE's 2146; choke gone.)
@@ -24,13 +25,13 @@ field guide (param surface, manual recipes, our numbers, pitfalls, sources) →
    (unlike the API strip). The `clip` soft-clips at 0 dB; keep input headroom or it engages.
 4. **Meters own "tighter"** (Gemini hears mono): **crest / PLR up = tighter** (sustain cut) or **more punch**
    (attack up). A move that "feels tighter" without a crest/PLR change is an illusion. Cross-check Gemini's
-   "dark/choked" claims against the stereo meters ([[gemini-mastering-feedback-cross-check]]).
+   "dark/choked" claims against the stereo meters ([[gemini-audio-understanding]]).
 
 ## Prerequisites
 
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - The plugin renders **headless via Pedalboard** (iLok authorized here) — but Softube/iLok is a render-farm
-  landmine ([[vst-hosting-outside-daw]]): **verify load+render on any new machine** (`changed:true`).
+  landmine ([[vst]]): **verify load+render on any new machine** (`changed:true`).
 - **Enum gotcha:** `apply-vst-chain`'s `parameters` is **float-only** — it sets `punch_db`/`sustain_db`/
   `crossover_freq_hz`/`output_level_db` but **NOT** the enums (`punch_band`/`sustain_band`/`punch_type`) or
   `clip`. For band/type/clip moves use the **[[vst-preset]]** harness `presets/vst/apply_vst_preset.py`
@@ -68,4 +69,4 @@ field guide (param surface, manual recipes, our numbers, pitfalls, sources) →
 hats) and high PUNCH (clicky) — see the governing facts.
 
 ## Related
-[[drum-punch]] (native transient design — no plugin) · [[vst-chain]] / [[vst-preset]] · [[api-vision-channel-strip]] · [[studer-a800]] · [[drum-bus-dry-punchy-variant]] · [[gemini-mastering-feedback-cross-check]] · field guide: `docs/vst/softube-transient-shaper.md`
+[[drum-punch]] (native transient design — no plugin) · [[vst-chain]] / [[vst-preset]] · [[api-vision-channel-strip]] · [[studer-a800]] · [[gemini-audio-understanding]] · field guide: `docs/vst/softube-transient-shaper.md`

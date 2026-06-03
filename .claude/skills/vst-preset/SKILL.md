@@ -1,6 +1,7 @@
 ---
 name: vst-preset
 description: "Use when the user wants to save a VST chain for reuse or apply a saved one — 'save this chain as a preset', 'apply the vintage-1960s preset to this mix', 'reuse that drum sound on another track', 'make a preset from these plugins', 'list my vst presets'. Save & apply reusable VST chains (input gain-stage + enum/bool params + M/S narrow + state blobs) via presets/vst/. The home for the two things apply-vst-chain can't do: gain-staging and non-float params. Stemmy MCP, the `vst` extra."
+argument-hint: save <name> | apply <preset.json> <in.wav> [out.wav]
 ---
 
 # vst-preset — save & apply reusable VST chains

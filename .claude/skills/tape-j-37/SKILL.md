@@ -1,6 +1,7 @@
 ---
 name: tape-j-37
 description: "Use when running the Arturia Tape J-37 — the neural-modeled Studer J37 valve tape machine (Abbey Road / Sgt. Pepper) — for tape warmth, glue, saturation, or vintage color on drums, bus, vocals, or a mix: 'Tape J-37', 'Arturia tape', 'Studer J37', 'that Beatles/Sgt Pepper tape sound', 'add tape with the J-37', 'use the J-37 on my drums'. CRITICAL: this plugin does NOT render headless in the ship-studios pipeline (measured passthrough) — it is DAW-only; the skill teaches how to dial it in the DAW, hand the bounce back to the pipeline, and which headless tape to use instead. The plugin-specific deep-dive of [[vst-saturate]], grounded in the real param surface + the passthrough proof in docs/vst/tape-j-37.md."
+argument-hint: <audio.wav | goal> [goal: warm/glue/vintage/dirty/transparent]
 ---
 
 # tape-j-37 — drive the Arturia Tape J-37 (Studer J37) tape machine

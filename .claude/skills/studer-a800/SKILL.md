@@ -1,6 +1,7 @@
 ---
 name: studer-a800
 description: "Use when running the UAD/UADx Studer A800 tape plugin for warmth/glue/tape-compression on a stem, drum bus, or mix bus — 'add tape', 'Studer A800', 'tape warmth on the drums', 'tape glue on the 2-bus', 'tame the harshness with tape', or when a tape chain sounds harsh/bright and you need to know which knob. The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real A800 param surface + isolation numbers in docs/vst/studer-a800.md. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: warm/glue/tame-harshness/punch]
 ---
 
 # studer-a800 — drive the UAD Studer A800 tape machine (measured)
@@ -35,7 +36,7 @@ the *why* and the settings tables.
   passes through offline — never use it. Confirm with `[L] list-vst-plugins {name_contains:"studer"}`.
   **UADx = UA's native (CPU) build** (VST3/AU, no UAD DSP hardware; one purchase = both licenses). **iLok account +
   PACE must be present** on a render farm even with no UAD hardware — but a *perpetual* UADx license uses local
-  auth (**no USB dongle**). [[uadx-uaudio-build-renders-headless]].
+  auth (**no USB dongle**). [[vst-verify]].
 - Enum/float/bool params (`ips='15 IPS'`, `tape_type='456'`, `cal_level=6.0`, `emphasis_eq='NAB'`,
   `auto_cal=True`) → set via the **[[vst-preset]]** harness (`presets/vst/apply_vst_preset.py`), since
   `apply-vst-chain`'s `parameters` is float-only and can't gain-stage.

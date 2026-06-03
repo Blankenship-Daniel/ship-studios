@@ -1,6 +1,7 @@
 ---
 name: drum-phase-align
 description: Use when the user wants multi-mic drums time/phase-aligned — "phase-align the drum mics", "align my drums to the overheads", "fix drum phase", "the kick/snare mics are smearing", "get the close mics tight with the overheads". Aligns every close mic to the overheads (envelope-coarse → waveform refine, partner-pair topology, polarity auto-detect) via the local drum-prep CLI. Not the MCP servers.
+argument-hint: <stems dir>
 ---
 
 # Phase-align a multi-mic drum kit to the overheads

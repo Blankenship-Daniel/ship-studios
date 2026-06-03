@@ -1,6 +1,7 @@
 ---
 name: format-fix
 description: "Use when audio files have the wrong/confusing format or won't load — 'this wav won't open in ffmpeg', 'convert these AIFFs to wav', 'resample to 48k', 'fix the 24-bit AIFF with a .wav name', 'Invalid PCM packet error'. Fixes the AIFF-as-.wav trap and does format/rate/bit-depth conversion with the right tools. Local shell, no MCP servers."
+argument-hint: <file or dir> [target format/rate/bit-depth]
 ---
 
 # Fix audio file format / rate / bit-depth (the AIFF-as-.wav trap and friends)

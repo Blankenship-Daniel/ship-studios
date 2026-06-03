@@ -1,6 +1,7 @@
 ---
 name: pultec-eqp-1a
 description: "Use when running the UAD/UADx Pultec EQP-1A program equalizer for broad, musical vintage EQ + the famous Pultec moves on a drum bus, kick, bass, mix bus, vocal, or master — 'Pultec', 'Pultec EQP-1A', 'EQP-1A', 'the Pultec low-end trick', 'boost and cut the same low frequency', 'big but tight low end', 'air without fizz', 'add 16k air', 'that passive tube EQ', 'broad vintage smile EQ', or when you want weighty-yet-tight bottom and silky top from a passive LC + tube EQ. The measured, plugin-specific deep-dive of [[vst-eq]] / [[vst-master]] — a passive inductor EQ + push-pull tube makeup amp whose two signature tricks are the LOW-END TRICK (boost+atten the same CPS = bump + low-mid scoop) and AIR-WITHOUT-FIZZ (independent HF boost vs HF cut freqs); grounded in the real 12-param surface + transfer-function/THD/render numbers in docs/vst/pultec-eqp-1a.md. A BROAD/MUSICAL EQ (not surgical — pair with [[fabfilter-pro-q-4]] for notches). Stemmy MCP, the `vst` extra. UADx native (iLok/PACE, verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: lowend-trick|air|de-harsh|smile|presence|colour]
 ---
 
 # pultec-eqp-1a — drive the UADx Pultec EQP-1A program EQ (measured)
@@ -18,7 +19,7 @@ moves: the **low-end trick** (boost + atten the *same* low freq → big-but-tigh
 
 1. **Renders headless — use the `uaudio_` build.** `uaudio_pultec_eqp-1a.vst3` loads + processes (UADx native). The
    `UAD Pultec EQP-1A.component` / `… Legacy.component` twins are the **passthrough** offline build — never load those
-   ([[uadx-uaudio-build-renders-headless]]). UADx native is **iLok/PACE** lineage but **renders offline** once locally
+   ([[vst-verify]]). UADx native is **iLok/PACE** lineage but **renders offline** once locally
    authorized (machine or iLok-USB, not iLok-Cloud).
 2. **The Boost/Atten/Bandwidth knobs are 0–10 DIAL POSITIONS, not dB**, and **nonlinear** — most action is knob 4→8;
    8→10 barely moves. Measured low boost @60 CPS: knob 4 ≈ +4 dB, knob 6 ≈ +11, knob 8 ≈ +15. **Dial to the meter,
@@ -85,7 +86,7 @@ moves: the **low-end trick** (boost + atten the *same* low freq → big-but-tigh
 5. **A/B loudness-matched** ([[level-match]] / `[L] render-ab`) — the Pultec flatters itself with +1 dB makeup, so
    never judge tone unmatched.
 6. **QC** — `[G] detect-mix-issues` / `mastering-feedback` (genre/intent set) for over-bright or muddy; cross-check
-   any mono "dark/harsh" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a per-track/bus EQ
+   any mono "dark/harsh" flag against the meters ([[gemini-audio-understanding]]). It's a per-track/bus EQ
    insert — hand the result to [[master-track]] for loudness/limiting (on a 2-bus, the Pultec sits *before* the limiter).
 
 ## Move table (measured)
@@ -134,4 +135,4 @@ tilt / low & low-mid ratio / target-band deltas** (crest should hold — it's EQ
 - Pure-DSP twins (no plugin): broad/tilt/shelf EQ + the trick (low-shelf boost + low-mid bell cut) → `[L] apply-eq`;
   air/presence → [[excite]]; tube/tape colour → `[L] saturate-loop` / [[studer-a800]] / [[ampex-atr-102]]; level-dependent → [[dynamic-eq]]
 - [[mix-check]] (find the problems first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where the low-end trick fits) ·
-  [[uadx-uaudio-build-renders-headless]] (why the build matters) · [[gemini-mastering-feedback-cross-check]] (trust meters over mono ears)
+  [[vst-verify]] (why the build matters) · [[gemini-audio-understanding]] (trust meters over mono ears)

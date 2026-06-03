@@ -1,6 +1,7 @@
 ---
 name: batch-master
 description: Use when the user wants a whole EP/album/folder of mixes mastered consistently — "master this whole EP", "master all these tracks to the same loudness", "batch master this folder", "make the album consistent", "master all the songs for Spotify". Masters every mix in a folder to one shared platform target, then emits a cross-track loudness/true-peak consistency table flagging any track off the album median. [[master-track]] is single-file; this adds the album-level consistency read no single-file tool gives.
+argument-hint: <mixes-dir> [target platform/LUFS]
 ---
 
 # Batch master — master a folder to one target, with a consistency table

@@ -1,6 +1,7 @@
 ---
 name: drum-mix
 description: Use when the user wants to mix a prepped multi-mic drum kit to a stereo bus — "mix the drum kit", "balance and pan the drums", "bounce the kit to stereo with the room and plate". Sets balance by measured loudness offsets vs the overhead anchor, pans by perspective (drummer/audience), channel-balances a spaced room, and folds in an optional FX/plate return; flat mode does a unity bounce. Tone/timing prep ([[drum-prep]]) and mastering ([[master-track]]) are separate stages. Local drum-prep CLI, not the stemmy MCP servers.
+argument-hint: <stems dir> [feel] [perspective]
 ---
 
 # Mix a prepped multi-mic drum kit to a stereo bus

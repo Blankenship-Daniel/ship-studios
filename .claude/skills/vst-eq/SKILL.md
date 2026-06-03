@@ -1,6 +1,7 @@
 ---
 name: vst-eq
 description: "Use when the user wants to EQ a stem/bus/loop with their own EQ plugin — 'EQ this with a Pultec', 'add some Maag air', 'run a Neve EQ on the bass', 'surgical-EQ this with Pro-Q', 'sweeten the top with my vintage EQ'. Applies a headless-safe EQ plugin (FabFilter Pro-Q, Maag EQ4, UAD Pultec/Neve) with measured tilt/spectrum before/after, optionally guided by find-resonances. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [eq/intent]
 ---
 
 # vst-eq — EQ a track with your own EQ plugin

@@ -1,6 +1,7 @@
 ---
 name: manley-massive-passive
 description: "Use when running the UAD/UADx Manley Massive Passive (the standard EQ or the MST mastering version) for broad/musical tonal EQ on a master, mix bus, drum bus, or stem — 'Massive Passive', 'Manley Massive Passive', 'Massive Passive MST', 'mastering EQ', 'put the Massive Passive on the 2-bus/mix/drums', 'big musical low end', 'air without harshness', 'the everything-sounds-better EQ', 'broad analog mastering tilt'. The measured, plugin-specific deep-dive of [[vst-eq]] / [[vst-master]] — a 4-band-per-channel PARALLEL passive (LC inductor) EQ with a solid-state input buffer + all-tube make-up gain: Boost/Out/Cut + Shelf/Bell + a bandwidth knob per band, where dB = gain x bandwidth (NOT the dial), narrowed shelves grow a resonant corner, and the parallel bands interact (don't sum). Grounded in the real 51-enum-param Pedalboard surface + transfer-function/THD render numbers in docs/vst/manley-massive-passive.md. The BROAD musical counterpart to the surgical [[fabfilter-pro-q-4]] and the fixed-band [[pultec-eqp-1a]]. Renders headless (UADx native, no dongle here). Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: drum-bus|low-end|air-deharsh|master-polish|de-mud|tilt]
 ---
 
 # manley-massive-passive — drive the UADx Manley Massive Passive (measured)
@@ -20,7 +21,7 @@ numbers, sources — [`docs/vst/manley-massive-passive.md`](../../../docs/vst/ma
 1. **Renders headless — use the `uaudio_` build.** `uaudio_manley_massive_passive.vst3` (standard) /
    `uaudio_manley_massive_passive_m.vst3` (MST) load + process (UADx native). The
    `/Components/UAD Manley Massive Passive*.component` AU twins are the **passthrough** offline build — never load them
-   ([[uadx-uaudio-build-renders-headless]]). UADx native = no dongle for the render here.
+   ([[vst-verify]]). UADx native = no dongle for the render here.
 2. **Every band defaults to `OUT` (out of circuit).** A bare load does NOTHING and the canned `probe_plugin.py`
    **false-flags it as passthrough** (it pushes a gain on an OUT band). You MUST set a band's `enable` to **`BOOST`**
    or **`CUT`** for its gain to do anything — verify with a real boost + `measure-spectrum`, not the probe (set e.g.
@@ -101,7 +102,7 @@ mirrors ch1→ch2) · `power` · `master_bypass`.
    **crest is HELD** (it's EQ, not dynamics) — a crest crash means you over-drove the make-up amp. A 0.00 spectrum delta
    = the `.component` passthrough twin loaded. A/B loudness-matched ([[level-match]] / `[L] render-ab`).
 8. **QC** — `[G] mastering-feedback` / `detect-mix-issues` (genre/intent set) for over-bright/over-scooped; cross-check
-   any mono "harsh/dull" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a tonal insert, **not
+   any mono "harsh/dull" flag against the meters ([[gemini-audio-understanding]]). It's a tonal insert, **not
    a limiter** — hand the result to [[master-track]] / [[fabfilter-pro-l-2]] for loudness.
 
 ## Move table (measured)
@@ -154,4 +155,4 @@ the before→after **band-ratio / centroid / tilt** deltas (crest should be ~hel
 - EQ siblings: [[pultec-eqp-1a]] (fixed-band passive tube program EQ — lows+air) · [[pultec-meq-5]] (passive mid EQ) · [[hitsville-eq-mastering]] (Motown M/S graphic mastering EQ) · [[fabfilter-pro-q-4]] (surgical/dynamic, the SHARP counterpart) · [[helios-type-69]] (passive inductor console EQ + drive)
 - Manley siblings: [[manley-voxbox]] (all-tube vocal channel) · [[manley-variable-mu]] (clean vari-mu bus/master comp) — the dynamics partners to this EQ on a master
 - Pure-DSP twins (no plugin): broad shelves/tilt + low-end weight → `[L] apply-eq` · air/presence → [[excite]] · de-harsh (level-dependent) → [[de-harsh]]
-- [[mix-check]] (find the problems first) · [[mastering-plan]] (a full master) · [[uadx-uaudio-build-renders-headless]] (why the build matters)
+- [[mix-check]] (find the problems first) · [[mastering-plan]] (a full master) · [[vst-verify]] (why the build matters)

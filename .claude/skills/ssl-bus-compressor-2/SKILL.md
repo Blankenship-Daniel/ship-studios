@@ -1,6 +1,7 @@
 ---
 name: ssl-bus-compressor-2
 description: "Use when running the SSL Native Bus Compressor 2 for bus glue / drum-bus compression — 'SSL bus comp', 'SSL Native Bus Compressor 2', 'glue the drum bus with the SSL', 'that SSL G-bus glue/quad-comp sound', 'bus compress the mix with the SSL', 'parallel/NY comp on the drums', or any VCA stereo-bus glue with that plugin. The measured, plugin-specific deep-dive of [[vst-compress]] — the SSL G-series quad bus VCA 'glue' comp, grounded in the real Pedalboard param surface + threshold/attack/release/ratio/parallel/SC-HPF render numbers in docs/vst/ssl-bus-compressor-2.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: glue|mix-glue|parallel|pump]
 ---
 
 # ssl-bus-compressor-2 — drive the SSL Native Bus Compressor 2 (measured)
@@ -38,7 +39,7 @@ the attack/release/ratio behavior, parallel MIX, SC-HPF, recipes, pitfalls, sour
 6. **Meters own it** (Gemini hears ~16 kbps mono): **GR = measured peak/RMS drop; glue = crest/PLR down a
    little + LRA tighter.** `[L] measure-loudness` / `[L] measure-microdynamics`. A "glued" feel with no
    crest/LRA change is a level illusion. Cross-check Gemini's mono "dull/squashed" claims vs the meters
-   ([[gemini-mastering-feedback-cross-check]]).
+   ([[gemini-audio-understanding]]).
 
 ## Prerequisites
 
@@ -46,7 +47,7 @@ the attack/release/ratio behavior, parallel MIX, SC-HPF, recipes, pitfalls, sour
 - The plugin **renders headless via Pedalboard** (`changed:true` on this rig). SSL Native is **iLok/PACE**
   machine-activated (authorized here) — so it carries the **iLok render-farm landmine** caveat: **re-verify
   load+render on any new machine**, and an unactivated/demo seat may load yet render demo-noise/silence
-  ([[vst-hosting-outside-daw]]).
+  ([[vst]]).
 - It's a **STEREO BUS** insert (a drum/mix submix), not a master limiter and not a single mono close mic.
   Balance the bus first ([[mix-balance]]); hand the glued result to [[master-track]] for loudness/limiting.
 
@@ -110,4 +111,4 @@ squash). A/B loudness-matched so "glued" isn't just "louder."
 - [[vst-compress]] — the generic compressor skill this specializes · [[finalize-mix]] — the pre-master bus-glue stage this fits · [[stem-master]] — per-stem/bus corrective stage
 - [[vst-preset]] — apply enum/gain-staged chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[drum-punch]] — pure-DSP transient design (no plugin) · [[multiband-compress]] — per-band dynamics (no plugin) · [[mix-balance]] — balance the bus before glue
-- [[api-vision-channel-strip]] / [[kit-bb-a5]] / [[kit-bb-n105]] / [[studer-a800]] — console/tape *tone* siblings · [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own GR/crest
+- [[api-vision-channel-strip]] / [[kit-bb-a5]] / [[kit-bb-n105]] / [[studer-a800]] — console/tape *tone* siblings · [[gemini-audio-understanding]] — why meters (not Gemini mono) own GR/crest

@@ -1,6 +1,7 @@
 ---
 name: fabfilter-pro-l-2
 description: "Use when running FabFilter Pro-L 2 to limit / maximize loudness / hit a true-peak ceiling on a master or loud bus — 'Pro-L 2', 'FabFilter limiter', 'limit this', 'maximize loudness', 'get it to -14 LUFS', 'true-peak limit to -1 dBTP', 'make it loud / competitive', 'brickwall the master', 'which Pro-L style'. The measured, plugin-specific deep-dive of [[vst-master]] — a true-peak brickwall limiter with 8 styles (Transparent/Punchy/Dynamic/Allround/Aggressive/Modern/Bus/Safe), LUFS+dBTP metering, oversampling and dither, grounded in the real 37-param Pedalboard surface + render results in docs/vst/fabfilter-pro-l-2.md. Renders headless, no-iLok. The VST alternative to render-mastered's limiter. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [target: -14lufs|-9lufs|loud|clean] [style]
 ---
 
 # fabfilter-pro-l-2 — drive FabFilter Pro-L 2 (measured)
@@ -104,4 +105,4 @@ ran headless (no-iLok), and per-platform compliance. A/B loudness-matched so tas
 - Pure-DSP alternative (no plugin, auto-targets LUFS+ceiling): `[L] render-mastered` / [[master-track]] ·
   [[batch-master]] (album) · `[G] check-streaming-targets` for per-platform compliance
 - [[fabfilter-pro-q-4]] — its FabFilter EQ sibling (also no-iLok, also flatten/state-first) ·
-  [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini) own loudness/peak
+  [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak

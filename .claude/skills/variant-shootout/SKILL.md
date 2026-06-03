@@ -1,6 +1,7 @@
 ---
 name: variant-shootout
 description: "Use when the user wants to compare processing options by ear — 'try a few master loudness targets and let me pick', 'A/B these mix versions', 'which reference-match strength sounds best', 'shoot out 0.75 vs 0.9'. Renders N loudness-matched variants and presents them for a pick, optionally ranked by Gemini. Spans both MCP servers."
+argument-hint: <input.wav> <knob and values>
 ---
 
 # Shoot out processing variants for a by-ear pick

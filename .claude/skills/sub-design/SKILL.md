@@ -1,6 +1,7 @@
 ---
 name: sub-design
 description: Use when a kick/low end needs more weight that EQ can't give — "add sub to the kick", "the low end won't get deep enough", "reinforce the sub", "my reference has way more sub". Synthesizes an envelope-followed sine sub at the kick's fundamental and blends it under — low-end EXTENSION/sustain, not EQ. Local drum-prep CLI, not the stemmy MCP servers.
+argument-hint: <kick.wav>
 ---
 
 # Reinforce a kick's low end with a synthesized sub layer

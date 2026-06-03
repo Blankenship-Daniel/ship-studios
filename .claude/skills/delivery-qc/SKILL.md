@@ -1,6 +1,7 @@
 ---
 name: delivery-qc
 description: "Use before shipping any deliverable — 'QC these deliverables', 'are these ready to ship', 'check the master/loops before delivery', 'did the tags survive export'. A pre-flight gate fusing loudness/true-peak/clipping/streaming checks with TAG/format verification (the piece no other tool covers). Spans the stemmy MCP servers + a local drum-prep verify-tags."
+argument-hint: <deliverable file or dir> [platforms]
 ---
 
 # QC deliverables before shipping

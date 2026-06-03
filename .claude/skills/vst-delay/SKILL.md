@@ -1,6 +1,7 @@
 ---
 name: vst-delay
 description: "Use when the user wants delay/echo on a stem or send via their own plugin — 'add a tape echo to the vocal', 'quarter-note delay on the guitar', 'slapback on the snare', 'throw a dub delay', 'EP-34 this'. Applies a headless-safe delay (UAD EP-34 Tape Echo, Delay BRIGADE, FabFilter Timeless 3), favouring a parallel/wet send. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [time/feel, e.g. "1/8 tape"]
 ---
 
 # vst-delay — delay / echo with your own plugin

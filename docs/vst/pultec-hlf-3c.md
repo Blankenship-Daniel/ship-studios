@@ -18,7 +18,7 @@ synthesis, adversarially verified, cited*. The skill [[pultec-hlf-3c]] is the me
 1. **It renders headless — load the `uaudio_` build.** `uaudio_pultec_hlf-3c.vst3` loads + processes through
    Pedalboard 0.9.23 (real filter values give up to ~69 dB of attenuation). The `UAD Pultec HLF-3C.component` /
    `/Universal Audio/…vst3` twins are the **passthrough** offline build — never load those
-   ([[uadx-uaudio-build-renders-headless]]). UADx native here = iLok *account*, **no dongle**.
+   ([[vst-verify]]). UADx native here = iLok *account*, **no dongle**.
 2. **⚠️ The standard `probe_plugin.py` FALSE-flags it "PASSTHROUGH".** A false negative: the plugin exposes **no
    gain/level/drive** param, so the probe falls back to the first param (`low_cut`) and `extreme()` pushes it to its
    *first* enum value `'Off'` — which is the **default** → it compares **Off-vs-Off** → Δ0 → "ignores params." It
@@ -87,7 +87,7 @@ output trim.
    dict silently misses them. Drive it with the **[[vst-preset]]** harness (`setattr`).
 5. **`enable='Out'` / `master_bypass=true` = no effect** (0.00 dB) even with corners dialed — keep `enable='In'`.
 6. **Wrong build = silent passthrough.** Load `uaudio_pultec_hlf-3c.vst3`; the `UAD …`/`/Universal Audio/` twins pass
-   audio unprocessed offline — a 0.00 delta is the tell ([[uadx-uaudio-build-renders-headless]]).
+   audio unprocessed offline — a 0.00 delta is the tell ([[vst-verify]]).
 
 ### Measured: LOW CUT (high-pass) frequency response
 

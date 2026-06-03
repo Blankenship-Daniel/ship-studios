@@ -21,7 +21,7 @@ The skill [[fabfilter-saturn-2]] is the measured workflow over this doc.
 
 1. **It renders headless AND it's no-iLok** — uniquely safe here, like its Pro-Q 4 sibling. Saturn 2 loads +
    processes through Pedalboard 0.9.23 (probe Δparam = 8.6e-01). FabFilter uses a **simple license key, no
-   iLok/PACE/dongle** (up to 3 machines, offline-activatable), so unlike the [[vst-hosting-outside-daw]] landmines
+   iLok/PACE/dongle** (up to 3 machines, offline-activatable), so unlike the [[vst]] landmines
    it's a clean render-farm candidate. Use the **VST3** path (the AU `.component` twin is also installed).
 2. **A bare load is NOT neutral — it restores FabFilter's last-saved GUI state.** `load_plugin(...)` came up
    exactly as the screenshot: **1 active band, style `Warm Tape`, drive 20, output −1 dB, HQ Off, Minimum Phase,

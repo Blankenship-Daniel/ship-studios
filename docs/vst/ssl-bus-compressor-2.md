@@ -12,7 +12,7 @@ plugin-specific specialization of [[vst-compress]].
 
 > **Repo caveat:** Gemini hears ~16 kbps mono — **meters own** loudness / peak / stereo and the crest/LRA that
 > prove "glued." Verify every move with `[L] measure-loudness` / `measure-microdynamics`. A comp that "sounds
-> glued" but doesn't move crest/LRA/GR is a level illusion ([[gemini-mastering-feedback-cross-check]]).
+> glued" but doesn't move crest/LRA/GR is a level illusion ([[gemini-audio-understanding]]).
 
 ---
 
@@ -32,7 +32,7 @@ plugin-specific specialization of [[vst-compress]].
    `comp_bypass`/`external_s_c`/`mix_lock` are **bools** — `apply-vst-chain`'s float dict can't set them.
    Ratio + release are fundamental → use the **[[vst-preset]] harness**.
 6. **Renders headless via Pedalboard** (`changed:true`). SSL Native is **iLok/PACE** machine-activated — the
-   iLok render-farm landmine ([[vst-hosting-outside-daw]]): re-verify on any new machine; a demo/unactivated
+   iLok render-farm landmine ([[vst]]): re-verify on any new machine; a demo/unactivated
    seat may load yet render demo-noise/silence.
 
 ---

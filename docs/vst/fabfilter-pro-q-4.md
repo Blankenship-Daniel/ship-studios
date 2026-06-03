@@ -18,7 +18,7 @@ The skill [[fabfilter-pro-q-4]] is the measured workflow over this doc.
 
 1. **It renders headless AND it's no-iLok** — uniquely safe here. Pro-Q 4 loads + processes through Pedalboard
    (param-response confirmed; our EQ move shifted the low band 97.2 → 91.2 dB). FabFilter uses a **simple
-   license key, no iLok/PACE/UAD dongle** (offline-activatable, multi-machine), so unlike the [[vst-hosting-outside-daw]]
+   license key, no iLok/PACE/UAD dongle** (offline-activatable, multi-machine), so unlike the [[vst]]
    landmines (iLok/UAD) it is a *clean* render-farm candidate. Use the **VST3** path; the AU `.component` twin
    and Pro-Q 3 are also installed — don't confuse them.
 2. **A bare load is NOT flat — it restores FabFilter's last-saved GUI curve.** `load_plugin(...)` came up with

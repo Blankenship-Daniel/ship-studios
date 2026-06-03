@@ -57,7 +57,7 @@ specialization of [[vst-compress]] / [[vst-saturate]].
 Distressor"`, **renders** (`probe_plugin.py`: `RENDERS ✓`, pushed `output=0.0`, Δparam 1.51). UADx native is
 the iLok-**account** (no-dongle) build — re-verify `changed:true` on a new machine. **Load the
 `uaudio_distressor.vst3` build, not the `/Components/UAD Empirical Labs Distressor.component` twin**
-(passthrough offline → [[vst-verify]] / [[vst-hosting-outside-daw]]).
+(passthrough offline → [[vst-verify]] / [[vst]]).
 
 **Param surface (Pedalboard snake_case — what you set in code/the harness). All 12 are ENUMs:**
 
@@ -343,5 +343,5 @@ Leave `power` on, `bypass`/`master_bypass` off; harness peak-trims to −1 dBFS.
 - [[distressor]] — the workflow skill this field guide backs · [[vst-compress]] / [[vst-saturate]] — the generic skills it specializes
 - [[fairchild-660]] — tube COLOR comp (holds crest) · [[la-3a]] — solid-state opto leveler · [[ssl-bus-compressor-2]] — VCA glue · [[fabfilter-pro-mb]] — multiband dynamics — the dynamics family
 - [[vst-preset]] — apply enum chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge ratio/attack variants
-- [[finalize-mix]] / [[stem-master]] — stages this fits · [[fabfilter-pro-l-2]] — the brick-wall limiter that comes after · [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR/THD
+- [[finalize-mix]] / [[stem-master]] — stages this fits · [[fabfilter-pro-l-2]] — the brick-wall limiter that comes after · [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR/THD
 - `scripts/mix/distressor_sweep.py` — the isolation/characterization sweep behind Part A

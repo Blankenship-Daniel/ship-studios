@@ -13,7 +13,7 @@ skill and the plugin-specific specialization of [[vst-compress]].
 > **Repo caveat:** Gemini hears ~16 kbps mono — **meters own** loudness / peak / stereo and the crest / LRA /
 > spectrum that prove "color, not crush." Verify every move with `[L] measure-loudness` /
 > `measure-microdynamics` / `measure-spectrum`. A "fatter" feel that doesn't move crest / low-mid ratio is a
-> level illusion ([[gemini-mastering-feedback-cross-check]]).
+> level illusion ([[gemini-audio-understanding]]).
 
 ---
 
@@ -45,7 +45,7 @@ skill and the plugin-specific specialization of [[vst-compress]].
 Compressor"`, renders (`changed:true`, large measured deltas). UADx native is the **perpetual / no-iLok**
 lineage (like [[ampex-atr-102]] / Pultec) — but re-verify `changed:true` on a new machine. **Load the
 `uaudio_*.vst3` build, not the `/Components/UAD Fairchild 660.component` twin** (passthrough offline →
-[[vst-verify]] / [[vst-hosting-outside-daw]]).
+[[vst-verify]] / [[vst]]).
 
 **Param surface (Pedalboard snake_case — what you set in code/the harness). All 12 are ENUMs:**
 

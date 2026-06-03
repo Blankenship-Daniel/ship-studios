@@ -30,7 +30,12 @@ Per track (loop the folder):
 1. **Baseline** — `[L] measure-loudness` + `[L] measure-spectrum` +
    `[L] check-clipping`.
 2. **Perceptual read** — `[G] mastering-feedback {path, target_platform}`.
-   Release-readiness + harshness flags to steer that track's render.
+   Release-readiness + harshness flags to steer that track's render. **Map the
+   shared platform first:** `mastering-feedback`'s `target_platform` is a critique
+   *mood* (`general`/`streaming`/`club`/`broadcast`/`vinyl`), **not** a service
+   name — collapse a streaming service (spotify / apple_music / youtube / tidal)
+   to `streaming`; the literal service name goes only to `check-streaming-targets`
+   (step 4). The two take disjoint vocabularies and each rejects the other's value.
 3. **Render** — `[L] render-mastered` to the **shared** `target_lufs` /
    `ceiling_dbtp` → `projects/<album>/masters/`.
 4. **Compliance** — `[G] check-streaming-targets` on the rendered master;

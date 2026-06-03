@@ -35,6 +35,7 @@ the right one (or few) for the ask rather than running a fixed chain — the
 | "Is this <genre/tag>?" / zero-shot tagging | `classify-audio` | `path`, `labels`, `multi_label` |
 | Compare 2–10 candidates / references | `compare-audio-files` | `paths`, `prompt`, `schema` |
 | Structured pull (song structure, chapters, instrument inventory, sentiment) | `audio-to-json` | `path`, `prompt`, `schema` |
+| Long-form summary (>1 h / >100 MB; routes via Gemini's File API) | `summarize-long-audio` | `path`, `prompt` |
 
 For most asks one tool suffices. Chain only when the ask is genuinely
 compound, e.g. "transcribe it and tell me where the chorus hits" →

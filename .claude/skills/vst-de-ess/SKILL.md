@@ -1,6 +1,6 @@
 ---
 name: vst-de-ess
-description: "Use when the user wants to tame sibilance / harsh 'ess' on a vocal or bright track via their own plugin — 'de-ess this vocal', 'the s's are harsh', 'tame the sibilance', 'too much ess on the lead', 'de-ess the cymbals'. Pairs Gemini find-sibilance to set the band/threshold, then applies a headless-safe de-esser (FabFilter Pro-DS, SSL DeEss, Lindell 902). Stemmy MCP, the `vst` extra + GEMINI_API_KEY."
+description: "Use when the user wants to tame sibilance / harsh 'ess' on a vocal or bright track via their own plugin — 'de-ess this vocal', 'the s's are harsh', 'tame the sibilance', 'too much ess on the lead', 'de-ess the cymbals'. Pairs the pure-DSP find-sibilance measure to set the band/threshold, then applies a headless-safe de-esser (FabFilter Pro-DS, SSL DeEss, Lindell 902). Stemmy MCP, the `vst` extra (find-sibilance needs no key)."
 argument-hint: <vocal.wav>
 ---
 
@@ -12,9 +12,10 @@ band and threshold **grounded by `[G] find-sibilance`** rather than guessed. A t
 
 ## Prerequisites
 
-- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-sibilance` needs
-  `GEMINI_API_KEY`. Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)):
-  `FabFilter Pro-DS`, `SSL DeEss`, `Lindell 902 De-esser`, `De Esser`. (Thin category — 7 safe titles.)
+- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-sibilance` is **pure
+  DSP — no `GEMINI_API_KEY`** (gemini server, no model call). Candidates
+  ([`docs/vst/README.md`](../../../docs/vst/README.md)):
+  `FabFilter Pro-DS`, `SSL DeEss`, `Lindell 902 De-esser`, `De Esser`. (Thin category — 4 safe titles.)
 
 ## Recipe
 

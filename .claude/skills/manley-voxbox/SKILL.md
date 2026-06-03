@@ -87,7 +87,7 @@ Freq grids: LOW 20–1000 · MID 200–7000 · HIGH **1500/2000/3000/4000/5000/6
 
 | Goal | VOXBOX move |
 |---|---|
-| **Vocal channel** ★ | `Mic`, in3 g50, `low_cut 80`, comp In thr~7 Med/Med-Slow (~3 dB GR), EQ lo 3@100 / mid −3@700 / hi 5@12k, de-ess 6K (shipped `voxbox-vocal-channel`). |
+| **Vocal channel** ★ | `Mic`, in3 g50, `low_cut 80`, comp In thr~9 Med/Med-Slow (~3 dB GR), EQ lo 3@100 / mid −3@700 / hi 5@12k, de-ess 6K (shipped `voxbox-vocal-channel`). |
 | **Warm tube drum bus** ★ | `Mic`, in4 g50, comp In thr8 Med/Med, EQ lo 5@70 / hi 5@10k / mid −3@500 → crest 14.6→19.5 (opens transients), darker/rounder (shipped `voxbox-drum-glue`). |
 | **Gentle bus tone + peak control** | `Line`, in4 g40, light comp, Pultec smile (lo 3@50 / hi 4@16k), `de_ess_sel Limit` thr5 → crest 14.6→12.8, +4 dB denser (shipped `voxbox-bus-tube-glue`). |
 | **More tube colour** | `Mic`, raise `input`/`gain` (in6 g50 ≈ 5 % THD; in10 g60 = nuclear) — even-harmonic, brightens as it drives. |

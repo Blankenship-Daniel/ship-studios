@@ -1,13 +1,14 @@
 ---
 name: loops-to-deliverables
-description: Use when the user wants finished loop deliverables from a drum stem or full mix — "slice this into loops and master them", "make tagged loops from this drum stem", "loop pack from this track", "export these as a sample pack", "rip drums and clean them up for sale". Extracts loops, cleans + seam-fixes each, masters, tags, and exports the format matrix. Optionally attaches audible descriptions. Primarily stemmy-loops, with an optional stemmy-gemini describe step.
+description: Use when the user wants finished loop deliverables from a drum stem or full mix — "slice this into loops and master them", "make tagged loops from this drum stem", "loop pack from this track". Extracts loops, cleans + seam-fixes each, masters, tags, and exports the format matrix. Optionally attaches audible descriptions. Primarily stemmy-loops, with an optional stemmy-gemini describe step.
 argument-hint: <stem-or-mix.wav> <bpm>
 ---
 
 # Turn a stem or mix into tagged, mastered loop deliverables
 
 Goal: go from raw audio to a polished, tagged, multi-format loop pack. The
-chain extracts loop candidates, then per loop: cleans (DC/HPF/declick),
+chain extracts loop candidates, then per loop: cleans (DC/HPF; declick off on
+percussive material),
 optimizes the seam so it wraps bit-exactly, masters to a consistent
 loudness, tags with BPM/key/bars, and exports 44.1/16 + 48/24 + 96/24.
 
@@ -50,8 +51,12 @@ no direct gemini-server call is required for the standard flow.
      features; returns `manifest.json` + `analysis.json`. Slower.
    Write to `artifacts/<run>/`.
 2. **Per selected loop — clean** — `stemmy-loops:clean-loop {path, out_path,
-   ...}`. DC removal + HPF + declick (+ optional denoise/gate) before any
-   loudness work, so the master stage isn't amplifying rumble or clicks.
+   declick: false, ...}`. DC removal + HPF (+ optional denoise/gate) before any
+   loudness work, so the master stage isn't amplifying rumble. **`declick`
+   defaults to True and smears drum attacks** (it reads sharp percussive edges as
+   clicks — ~100k false "repairs" on a kick stem), so pass `declick: false` for
+   drum/percussive loops (the common case here); reserve `declick: true` for
+   tonal sources with genuine click artifacts.
 3. **Per loop — optimize the seam** — `stemmy-loops:optimize-seam {path,
    out_path}`. Searches ±256 samples for the best wrap point + equal-power
    crossfade so `loop + loop` closes bit-exactly. This is what makes it
@@ -104,6 +109,9 @@ diagnosis options.
 - **BPM is authoritative per loop.** A rescued loop may carry a slightly
   perturbed BPM in the manifest — tag with the per-loop value, not blindly
   the input BPM.
+- **declick=false on percussive material.** `clean-loop`'s `declick` defaults to
+  True and smooths drum transients — the very attack a drum loop sells. Mirror
+  [[stem-process]]: declick off for drums; only on for tonal/clicky sources.
 - **This produces loop deliverables, not a stereo master.** For a full-track
   master use [[master-track]].
 - **`export-deliverables tag=true` silently drops the RIFF INFO.** Despite the
@@ -122,5 +130,6 @@ diagnosis options.
 
 - [[understand-audio]] — recon the source (events, structure) before slicing
 - [[master-track]] — stereo-track master (different deliverable shape)
+- [[sample-pack]] — a sellable oneshots+loops kit with a README/blurbs (this is the loop-only chain it builds on)
 - [[new-track]] — scaffold `projects/<track>/` first if it doesn't exist
 - [[gemini-audio]] — what the optional Gemini `describe-loops` step can/can't hear

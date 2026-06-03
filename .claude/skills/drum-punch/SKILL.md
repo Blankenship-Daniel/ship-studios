@@ -21,8 +21,9 @@ None of those is per-band transient design — this is.
 ## Prerequisites
 
 - `stemmy-loops` registered and up. Every tool here is `[L]`, pure DSP, no
-  API key (`measure-*`, `shape-bands`, `inspect-loop`, `render-ab` need
-  `core`/`mixing`).
+  API key — they run on the base install; the loudness/crest reads
+  (`measure-loudness`, `inspect-loop`, `render-ab`) need the `mixing` extra
+  (pyloudnorm). (There is no `core` extra.)
 - Input is **one stereo drum file** — a loop or a summed drum bus. For a
   multi-mic kit (overheads + close mics), prep and bounce it first with
   [[drum-prep]] / [[drum-mix]]; `shape-bands` is not kit-aware.

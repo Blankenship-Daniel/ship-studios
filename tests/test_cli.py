@@ -76,17 +76,32 @@ def test_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert kwargs["target_platform"] == "club"
 
 
-def test_master_defaults_out_path_next_to_mix(
+def test_master_defaults_out_into_masters_dir(
     runner: CliRunner, patched_pipelines
 ) -> None:
     # README documents `ship-studios master <mix> --target-lufs ...` with no
-    # --out, so it must default sensibly rather than error.
+    # --out, so it must default sensibly. Per CLAUDE.md the master lands in the
+    # project's masters/ dir (sibling of mix/), never inside mix/.
     result = runner.invoke(
         cli.main, ["master", "projects/song/mix/final.wav", "--target-lufs", "-14"]
     )
     assert result.exit_code == 0, result.output
     _, args, _ = patched_pipelines[0]
-    assert args == ("projects/song/mix/final.wav", "projects/song/mix/final.master.wav")
+    assert args == (
+        "projects/song/mix/final.wav",
+        "projects/song/masters/final.master.wav",
+    )
+
+
+def test_master_default_out_falls_back_to_masters_sibling(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # A loose mix not under a mix/ dir still lands in a masters/ dir beside it,
+    # never overwriting the source next to it.
+    result = runner.invoke(cli.main, ["master", "song/bounce.wav"])
+    assert result.exit_code == 0, result.output
+    _, args, _ = patched_pipelines[0]
+    assert args == ("song/bounce.wav", "song/masters/bounce.master.wav")
 
 
 def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:

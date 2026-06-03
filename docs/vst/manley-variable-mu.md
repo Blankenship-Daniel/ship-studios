@@ -14,7 +14,7 @@ measured deep-dive behind the [[manley-variable-mu]] skill and a plugin-specific
 > **Repo caveat:** Gemini hears ~16 kbps mono — **meters own** loudness / peak / stereo and the crest / LRA /
 > spectrum that prove "glue, not crush." Verify every move with `[L] measure-loudness` /
 > `measure-microdynamics` / `measure-spectrum` / `measure-stereo`. A "glued" feel that doesn't move crest /
-> LRA is a level illusion ([[gemini-mastering-feedback-cross-check]]).
+> LRA is a level illusion ([[gemini-audio-understanding]]).
 
 ---
 
@@ -61,7 +61,7 @@ measured deep-dive behind the [[manley-variable-mu]] skill and a plugin-specific
 **Loads + processes headless.** `load_plugin(".../uaudio_manley_variable_mu.vst3")` → `name="UADx Manley
 Variable Mu Compressor"`, `probe_plugin.py` = **RENDERS ✓** (`pushed l_output → Δ`, native build). The
 `/Components/UAD Manley Variable Mu.component` twin = **PASSTHROUGH ✗** (ignores params offline) — load the
-`uaudio_*.vst3` build only ([[vst-verify]] / [[vst-hosting-outside-daw]]). UADx native = no-iLok lineage, but
+`uaudio_*.vst3` build only ([[vst-verify]] / [[vst]]). UADx native = no-iLok lineage, but
 re-verify `RENDERS ✓` on a new machine.
 
 **Param surface (Pedalboard snake_case — what you set in code/the harness). All 23 are ENUMs:**

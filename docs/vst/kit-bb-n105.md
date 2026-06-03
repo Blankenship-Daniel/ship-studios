@@ -5,7 +5,7 @@ How to drive the **KIT Plugins BB N105 V2** (`KIT BB N105 V2.vst3`) — a sample
 This is the **warm, thick, Neve** counterpart to the forward/punchy API console ([[api-vision-channel-strip]])
 and the warm Neve/tape master stage ([[studer-a800]]). **Part A** is *measured on this rig* (the real
 Pedalboard param surface + isolation numbers from our own renders); **Part B** is a *web-research
-synthesis* (cited, adversarially verified). The skill [[bb-n105-channel-strip]] is the measured workflow.
+synthesis* (cited, adversarially verified). The skill [[kit-bb-n105]] is the measured workflow.
 
 > **Repo caveat:** Gemini hears ~16 kbps mono — **meters own** loudness/peak/stereo and the crest that
 > proves "punch." Verify with `[L] measure-loudness` / `measure-spectrum` / `measure-microdynamics` /

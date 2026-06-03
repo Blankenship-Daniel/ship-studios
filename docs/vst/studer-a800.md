@@ -347,7 +347,7 @@ know what each does. **Bold value** = the screenshot's position.
 - **Licensing.** iLok-**account** based, but a **perpetual** UADx license uses **local/computer authorization — no
   USB dongle required** (dongle/cloud only for portability or the UAD **Spark** subscription). On a render farm an
   iLok account + machine auth + **PACE** must still be present even though no UAD DSP hardware is — the iLok/PACE
-  landmine the repo flags. See [[uadx-uaudio-build-renders-headless]].
+  landmine the repo flags. See [[vst-verify]].
 - **The right binary.** Load **`uaudio_studer_a800.vst3`** (this UADx native build — renders headless). The
   `UAD ….component`/twin passes audio through offline — never use it.
 

@@ -20,14 +20,14 @@ the lows, or only the highs** around one crossover. It's the plugin-specific, me
 
 1. **"Tighten" = reduce SUSTAIN, not add PUNCH.** Sustain < 0 cuts the tail/ring (tighter); PUNCH adds *attack*
    and, pushed, an **unnatural click** — on our drum bus `punch +3` made the snare clicky/spitty (Gemini
-   `detect-mix-issues` flagged it; same over-shape trap as [[drum-bus-dry-punchy-variant]]). For a clean
+   `detect-mix-issues` flagged it; same over-shape trap as [[drum-punch]]). For a clean
    tighten keep **punch 0**.
 2. **WIDE sustain cut chokes the cymbals/hats.** A full-band negative sustain gates the high-frequency decay
    (unnatural). Fix: **`sustain_band=LOW`** (with the crossover ~700 Hz) → tighten the kick/snare *body/boom*
    while cymbals/hats keep their natural decay. This is the manual's own logic (Lo-band for toms, Hi-band for
    room/cymbals).
 3. **It renders headless via Pedalboard** (`changed:true`, iLok authorized here). Softube/iLok is usually a
-   render-farm landmine ([[vst-hosting-outside-daw]]) — **re-verify load+render on any other machine.**
+   render-farm landmine ([[vst]]) — **re-verify load+render on any other machine.**
 4. **Level-independent (no threshold)** — it reacts to transient *shape*, not gain, so you don't gain-stage
    into it (unlike the API strip). The output `clip` soft-clips at 0 dB; keep input with headroom or it
    engages.
@@ -72,7 +72,7 @@ Enum strings are **exact** (`"LOW"`, not "LO"); if unsure, set a bad value once 
 | **`sustain −5, punch 0`, `band LOW`, xover 700** ★ | 22.1 | **clean tighten** — cymbals/hats keep decay (centroid 2447 vs WIDE's 2146); choke gone |
 
 ★ shipped as `projects/watercolors/mix/bus_tight.wav`. Gemini's residual "dark/boxy" on it was a **mono-downmix
-artifact** — in stereo it's the *brightest* of the warm/punchy/tight variants ([[gemini-mastering-feedback-cross-check]]).
+artifact** — in stereo it's the *brightest* of the warm/punchy/tight variants ([[gemini-audio-understanding]]).
 
 ---
 

@@ -20,7 +20,7 @@ history). The skill [[helios-type-69]] is the measured workflow over this doc.
 1. **It renders headless — load the `uaudio_` build.** `uaudio_helios_type_69.vst3` loads + processes through
    Pedalboard 0.9.23 (param-response confirmed; EQ-bypassed+flat is near-transparent: crest +0.06, rms −0.16 dB).
    The `UAD Helios Type 69.component` / `… Legacy.component` twins are the **passthrough** offline build — never
-   load those ([[uadx-uaudio-build-renders-headless]]). UADx native = **no iLok** for the render.
+   load those ([[vst-verify]]). UADx native = **no iLok** for the render.
 2. **`gain` is the drive/colour, not just level.** On a 1 kHz tone: **Line g20 = 0.002 % THD** (clean) → Mic g20
    = 0.049 % → **Mic g40 = 53 %** → Mic g70 = 61 %, **even-harmonic dominant** (2nd at −8 dB by g40). `gain`
    saturates in *both* modes — **Mic just reaches it ~10–20 dB sooner** (Mic g30 ≈ Line g40 ≈ 27–32 %). Driving
@@ -101,7 +101,7 @@ string/bool enums take the exact value.
    `polarity` are string enums — the float-only dict silently misses them (it can nudge `gain`/`hi_shelf_gain`/
    `mid_gain`/`bass`/`level` if they're already valid). Drive it with the **[[vst-preset]]** harness (`setattr`).
 4. **Wrong build = silent passthrough.** Load `uaudio_helios_type_69.vst3`. The `UAD …`/`Legacy .component` twins
-   pass audio unprocessed offline — a 0.00 delta is the tell ([[uadx-uaudio-build-renders-headless]]).
+   pass audio unprocessed offline — a 0.00 delta is the tell ([[vst-verify]]).
 
 ### Measured: `gain` + Mic mode = the saturation/colour engine
 

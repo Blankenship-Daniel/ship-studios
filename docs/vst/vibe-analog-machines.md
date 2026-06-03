@@ -32,7 +32,7 @@ machine enum? per-machine THD?). The skill [[vibe-analog-machines]] is the measu
 1. **Renders headless — load `uaudio_verve.vst3`.** UADx native, `probe_plugin.py` → `RENDERS ✓`, **bypass is
    sample-accurate to dry (Δ = 0.0)**. Needs an **iLok *account*** (software, no dongle) — authorized & verified
    processing here; re-verify on another machine. Don't load the `UAD …`/`.component`/AU twins (the usual UAD
-   passthrough-offline risk — [[uadx-uaudio-build-renders-headless]]).
+   passthrough-offline risk — [[vst-verify]]).
 2. **6 params; the `machine` is a STRING enum → drive it with the [[vst-preset]] harness, not `apply-vst-chain`'s
    float dict** (which sets the numerics but silently misses the machine name — the whole point of the plugin).
 3. **`param_1` = DRIVE; `param_2` = WARBLE on the 6 TAPE machines / TONE on the 4 PREAMP machines; `output_trim` =
@@ -134,7 +134,7 @@ SPUTTER + tape THICKEN(no-2nd)… actually the **even-leaning** set is GLOW/EDGE
    machine's last values) and only Output is global; for a deterministic render this is moot if you **set every param
    explicitly** (the harness does) — but never assume a value carries across a machine switch.
 7. **Wrong build = silent passthrough.** Load `uaudio_verve.vst3`; the `UAD …`/`.component`/AU twins risk passthrough
-   offline — a 0.00 delta is the tell ([[uadx-uaudio-build-renders-headless]]).
+   offline — a 0.00 delta is the tell ([[vst-verify]]).
 
 ### Measured: DRIVE (`param_1`) = the saturation engine
 
@@ -192,7 +192,7 @@ All peak-normalized to −1 dBFS by the harness (read **crest / centroid / tilt*
 | true-peak (dBTP) | −3.07 | −0.99 | −0.97 | −0.99 |
 
 - **`vibe-sweeten-drum-glue`** — Sweeten d50: an **exciter-like clean brighten** (centroid up, +air, crest held).
-- **`vibe-warm-drum-bus`** — Warm d65: warm + glued, crest down 2.5, top *gently* rolled (matches [[drum-bus-warm-tight-preference]];
+- **`vibe-warm-drum-bus`** — Warm d65: warm + glued, crest down 2.5, top *gently* rolled (matches [[warm-drum-bus]];
   and, independently, **SoS recommends "Warm @ Drive ~65 % on drums"** — Part B). The truer "warm bus" (keeps air).
 - **`vibe-lofi-warble`** — Vintagize d50 + warble 35: dark/band-limited lo-fi **plus** tape wobble (the warble is
   audible-only; the table can't show it).

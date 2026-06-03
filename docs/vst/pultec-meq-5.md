@@ -20,7 +20,7 @@ verified, cited*. The skill [[pultec-meq-5]] is the measured workflow over this 
 1. **It renders headless — load the `uaudio_` build.** `uaudio_pultec_meq-5.vst3` loads + processes (UADx native;
    hm_peak=10 @3 kHz moved the signal **0.285 max-abs** vs flat). `master_bypass=True` is the **only TRUE null**
    (bit-identical to the dry input). Never load a `UAD …`/`Legacy .component` twin (passthrough offline). iLok
-   account, no dongle — **re-verify on a new machine** ([[uadx-uaudio-build-renders-headless]]).
+   account, no dongle — **re-verify on a new machine** ([[vst-verify]]).
 2. **The MEQ-5 0–10 dial is ROUGHLY dB here** — the key distinction from the [[pultec-eqp-1a]] (nonlinear,
    not-dB) and [[hitsville-eq-mastering]] ("8 ≈ +5 dB") knobs. Measured: **LOW PEAK ≈ +1 dB/unit → +10.7 dB max**;
    **HIGH PEAK ≈ +0.9/unit → +8.8 dB max** (matches the hardware's documented **+8 dB** ceiling, Part B); the

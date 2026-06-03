@@ -50,7 +50,7 @@ is compared (a single gain leaves crest invariant). Headline numbers are the rep
 param-dump tools: `presets/vst/probe_plugin.py` / `presets/vst/dump_params.py`.
 
 **Renders headless ✓** — `probe_plugin.py "SSL 4K E"` → `RENDERS ✓` (Δparam 1.03). iLok/PACE-authorized on
-this Mac; **re-verify on any other rig** (SSL/iLok is a render-farm landmine — see [[vst-hosting-outside-daw]]).
+this Mac; **re-verify on any other rig** (SSL/iLok is a render-farm landmine — see [[vst]]).
 
 ### The real parameter surface (Pedalboard-exposed — authoritative; 49 params)
 

@@ -20,7 +20,7 @@ adversarially verified, cited*. The skill [[pultec-eqp-1a]] is the measured work
 
 1. **It renders headless — load the `uaudio_` build.** `uaudio_pultec_eqp-1a.vst3` loads + processes through
    Pedalboard (UADx native). The `UAD Pultec EQP-1A.component` / `… Legacy.component` twins are the **passthrough**
-   offline build — never load those ([[uadx-uaudio-build-renders-headless]]). UADx native is **PACE/iLok** lineage
+   offline build — never load those ([[vst-verify]]). UADx native is **PACE/iLok** lineage
    but renders offline once locally authorized (no Apollo hardware needed).
 2. **The Boost/Atten knobs are 0–10 DIAL POSITIONS, not dB**, and they're **nonlinear** — most of the action is
    between knob 4 and 8; 8→10 barely moves. Measured low boost @60 CPS: knob 4 ≈ +4 dB, knob 6 ≈ +11, knob 8 ≈ +15
@@ -101,7 +101,7 @@ positions*, NOT dB).
    `enable`, `output` are **string** enums — the float-only dict silently misses them (it can nudge the boost/atten/
    q knobs if already valid). Drive it with the **[[vst-preset]]** harness (`setattr`).
 4. **Wrong build = silent passthrough.** Load `uaudio_pultec_eqp-1a.vst3`. The `UAD …`/`Legacy .component` twins
-   pass audio unprocessed offline — a 0.00 delta is the tell ([[uadx-uaudio-build-renders-headless]]).
+   pass audio unprocessed offline — a 0.00 delta is the tell ([[vst-verify]]).
 5. **Reset state between renders.** (Rig note, not a user gotcha.) When sweeping in one process, a left-on
    `master_bypass=true`/`enable=Out` from a prior call silently bypasses every later render — reset all 12 params per
    call. The shipped presets always set the full surface.
@@ -334,7 +334,7 @@ pair it with a parametric EQ ([[fabfilter-pro-q-4]]) for notches. Place it **bef
    plugin / use `master_bypass` (Part A confirms `enable=Out` is *brighter*, not null).
 2. **Loudness-match every A/B** — UA models a **~1.13 dB insertion boost** (Part A measured **+1.1 dB**) and Output
    adds ±12 dB more, so the Pultec flatters itself. `[L] match-loudness` / `render-ab` before any `[G]`
-   compare/feedback ([[gemini-mastering-feedback-cross-check]]). Never trust `changed:true` or "louder" as "better".
+   compare/feedback ([[gemini-audio-understanding]]). Never trust `changed:true` or "louder" as "better".
 3. **Drive = more colour** — pushing makeup/output harder drives the tube model into (a little) more saturation.
 4. **Mono origin / stereo hygiene** — hardware is mono; the plugin runs mono / dual-mono. The stepped freq selectors
    match L/R easily, but Boost/Atten/Bandwidth/Output are continuous — mismatched L vs R shifts the image; link or set

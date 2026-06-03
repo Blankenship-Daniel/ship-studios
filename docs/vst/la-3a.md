@@ -12,7 +12,7 @@ successor to the tube LA-2A. It's the **solid-state opto LEVELER** counterpart t
 > **Repo caveat:** Gemini hears ~16 kbps mono — **meters own** loudness / peak / stereo and the crest / LRA /
 > spectrum that prove "leveling, not just louder." Verify every move with `[L] measure-loudness` /
 > `measure-microdynamics` / `measure-spectrum`. A "tighter" feel that doesn't move crest / LRA is a level
-> illusion ([[gemini-mastering-feedback-cross-check]]).
+> illusion ([[gemini-audio-understanding]]).
 
 ---
 
@@ -51,7 +51,7 @@ successor to the tube LA-2A. It's the **solid-state opto LEVELER** counterpart t
 renders (`RENDERS ✓` via `probe_plugin.py`, large measured deltas). UADx native is the **perpetual / no-iLok-
 dongle** lineage — but re-verify on a new machine. **Load the `uaudio_la3a.vst3` build, not the
 `/Components/UAD Teletronix LA-3A.component` twin** (legacy UAD-2 → passthrough offline →
-[[vst-verify]] / [[vst-hosting-outside-daw]]).
+[[vst-verify]] / [[vst]]).
 
 **Param surface (Pedalboard snake_case — what you set in code/the harness). All 8 are ENUMs:**
 

@@ -26,7 +26,7 @@ numbers below. **Where they differ, Part A wins for what renders.**
 
 1. **It renders headless — load the `uaudio_` build.** `uaudio_manley_massive_passive.vst3` (standard) and
    `…_m.vst3` (MST) load + process through Pedalboard 0.9.23. The `/Components/UAD Manley Massive Passive*.component`
-   AU twins are the **passthrough** offline build — never load those ([[uadx-uaudio-build-renders-headless]]).
+   AU twins are the **passthrough** offline build — never load those ([[vst-verify]]).
 2. **Every band defaults to `OUT` (out of circuit) → a bare load does NOTHING and `probe_plugin.py` FALSE-flags
    it as passthrough** (it pushes a gain on an OUT band). Set `*enable` to `BOOST`/`CUT` and verify with a real
    boost + `measure-spectrum`, not the canned probe.

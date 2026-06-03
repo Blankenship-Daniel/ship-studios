@@ -257,6 +257,100 @@ async def test_batch_master_requires_paths(recording_hub) -> None:
         await pipelines.batch_master(recording_hub, [])
 
 
+async def test_stem_master_sequence(recording_hub) -> None:
+    await pipelines.stem_master(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}
+    )
+    assert recording_hub.server_tool_sequence == [
+        (LOOPS_SERVER, "measure-loudness"),
+        (LOOPS_SERVER, "measure-spectrum"),
+        (LOOPS_SERVER, "measure-loudness"),
+        (LOOPS_SERVER, "measure-spectrum"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+    ]
+
+
+async def test_stem_master_passes_stems_dict(recording_hub) -> None:
+    stems = {"kick": "kick.wav", "bass": "bass.wav"}
+    await pipelines.stem_master(recording_hub, stems)
+    # args_for returns the FIRST analyze-stem-masking (the initial map).
+    args = recording_hub.args_for("analyze-stem-masking")
+    assert args["stems"] == stems
+    assert args["max_conflicts"] == 8
+
+
+async def test_stem_master_cross_check_runs_detect_masking(recording_hub) -> None:
+    await pipelines.stem_master(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}, cross_check=True
+    )
+    assert "detect-masking" in recording_hub.tool_sequence
+    assert recording_hub.args_for("detect-masking")["paths"] == ["kick.wav", "bass.wav"]
+
+
+async def test_stem_master_no_cross_check_skips_detect_masking(recording_hub) -> None:
+    await pipelines.stem_master(recording_hub, {"kick": "kick.wav", "bass": "bass.wav"})
+    assert "detect-masking" not in recording_hub.tool_sequence
+
+
+async def test_stem_master_corrects_losing_stem_and_rescores() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.stem_master(
+        hub,
+        {"kick": "kick.wav", "bass": "bass.wav"},
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 60.0, "gain_db": -3.0, "q": 1.0}],
+            "compress": True,
+        }},
+    )
+    # only the losing stem (bass) is corrected, in order, chained.
+    assert hub.args_for("apply-eq")["path"] == "bass.wav"
+    assert hub.args_for("apply-eq")["out_path"] == "bass.eq.wav"
+    assert hub.args_for("compress-loop")["path"] == "bass.eq.wav"
+    assert hub.args_for("compress-loop")["out_path"] == "bass.comp.wav"
+    # the corrected path is tracked and fed to the re-score.
+    assert result["corrected"] == {"kick": "kick.wav", "bass": "bass.comp.wav"}
+    rescore = [c.args for c in hub.calls if c.tool == "analyze-stem-masking"][-1]
+    assert rescore["stems"] == {"kick": "kick.wav", "bass": "bass.comp.wav"}
+
+
+async def test_stem_master_full_corrective_chain_per_stem() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    await pipelines.stem_master(
+        hub,
+        {"kick": "kick.wav", "snare": "snare.wav"},
+        corrections={"snare": {
+            "eq_bands": [{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+            "deess": {}, "suppress": {},
+            "dynamic_eq_bands": [
+                {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+            ],
+            "compress": True, "multiband": {},
+            "shape_bands": {"bands": [{"band": 0}]},
+        }},
+    )
+    chain = [
+        t for t in hub.tool_sequence
+        if t in {
+            "apply-eq", "de-ess", "suppress-resonances", "apply-dynamic-eq",
+            "compress-loop", "multiband-compress", "shape-bands",
+        }
+    ]
+    assert chain == [
+        "apply-eq", "de-ess", "suppress-resonances", "apply-dynamic-eq",
+        "compress-loop", "multiband-compress", "shape-bands",
+    ]
+
+
+async def test_stem_master_requires_two_stems(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.stem_master(recording_hub, {"only": "only.wav"})
+
+
 async def test_mix_check_default_severity_is_server_valid(recording_hub) -> None:
     # Bare mix-check must send a floor the real detect-mix-issues accepts.
     await pipelines.mix_check(recording_hub, "mix.wav")
@@ -885,6 +979,25 @@ async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
     # batch-master (per-track master chain + analyze-album-normalization).
     h = RecordingHub()
     await pipelines.batch_master(h, ["m.wav"])
+    _collect(h)
+
+    # stem-master (per-stem corrective + masking map + cross-check + re-score);
+    # covers analyze-stem-masking, detect-masking, and shape-bands.
+    h = RecordingHub()
+    await pipelines.stem_master(
+        h,
+        {"kick": "k.wav", "bass": "b.wav"},
+        cross_check=True,
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+            "deess": {}, "suppress": {},
+            "dynamic_eq_bands": [
+                {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
+            ],
+            "compress": True, "multiband": {},
+            "shape_bands": {"bands": [{"band": 0, "transient_db": 0.0, "gain_db": 0.0}]},
+        }},
+    )
     _collect(h)
 
     return pairs

@@ -565,6 +565,126 @@ async def house_curve(
     }
 
 
+async def _apply_stem_corrections(
+    rec: _Recorder, path: str, spec: dict[str, Any]
+) -> str:
+    """Apply one stem's opt-in corrective chain, returning the final output path.
+
+    Order: apply-eq -> de-ess -> suppress-resonances -> apply-dynamic-eq ->
+    compress-loop -> multiband-compress -> shape-bands. Each step reads the prior
+    step's output; ``path``/``out_path`` are injected last so a spec dict can't
+    hijack the chain. ``deess`` / ``suppress`` / ``multiband`` / ``shape_bands``
+    are tuning-kwarg dicts, ``eq_bands`` / ``dynamic_eq_bands`` carry EQ moves,
+    and ``compress`` is a bool.
+    """
+    cur = path
+    eq_bands = spec.get("eq_bands")
+    if eq_bands is not None:
+        out = _suffix_path(path, "eq")
+        await rec.run(
+            LOOPS_SERVER, "apply-eq", {"path": cur, "out_path": out, "bands": eq_bands}
+        )
+        cur = out
+    deess = spec.get("deess")
+    if deess is not None:
+        out = _suffix_path(path, "deess")
+        await rec.run(LOOPS_SERVER, "de-ess", {**deess, "path": cur, "out_path": out})
+        cur = out
+    suppress = spec.get("suppress")
+    if suppress is not None:
+        out = _suffix_path(path, "deharsh")
+        await rec.run(
+            LOOPS_SERVER, "suppress-resonances", {**suppress, "path": cur, "out_path": out}
+        )
+        cur = out
+    dyn = spec.get("dynamic_eq_bands")
+    if dyn is not None:
+        out = _suffix_path(path, "dyneq")
+        await rec.run(
+            LOOPS_SERVER, "apply-dynamic-eq", {"path": cur, "out_path": out, "bands": dyn}
+        )
+        cur = out
+    if spec.get("compress"):
+        out = _suffix_path(path, "comp")
+        await rec.run(LOOPS_SERVER, "compress-loop", {"path": cur, "out_path": out})
+        cur = out
+    multiband = spec.get("multiband")
+    if multiband is not None:
+        out = _suffix_path(path, "mbcomp")
+        await rec.run(
+            LOOPS_SERVER, "multiband-compress", {**multiband, "path": cur, "out_path": out}
+        )
+        cur = out
+    shape = spec.get("shape_bands")
+    if shape is not None:
+        out = _suffix_path(path, "shaped")
+        await rec.run(LOOPS_SERVER, "shape-bands", {**shape, "path": cur, "out_path": out})
+        cur = out
+    return cur
+
+
+async def stem_master(
+    hub: SupportsCallTool,
+    stems: dict[str, str],
+    *,
+    corrections: dict[str, dict[str, Any]] | None = None,
+    cross_check: bool = False,
+    max_conflicts: int = 8,
+) -> dict[str, Any]:
+    """Pipeline — per-stem corrective mixdown prep + masking verification.
+
+    The MCP-drivable half of stem-master (CLAUDE.md): per stem measure ->
+    analyze-stem-masking (the stem map) [+ optional detect-masking cross-check]
+    -> per-stem corrective chain (apply-eq -> de-ess -> suppress-resonances ->
+    apply-dynamic-eq -> compress-loop -> multiband-compress -> shape-bands, each
+    opt-in per stem) -> re-run analyze-stem-masking to confirm the overlaps
+    shrank. ``stems`` maps a stem NAME to its path (the shape analyze-stem-masking
+    takes); ``corrections`` maps a stem NAME to its moves — cut the loser, don't
+    boost the winner.
+
+    Summing the corrected stems is LOCAL DSP outside this DSP-free hub
+    (``drum-prep stem-mix``), and the summed bus then goes through
+    ``master_track`` — both are separate downstream stages, so this returns the
+    ``corrected`` stem paths for that handoff. ``unmask-stems`` is the
+    masking-only subset (the masking map + EQ cuts + re-score).
+    """
+    if len(stems) < 2:
+        raise ValueError("stem_master needs at least two stems")
+    rec = _Recorder(hub)
+    corrections = corrections or {}
+
+    for path in stems.values():
+        await rec.run(LOOPS_SERVER, "measure-loudness", {"path": path})
+        await rec.run(LOOPS_SERVER, "measure-spectrum", {"path": path})
+
+    await rec.run(
+        GEMINI_SERVER,
+        "analyze-stem-masking",
+        {"stems": dict(stems), "max_conflicts": max_conflicts},
+    )
+    if cross_check:
+        await rec.run(LOOPS_SERVER, "detect-masking", {"paths": list(stems.values())})
+
+    corrected: dict[str, str] = dict(stems)
+    for name, path in stems.items():
+        spec = corrections.get(name)
+        if spec:
+            corrected[name] = await _apply_stem_corrections(rec, path, spec)
+
+    await rec.run(
+        GEMINI_SERVER,
+        "analyze-stem-masking",
+        {"stems": corrected, "max_conflicts": max_conflicts},
+    )
+
+    return {
+        "pipeline": "stem-master",
+        "stems": dict(stems),
+        "corrected": corrected,
+        "steps": rec.steps,
+    }
+
+
 async def loops_to_deliverables(
     hub: SupportsCallTool,
     input_path: str,

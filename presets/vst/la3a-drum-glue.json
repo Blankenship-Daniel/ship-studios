@@ -1,0 +1,31 @@
+{
+  "name": "la3a-drum-glue",
+  "description": "Signature UADx LA-3A move on a stereo drum bus: gentle solid-state opto leveling + glue that keeps the broadband punch while evening out the kick, with the HF knob raised so the lows don't pump the detector. Comp mode, Peak Reduction 4.5 (a few dB GR), hf_emphasis 35 (lows out of the detector -> kick punches), Gain 5. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-16.50 (+0.68 denser), crest 17.17->16.67 (broadband near-held), true-peak -0.99, LRA 2.44->2.36, low-band block-crest 17.14->14.77 (kick tightened) with low-band punch held (27.15->26.64), low-mid ratio 0.179->0.209 + centroid 1747->1754 (a touch MORE body/forwardness, not darker — because hf35 keeps lows off the detector). Musical glue, not squash.",
+  "intended_for": "a stereo drum bus / submix that wants gentle opto leveling + glue while keeping its punch and brightness",
+  "plugin_build": "uaudio_la3a.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD Teletronix LA-3A.component twin PASSES THROUGH offline, do not use it). UADx native = perpetual/no-iLok lineage, but re-verify changed:true on a new machine.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la3a.vst3", "params": {
+        "peak_reduction": 4.5,
+        "gain": 5.0,
+        "comp_limit": "Comp",
+        "meter": "GR",
+        "hf_emphasis": 35.0,
+        "mix": 100.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "Peak Reduction is the amount/threshold (0-10) — it has a DEAD ZONE at the bottom (pr 0-2 = no GR on this material); it bites from ~pr 3-4 up. More PR = more GR, lower crest, lower output (make up with Gain).",
+    "comp_limit and meter are STRING enums — apply-vst-chain's float dict can't set them; this MUST go through apply_vst_preset.py.",
+    "hf_emphasis (0-100, default 0) is the LA-3A's built-in sidechain HF-emphasis / low-de-emphasis: RAISE it (here 35) so the kick/lows stop driving the detector -> less pumping, more punch + brightness preserved. hf 0 = full-range detection = most GR + darkest + most pumped.",
+    "Comp = gentle leveling; Limit clamps harder + slightly darker at the same PR.",
+    "gain is clean makeup (~4.9 dB per unit, zero tone change); the harness peak-trims to -1 dBFS so loudness-match before judging.",
+    "LA-3A = MONO unit (runs linked dual-mono on a stereo bus here). It's a leveling/glue stage, not a master — hand off to master-track."
+  ]
+}

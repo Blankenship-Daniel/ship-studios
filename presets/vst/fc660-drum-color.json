@@ -1,0 +1,35 @@
+{
+  "name": "fc660-drum-color",
+  "description": "Signature UADx Fairchild 660 move on a stereo drum bus: vari-mu COLOR + gentle leveling that thickens the low-mids and glues WITHOUT crushing transients. Moderate input drive (-6), threshold 6 for a few dB of program-dependent leveling, Time Constant 4 (the most open/punchy position here), sidechain filter 60 Hz so the kick stops triggering GR. VALIDATED on the Watercolors warm drum bus: crest 17.17->16.90, LRA 2.44->1.84 (tighter), low-mid energy ratio 0.179->0.188 (thicker), low-band punch HELD (27.15->27.19), +0.27 LU, true-peak -0.99. Color + glue that keeps the punch, NOT squash.",
+  "intended_for": "a stereo drum bus / submix that wants vintage tube weight + glue while keeping its punch",
+  "plugin_build": "uaudio_fairchild_660.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD Fairchild 660.component twin PASSES THROUGH offline, do not use it). UADx native = perpetual/no-iLok in the Ampex/Pultec lineage, but re-verify changed:true on a new machine.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_fairchild_660.vst3", "params": {
+        "meter": "GR",
+        "input": -6.0,
+        "thresh": 6.0,
+        "time_const": 4.0,
+        "sc_filt": "60 Hz",
+        "bal": 0.0,
+        "dc_thr": 7.5,
+        "output": 0.0,
+        "mix": 100.0,
+        "headroom": 16.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "ALL 12 Fairchild params are enums (numeric or string) — apply-vst-chain's float-only dict can't set them reliably; this MUST go through apply_vst_preset.py (setattr + nearest-valid snap).",
+    "There is NO ratio/attack/release knob: you sculpt with INPUT (drive), THRESH (higher = MORE GR on this build), and TIME_CONST (1=tightest, 4=most open/punchy, 5/6=program-dependent auto).",
+    "INPUT drives BOTH gain reduction AND harmonic color — it colors even at low GR, so A/B at matched loudness (the harness peak-normalizes to -1 dBFS; loudness-match before judging).",
+    "sc_filt removes lows from the DETECTOR only (audio low end untouched): raise it (60-120 Hz) so the kick/bass stop pumping the bus.",
+    "Color signature measured: energy moves from sub/low up into the low-mids (200-400 Hz body), HF ~unchanged — warmth/thickness, not brightness.",
+    "660 = MONO unit (runs linked dual-mono on a stereo bus here). For a true stereo bus prefer the 670 (L-R / L-V lateral-vertical matrix + channel link)."
+  ]
+}

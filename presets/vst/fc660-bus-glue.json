@@ -1,0 +1,33 @@
+{
+  "name": "fc660-bus-glue",
+  "description": "Gentle UADx Fairchild 660 leveling/glue for a mix bus or 2-bus: light input drive, threshold 5, Time Constant 5 (program-dependent dual auto-release for transparent, breathing recovery), sidechain filter 90 Hz so low end doesn't pump the whole mix. A vintage-tube alternative to a VCA glue comp — adds tube weight + cohesion at only a couple dB of leveling. Measured on the Watercolors warm drum bus: crest 17.17->16.52, LRA 2.44->1.84 (tighter), +0.61 LU, true-peak -0.99 — gentle tube cohesion + weight.",
+  "intended_for": "a stereo mix bus / 2-bus that wants subtle tube cohesion + weight without obvious compression",
+  "plugin_build": "uaudio_fairchild_660.vst3 (UADx native — renders headless; not the .component twin)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_fairchild_660.vst3", "params": {
+        "meter": "GR",
+        "input": -8.0,
+        "thresh": 5.0,
+        "time_const": 5.0,
+        "sc_filt": "90 Hz",
+        "bal": 0.0,
+        "dc_thr": 7.5,
+        "output": 0.0,
+        "mix": 100.0,
+        "headroom": 16.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "Time Constant 5/6 are the program-dependent AUTO positions (a fast first stage + a long secondary release) — smoother/denser on busy material; 4 is the most open. Re-dial TIME_CONST by ear/crest.",
+    "Threshold is relative to input level: higher thresh = more GR on this build. Keep it gentle (a couple dB) for glue, not squash.",
+    "It's a glue/color stage, NOT a master/limiter — hand off to master-track for loudness/limiting.",
+    "For a TRUE stereo bus the 670 (with L-R/L-V matrix + link) is the purist choice; the 660 runs dual-mono."
+  ]
+}

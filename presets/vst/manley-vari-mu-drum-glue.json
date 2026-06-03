@@ -1,0 +1,36 @@
+{
+  "name": "manley-vari-mu-drum-glue",
+  "description": "Signature UADx Manley Variable Mu move on a stereo drum bus: clean vari-mu tube GLUE + gentle leveling that keeps the punch. Shared DUAL INPUT 6, threshold 5 (a couple dB of program-dependent leveling), ATTACK 3 (slow side = transients pass = punch), RECOVERY 'Med' (the most open position here), COMP mode, HP SIDECHAIN 'In' so the kick stops pumping the bus. The Manley is CLEANER/more even-harmonic than the Fairchild 660 — it levels and glues without the 660's low-mid thickening. VALIDATED on the Watercolors warm drum bus: crest 17.17->17.39 (transients MORE intact than the 660, which dropped to 16.90), LRA 2.44->2.07 (tighter macro-dynamics), low-mid ratio 0.179->0.184 (slight thicken), low-band punch HELD (27.15->27.30), true-peak -0.98, -0.21 LU. Clean glue that keeps the punch, NOT squash.",
+  "intended_for": "a stereo drum bus / submix that wants clean tube glue + leveling while keeping its punch (the cleaner counterpart to fc660-drum-color)",
+  "plugin_build": "uaudio_manley_variable_mu.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD Manley Variable Mu.component twin PASSES THROUGH offline, do not use it). UADx native = perpetual/no-iLok lineage, but re-verify changed:true on a new machine.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_variable_mu.vst3", "params": {
+        "dual_input": 6.0,
+        "l_thresh": 5.0, "r_thresh": 5.0,
+        "l_attack": 3.0, "r_attack": 3.0,
+        "l_recovery": "Med", "r_recovery": "Med",
+        "l_output": 5.0, "r_output": 5.0,
+        "l_comp_lim": "Comp", "r_comp_lim": "Comp",
+        "l_hp_sc_filt": "In", "r_hp_sc_filt": "In",
+        "l_bypass": "In", "r_bypass": "In",
+        "in_matrix": "L-R", "out_matrix": "L-R",
+        "sc_link": "Link", "ctrl_link": "Link",
+        "mix": 100.0, "headroom": 16.0,
+        "power": true, "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "ALL 23 Manley params are enums (numeric values AND string switches) — apply-vst-chain's float-only dict can't set the string enums (recovery / comp_lim / hp_sc_filt / matrices / links) reliably; this MUST go through apply_vst_preset.py (setattr + nearest-valid snap).",
+    "DUAL INPUT is a SINGLE shared input drive (0-10, default 6); threshold / attack / output / recovery / comp-lim / hp-sc / bypass are PER-CHANNEL (l_* and r_*). Keep L and R identical for a stereo bus in L-R mode.",
+    "THRESHOLD maps directly: LOWER l_thresh value = MORE gain reduction (opposite of the Fairchild's inverted enum). Crest RISES as it levels (vari-mu keeps transients).",
+    "ATTACK 0 = SLOW (punch, transients pass) ... 10 = FAST (clamp). It's flat until ~7 then grabs. RECOVERY: Med = most open, Fast = densest/can pump.",
+    "HP SIDECHAIN 'In' takes lows out of the DETECTOR only (audio low end untouched) so the kick/bass stop triggering GR — output rises and the bus stops pumping.",
+    "Tube color is LEVEL-dependent + even-harmonic (2nd): clean at -18 dBFS, ~0.2% THD when driven hot (-6 dBFS). To add color, drive DUAL INPUT up / lower HEADROOM; threshold alone just levels.",
+    "It adds level + harmonics -> A/B at matched loudness (the harness peak-normalizes to -1 dBFS; loudness-match before judging)."
+  ]
+}

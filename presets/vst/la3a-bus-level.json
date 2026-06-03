@@ -1,0 +1,29 @@
+{
+  "name": "la3a-bus-level",
+  "description": "Firmer, more aggressive LA-3A opto leveling in LIMIT mode for a drum/instrument bus that wants to sit tight and forward. Limit mode, Peak Reduction 6, hf_emphasis 20 (a little low-end off the detector), Gain 5. VALIDATED on the Watercolors warm drum bus: LUFS -17.18->-16.08 (+1.10 denser), crest 17.17->16.26, true-peak -0.98, LRA 2.44->1.72 (notably tighter — firm leveling), low-mid ratio 0.179->0.198 + centroid 1747->1762 (more body/presence). The in-your-face counterpart to la3a-drum-glue; use Limit + more PR when you want it to grab harder.",
+  "intended_for": "a drum / instrument bus that wants firmer, more aggressive opto leveling (LIMIT mode) — tighter and more in-your-face than la3a-drum-glue",
+  "plugin_build": "uaudio_la3a.vst3 (UADx native build — renders headless & processes offline; the /Components/UAD Teletronix LA-3A.component twin PASSES THROUGH offline, do not use it).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la3a.vst3", "params": {
+        "peak_reduction": 6.0,
+        "gain": 5.0,
+        "comp_limit": "Limit",
+        "meter": "GR",
+        "hf_emphasis": 20.0,
+        "mix": 100.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "LIMIT mode = higher effective ratio / harder knee than Comp at the same PR (lower crest, slightly darker).",
+    "hf_emphasis 20 keeps a little low-end out of the detector so it doesn't pump on the kick, but still levels firmly.",
+    "comp_limit + meter are string enums -> preset harness only.",
+    "Re-dial Peak Reduction to the GR you hear; this is firmer leveling, not a smash — for parallel crush use la3a-parallel-smash."
+  ]
+}

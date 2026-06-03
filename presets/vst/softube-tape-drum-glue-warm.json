@@ -1,0 +1,33 @@
+{
+  "name": "softube-tape-drum-glue-warm",
+  "description": "Warm + fat drum-bus tape glue via Softube Tape. Type B (fattest/darkest — measured centroid 2113 vs dry 2223, most LF) at 15 IPS (head bump lands on the kick), Amount 6 for audible-but-clean compression (crest ~ -0.5..-0.9 dB), Crosstalk 50 for center weight / mono glue. Warmth comes from the tape (Type+speed), not EQ boosts — the user's preferred warm+tight drum-bus character.",
+  "intended_for": "a balanced stereo drum bus that wants warmth + controlled bottom (the warm/tight pref). Insert before the master; do NOT limit here.",
+  "plugin_build": "Softube 'Tape.vst3' (renders headless via Pedalboard; iLok/PACE — authorized on this rig, re-verify on a new machine). 13 of 15 params are STRING ENUMS → must go through this harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Tape.vst3", "params": {
+        "color_type": "B",
+        "color_amount": 6.0,
+        "tape_speed": "15 IPS",
+        "dry_wet": "WET",
+        "speed_stability": "STABLE",
+        "high_freq_trim": "FLAT",
+        "crosstalk": "50.0",
+        "input_db": "6.0",
+        "output_db": "6.0",
+        "noise": false,
+        "playback": "RUN",
+        "meter": "THD"
+      }}
+    ]
+  },
+  "notes": [
+    "Amount is GAIN-COMPENSATED → it barely moves tone; it moves crest. 6.0 ≈ -0.5..-0.9 dB crest on a drum bus. Push to ~7-8 for more glue, but 10 CRUSHES (-4.9 dB crest + 3rd-harmonic spit).",
+    "For a brighter result swap high_freq_trim to a positive value (BOOST = +566 Hz centroid); for warmer use 'CUT' (-514). For tighter lows go tape_speed '30 IPS' (brighter + tighter) and crosstalk 'OFF'.",
+    "Crosstalk NARROWS/glues (corr up, mono-sum loss down) — it is NOT a widener; it's inert on mono.",
+    "Verify: measure-loudness (crest), measure-spectrum (centroid/tilt DOWN = warming), measure-stereo (crosstalk), render-ab loudness-matched. Pairs with [[warm-drum-bus]] / [[drum-bus-warm-tight-preference]]."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "softube-tape-drum-tight",
+  "description": "Tight + modern drum-bus tape via Softube Tape. Type A (most transparent — measured centroid 2212 ≈ dry) at 30 IPS (brightest + tightest lows — centroid 2404, lowest low-ratio), Amount 5 for light glue, Crosstalk OFF to keep the image open. The punchy/bright counterpart to softube-tape-drum-glue-warm.",
+  "intended_for": "a drum bus that should stay tight, present and modern (not fattened). Insert before the master; do NOT limit here.",
+  "plugin_build": "Softube 'Tape.vst3' (renders headless via Pedalboard; iLok/PACE — authorized on this rig, re-verify elsewhere). String-enum params → this harness only.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "Tape.vst3", "params": {
+        "color_type": "A",
+        "color_amount": 5.0,
+        "tape_speed": "30 IPS",
+        "dry_wet": "WET",
+        "speed_stability": "STABLE",
+        "high_freq_trim": "FLAT",
+        "crosstalk": "OFF",
+        "input_db": "6.0",
+        "output_db": "6.0",
+        "noise": false,
+        "playback": "RUN",
+        "meter": "THD"
+      }}
+    ]
+  },
+  "notes": [
+    "30 IPS measured BRIGHTEST + tightest lows; Type A is the cleanest machine — minimal coloration, only the light compression of Amount 5 (crest ~ -0.2 dB).",
+    "Too clean? Move to Type C (a touch more top + organic LF) or push Amount to 6-7. Want air? high_freq_trim toward BOOST.",
+    "Verify crest/PLR (glue, not squash), centroid (should stay bright), render-ab. Sibling: [[softube-transient-shaper]] for transient design, [[api-vision-channel-strip]] for console punch."
+  ]
+}

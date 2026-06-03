@@ -1,0 +1,43 @@
+{
+  "name": "hitsville-motown-master",
+  "description": "The 'Motown Sound' broad master/2-bus curve from the UADx Hitsville EQ Mastering alone — fuller low end + cleared low-mid + presence + air, all gentle and musical (passive proportional-Q graphic EQ, not surgical). L/R stereo, both channels identical. Moves (amount 0-8 + Dip/Peak): 50 Hz Peak 3 (weight) + 130 Hz Peak 2 (low punch) + 320 Hz Dip 2 (declutter the box) + 5 kHz Peak 2 (presence) + 12.5 kHz Peak 2 (air). Measured on watercolors bus_punchy_pre (60 s dry drum bus), peak-normalized -1 dBFS: band_ratio_low 0.589 -> 0.722 (fuller lows), band_ratio_high 0.0130 -> 0.0167 (more air), spectral_centroid 2223 -> 2388 Hz (a touch brighter, stays musical), crest 21.6 -> 19.8 dB (the added low-end SUSTAIN densifies it — it is an EQ, not a compressor; both peak-safe). NOTE the 0-8 knob is NOT dB: measured a single band at amount 8 gives only ~+5 dB (Peak) / ~-3 dB (Dip), gentle + asymmetric, so these 2-3 settings are subtle broad shapes.",
+  "intended_for": "a near-final stereo mix / 2-bus / master, or a drum bus that wants the Motown broad tonal signature (low weight + air + presence) in one passive box. This is a tonal EQ stage — do the loudness/limiting in master-track AFTER.",
+  "plugin_build": "uaudio_hitsville_eq_mastering.vst3 (UADx native — RENDERS headless via Pedalboard, verified on this rig: a band boost moved the signal by 0.445 max-abs. Do NOT use the 'UAD Hitsville EQ Mastering.component' twin — it passes audio through unprocessed offline. UADx authorizes via iLok account (no dongle); RE-VERIFY load+render on any other machine with presets/vst/probe_plugin.py — but note probe_plugin auto-picks lN_gain=0 which is a no-op here, so confirm with a real boost.)",
+  "headless_notes": "EVERY one of the 53 Hitsville params is an ENUM (Pedalboard valid_values). apply-vst-chain's float dict can set the float-valued enums (lN_gain 0..8, lN_freq, left/right_gain) but NOT the string enums (lN_dip_pk Dip/Peak, ctrl_link, filter, mid_side, left/right_byp, left/right_speed) — so build it with THIS harness (setattr handles all enums). TWO measured gotchas baked into this preset: (1) the global left_speed/right_speed '1/2' switch is INERT in a headless render — it does NOT move a band's center; the per-band lN_freq IS the real control, so frequencies are set explicitly here. (2) ctrl_link='Link' mirrors the top (Left/Mid) channel onto both (measured: set L only -> both +6.85 dB), but for a reproducible render we Unlink and set BOTH sections explicitly.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_hitsville_eq_mastering.vst3", "params": {
+        "power": true,
+        "master_bypass": false,
+        "ctrl_link": "Unlink",
+        "mid_side": "L-R",
+        "filter": "Off",
+        "left_byp": "In", "right_byp": "In",
+        "left_speed": "Normal", "right_speed": "Normal",
+        "left_gain": 0.0, "right_gain": 0.0,
+
+        "l1_freq": 50.0,    "l1_dip_pk": "Peak", "l1_gain": 3.0,
+        "l2_freq": 130.0,   "l2_dip_pk": "Peak", "l2_gain": 2.0,
+        "l3_freq": 320.0,   "l3_dip_pk": "Dip",  "l3_gain": 2.0,
+        "l6_freq": 5000.0,  "l6_dip_pk": "Peak", "l6_gain": 2.0,
+        "l7_freq": 12500.0, "l7_dip_pk": "Peak", "l7_gain": 2.0,
+
+        "r1_freq": 50.0,    "r1_dip_pk": "Peak", "r1_gain": 3.0,
+        "r2_freq": 130.0,   "r2_dip_pk": "Peak", "r2_gain": 2.0,
+        "r3_freq": 320.0,   "r3_dip_pk": "Dip",  "r3_gain": 2.0,
+        "r6_freq": 5000.0,  "r6_dip_pk": "Peak", "r6_gain": 2.0,
+        "r7_freq": 12500.0, "r7_dip_pk": "Peak", "r7_gain": 2.0
+      }}
+    ]
+  },
+  "notes": [
+    "MEASURED band centers (amount 8, Normal): 50->50.5, 130->133, 320->332, 800->848, 2000->2126, 5000->5130, 12500->13393 Hz (~nominal). Bands 1-6 are broad BELLS (proportional-Q, ~1.5-2 octaves wide at full); band 7 (12.5 kHz) acts as a high SHELF / air (still +4 dB at 16 kHz). The amount knob is ~linear at ~0.6 dB/step up to ~+5 dB (Peak) at 8; Dip tops out ~-3 dB. Bands INTERACT (passive design) so stacked moves are not strictly additive.",
+    "The 'low cream' (Tozzoli) move is on band 1/2 (50/130 Hz Peak). For a deeper sub bump use l1_freq=25.0 (half-speed) which centers ~25 Hz; for 'tape-smooth top' add 12.5 kHz AND engage filter='Low Pass' (the 15 kHz Motown Filter) to roll the very top.",
+    "To DRIVE it for harmonic colour, raise input_gain_db (the unit 'takes a surprising amount of input gain and distorts nicely'); the transformer/amp model is a musical 'colored bypass' even with a section's byp='Out'. Re-measure after adding drive.",
+    "filter is the fixed 'Motown Filters': 'High Pass' = ~70 Hz HPF (measured -5 dB @63, -34 @31), 'Low Pass' = ~15 kHz LPF (measured -30 dB @16k), 'Band Pass' = both. Steep, applies to BOTH channels regardless of Link. There is NO sweepable filter frequency headless.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/hitsville-motown-master.json <in.wav> <out.wav>"
+  ]
+}

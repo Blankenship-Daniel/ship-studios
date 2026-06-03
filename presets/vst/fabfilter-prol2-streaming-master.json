@@ -1,0 +1,28 @@
+{
+  "name": "fabfilter-prol2-streaming-master",
+  "description": "Streaming-safe true-peak limiter config for FabFilter Pro-L 2: Transparent style, -1.0 dBTP ceiling, True Peak Limiting ON, 4x oversampling (offline-fast), dither OFF (let the delivery stage dither at the final bit depth). The CHARACTER is in the .state blob; you set the per-track `gain` to hit your target loudness. Validated headless on the Watercolors drum loop: at +9 gain it held true-peak -1.018 dBTP (compliant) while crest fell 14.6 -> 9.9 (real loudness maximization). The .state encodes Transparent/4x/dither-Off (verified by reloading the blob); regenerate it with a process() flush before p.raw_state or it captures the restored GUI state instead.",
+  "intended_for": "the FINAL limiter stage of a master / loud bus — drive `gain` to reach target loudness, ceiling/true-peak owned by the limiter",
+  "plugin_build": "FabFilter 'Pro-L 2.vst3' (renders headless via Pedalboard, no-iLok)",
+  "apply_with": "apply-vst-chain (MCP), NOT apply_vst_preset.py",
+  "state_blob": "fabfilter-prol2-streaming-master.state",
+  "recipe_readable": {
+    "style": "Transparent",
+    "output_level_dbtp": -1.0,
+    "true_peak_limiting": true,
+    "oversampling": "4x",
+    "dithering": "Off",
+    "noise_shaping": "(inert while dither Off; only applies if you turn dither on at the final depth)",
+    "lookahead_ms": 1.0,
+    "gain_db": "set per-track to hit target loudness (the one knob you change)"
+  },
+  "how_to_apply": "apply-vst-chain {path:<in>, out_path:<out>, plugins:[{plugin_path:'/Library/Audio/Plug-Ins/VST3/FabFilter Pro-L 2.vst3', state_path:'presets/vst/fabfilter-prol2-streaming-master.state', parameters:{gain:<dB>}}]}",
+  "notes": [
+    "A LIMITER OWNS THE CEILING — render it FAITHFULLY (output as-is). Do NOT run this through presets/vst/apply_vst_preset.py: that harness peak-normalizes the output to output_peak_dbfs, which re-scales the limiter's output and pushes the true-peak back OVER the ceiling (defeating True Peak Limiting). Use apply-vst-chain (it writes the plugin output unchanged) with this .state for the enums + a `gain` float override.",
+    "TRUE PEAK ON is the streaming-compliance control: measured TP-on held -1.018 dBTP, TP-off overshot to -0.984 dBTP (over the -1.0 target) on the same render despite sample-peak -0.99 — sample-peak limiting leaks inter-sample peaks; turn TP on for any -1.0 dBTP delivery.",
+    "DITHER LAST, AT THE FINAL BIT DEPTH: this preset keeps dither OFF so the delivery stage (export-deliverables / render-mastered) dithers once at the real export depth. If Pro-L 2 IS your final render-to-file, set dithering to match the output bit depth (16 Bits for 44.1/16 distribution) and write at that depth.",
+    "GAIN is per-track, not bakeable: the dB of gain to reach -14 LUFS depends on the source level. Measure the source, set gain, re-measure integrated LUFS + true-peak, adjust. The .state fixes everything else.",
+    "STYLE picks density vs dynamics (measured @ +9 on the drum loop, crest): Aggressive densest (9.49) > Transparent 9.88 ~ Dynamic/Allround/Bus/Punchy ~9.9 > Safe 10.37 > Modern most dynamic-preserving (10.56). Swap the style in a regenerated .state (string enum -> setattr, can't be set via the float dict).",
+    "OVERSAMPLING: 4x is a good offline default; 32x (the GUI default) is slower with marginal gain headless. Higher OS = more accurate true-peak catch at more CPU.",
+    "Regenerate the .state with a different style/ceiling/OS via Pedalboard setattr + p.raw_state (the enums are string/bool -> not reachable by apply-vst-chain's float dict)."
+  ]
+}

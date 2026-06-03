@@ -15,10 +15,16 @@ measured workflow over this doc.
 
 ## TL;DR (the headline, measured)
 
-1. **Tape DARKENS. It is a harshness *cure*, not a cause.** Isolated on our drum bus, the Studer pulled
-   spectral centroid **−341 Hz** (warmer); every lever we swept only ever darkened it further. When a "tape"
-   chain sounds harsh, the harshness is **upstream** — measure each plugin alone to find it. On our 70s drum
-   bus the culprit was the **Neve 1073's +2 dB @ 3.2 kHz mid** (centroid **+808**), not the tape.
+1. **Lightly-driven tape DARKENS — *usually* a harshness cure, not the cause.** Isolated on our drum bus, the
+   Studer pulled spectral centroid **−341 Hz** (warmer); every lever we swept only ever darkened it further.
+   So when a "tape" chain sounds harsh, **suspect upstream first** — measure each plugin alone (on our 70s drum
+   bus the culprit was the **Neve 1073's +2 dB @ 3.2 kHz mid**, centroid **+808**, not the tape). **But tape can
+   itself be the harsh one:** over-driving the Input or **under-biasing** generates the tape's *own* odd
+   (3rd/5th/7th) saturation + IMD straight into the **2–6 kHz** presence band (§5), and high-headroom GP9/900
+   stay brighter. Rule: isolate & measure *every* stage — and fix a **tape-stage** harshness with **less Input /
+   over-bias / higher-headroom tape**, not by blaming the EQ. *(Verified 2026-06-03: an adversarial web fact-check
+   confirmed the measured darkening; it refuted only the over-absolute "almost always upstream" wording — hence
+   this scope.)*
 2. **Centroid is a *balance* metric — mind the 30-IPS trap.** We measured **30 IPS as *darker* than 15 IPS**
    (−517 vs −341) even though textbooks call 30 IPS "brighter." Both are true: 30 IPS extends the absolute
    top *and* moves its head bump up to ~100–120 Hz, and on bass-heavy drums that upper-bass weight pulls the
@@ -107,20 +113,26 @@ spectrum negligibly *on this drum bus* (they matter more elsewhere / at other sp
 
 The **Studer A800** is a professional 2-inch, 24-track analog multitrack recorder; the UAD/UADx plugin models
 its full record→tape→reproduce path (electronics, four tape formulas, three speeds, bias, EQ curves). Vs its
-sibling the **Ampex ATR-102** (smoother, glossier 2-bus/mastering machine), the A800 is the **cleaner,
-punchier multitrack** engineers reach for on a drum bus or for "punch and cohesion" (pluginoise.com). Its
+sibling the **Ampex ATR-102** (smoother, glossier 2-bus/mastering machine — its own deep-dive is [[ampex-atr-102]]),
+the A800 is the **cleaner, punchier multitrack** engineers reach for on a drum bus or for "punch and cohesion"
+(pluginoise.com). Canonical split: **Studer on tracks/buses, Ampex on the master.** Its
 character leans on **harmonic + compression behavior** more than a huge LF bump (Endino bench data).
 
 The real audio effects of tape, all modeled:
 
-- **Head bump** — a LF response rise of roughly **+1 to +4 dB, ~1–1.5 octaves wide**, from recorded
-  wavelength approaching the playback-head pole length. Center freq is **speed-dependent and doubles each
-  time speed doubles**. This is what "fattens" drums/bass — and it is **not** harmonic distortion.
+- **Head bump** — a LF response rise of **~+1.5 to +2 dB in-spec** (up to ~3 dB; reads as ±2 dB undulation,
+  often with a shallow complementary dip just above), ~1–1.5 octaves wide, from recorded wavelength approaching
+  the playback-head pole length; **bigger when under-biased/misaligned**. Center freq is **speed-dependent and
+  doubles each time speed doubles** — the octave-per-doubling is the reliable invariant; the *absolute* Hz is
+  machine/head-geometry specific (Endino measured ~35–40 Hz @15 IPS on an Ampex MM1200 vs the ~60 Hz
+  Studer/Otari alignment figure). This is what "fattens" drums/bass — and it is **not** harmonic distortion.
 - **HF softening** — loud HF transients don't survive magnetic recording (self-erasure + gap loss), so the
   top gets "less brash"; slower speed = more HF loss (SoS, CCRMA).
 - **Saturation / harmonics** — predominantly **odd-order, chiefly 3rd-harmonic** from the symmetric
-  (tanh / S-shaped) magnetization curve. MOL is defined at **3% 3rd-harmonic THD @ 1 kHz**. This is the lever
-  that turns harsh when overdriven (§5).
+  (tanh / S-shaped) magnetization curve. MOL is defined at **3% 3rd-harmonic THD @ 1 kHz**
+  (MOL = *Maximum **Output** Level*; 1 kHz is the **open-reel** convention — cassette / some datasheets use
+  315/400 Hz. Don't conflate the 3% MOL with the ~1% THD *normal operating level* you align near for headroom).
+  This is the lever that turns harsh when overdriven (§5).
 - **Tape compression** — gentle, program-dependent, un-pumped transient rounding. Lowers crest, "glues";
   drums benefit most (huge transient spikes).
 - **Wow & flutter** — worst at 7.5 IPS (0.06%), spec-equal 15/30 IPS (0.04%). **No W/F knob in the A800 UI.**
@@ -165,11 +177,13 @@ drum bus — the upper-bass bump dominates the balance metric.)*
 |---|---|---|
 | **3M 250** | +3 (lowest) | warmest/vintage, rolled top, soft saturation |
 | **Ampex 456** | +6 (~355 nWb/m) | balanced warm/round, best low thump — **default warm tape** |
-| **BASF 900** | +9 (~510) | high output, minimal distortion, holds bass; can be "doughy" |
-| **Quantegy GP9** | +9 (~510) | punchiest, highest headroom, tight lows; top can read "metallic" |
+| **BASF 900** | +9 (~510) | high output, minimal distortion, holds bass; **smoother/rounder than GP9**, can be "doughy" |
+| **Quantegy GP9** | +9 (~510) | **ties 900** for highest headroom — the **tighter/punchier/brighter** of the two, tight lows; top can read "metallic" |
 
-WARM → **456** (or 250, earliest soft 3rd-harmonic). CLEAN/HARSH-PRONE → **GP9/900** (stay clean; GP9 top can
-edge metallic). **Drive level dominates tape choice.**
+WARM → **456** (or 250, earliest soft 3rd-harmonic). CLEAN/HARSH-PRONE → **GP9/900** (stay clean; GP9 vs 900 =
+tighter/brighter vs smoother/rounder; GP9 top can edge metallic). **Drive level dominates tape choice.**
+*(The metallic / doughy / tightest-lows labels are subjective real-tape descriptors, not UA-published per-model
+specs — the hard fact is the headroom order 250 < 456 < 900 ≈ GP9.)*
 
 **Lever 3 — Calibration + Input (record level).** Cal sets where 0 VU sits in flux; Input drives above/below.
 Ladder off **185 nWb/m = 0 dB**, +6 per doubling. **456 @ +6 = 355 nWb/m**, ~10 dB below the 3% THD MOL. At
@@ -216,15 +230,30 @@ drive or move toward 30 IPS/CCIR. **Tilt test:** A/B loudness-matched; if a simp
 reproduces the "warmth," it was tilt, not saturation — and tape can't fix a true sibilance hotspot (use
 `[L] de-ess` / `[L] apply-dynamic-eq` for surgery, tape for glue).
 
+**(d) Placement & pro starting points (sourced).** Authentic UA usage = A800 on the **first insert** of each
+channel (emulates tracking the whole multitrack to tape). For **dynamics/glue**, place tape **pre-compressor**
+on a bus (Jacquire King: let the tape "control some of the initial dynamics" so the comp doesn't overwork). For
+**color / non-standard** results, put it *after* other processors or in a **send/return** (parallel). There is
+**no built-in dry/wet** — to keep dry transients, run it parallel via a send/return or a duplicate track (100 %
+wet softens transients). Most-cited starting point: **456 · 15 IPS · Cal +9 · bias slightly hot**. Vance Powell's
+published drum preset: **15 IPS · 3M 250 · CCIR**, most channels +3 over 250 nWb/m, with **kick/snare on a lower
+ref so they saturate earlier**.
+
 ## 5. Why driven tape gets harsh
 
 Tape's saturation curve is **symmetric (tanh)** → it generates **odd** harmonics (3rd, 5th, 7th), **not** the
 even (2nd) harmonics tubes/transformers add. The "tape = warm even-order harmonics" belief is **backwards**:
 tape's harmonics are predominantly **3rd-order — the harsh kind**; the real warmth is the **LF head bump +
-gentle compression** (SoS, Sage Audio). Odd harmonics aren't octaves (3rd = octave+fifth, 5th = 2 oct+major
+gentle compression** (SoS, Sage Audio). **Predominantly odd ≠ exclusively odd:** the magnetic *process* is
+odd/3rd (correct AC bias actively *minimises* the 2nd harmonic — so even-order in tape is a **mis-bias defect**,
+not its warmth), but the analog *system* around it (bias/erase/head asymmetry, transformer/tube electronics in
+the path) adds *some* 2nd. The symmetric-tanh model is a first-order idealisation; the odd/3rd conclusion and the
+anti-myth stance still stand. Odd harmonics aren't octaves (3rd = octave+fifth, 5th = 2 oct+major
 third, 7th = dissonant ♭7) so on dense signal they land as non-octave tones in the **2–5 kHz** presence band =
 edge. Worse, multi-note saturation makes **intermodulation distortion** (non-harmonic sum/difference tones) —
-grit that **no EQ notch fixes**; the cure is **less drive**. As Input rises: compression steepens (~3:1 past
+grit that **no EQ notch fixes**; the cure is **less drive** (any nonlinearity that makes harmonic distortion
+*also* makes IMD on multi-tone input — Rod Elliott/ESP — so the single-tone 3% THD MOL **understates** the real
+grit on dense program). As Input rises: compression steepens (~3:1 past
 MOL) and the stack climbs 3rd → 5th/7th → IMD; a **2–5 kHz (and 6–8 kHz) rise on a driven take is the
 harshness signature, not warmth.**
 
@@ -246,6 +275,11 @@ blend.
 - **No Wow/Flutter knob.** **Noise is OFF by default** and **stacks across instances**. **Extra latency** from
   upsampling. **Run Auto Cal** after every Tape/Speed/Cal change. **HF Driver/HF Record EQ is a brightness
   control, not a de-harsher.**
+- **Gang Controls is destructive.** When linked, a parameter edit overwrites **every open A800 instance** at once
+  (built for 24-track work) and the old values "cannot be recovered" (red flashing-LED warning). Leave it off
+  unless you mean to drive a multi-instance kit in lockstep.
+- **Input/Output ranges:** Input **−12…+24 dB**, Output **−24…+12 dB** — confirmed by the UA manual, our measured
+  param surface, *and* the screenshot. A manual-mirror page listing *both* as −24…+12 is an OCR error; don't trust it.
 - **Disputed/approximate:** exact head-bump Hz/dB & bias dB range unpublished by UA; Cal nWb/m not lab-verified
   (trust dB-over-185); BASF 900 behavior is bias-dependent. Beginner blogs claiming "even-order warmth" are
   **wrong** — trust the symmetric-tanh physics (odd/3rd).
@@ -270,10 +304,63 @@ blend.
 
 ---
 
+## 8. The plugin UI & build (UADx vs UAD-2) + panel control-map
+
+This maps the **exact panel in the UADx screenshot** to the Pedalboard params so an agent can read the knobs and
+know what each does. **Bold value** = the screenshot's position.
+
+### Front panel (primary — always visible)
+
+| Panel control | Param | Values | What it does |
+|---|---|---|---|
+| **THRU / INPUT / SYNC / REPRO** buttons *(REPRO lit)* | `path_select` | Thru · Input · Sync · **Repro** | Signal path. THRU = true bypass; INPUT = machine electronics only (no tape sonics, cleanest); SYNC = sync-head record+play; **REPRO = full record→tape→reproduce = the fullest tape sound — the normal mode you want.** |
+| **TAPE** knob *(→456; right reel reads 456)* | `tape_type` | 250 · **456** · 900 · GP9 | Tape formulation = saturation onset + tone (**not** a level/volume control). 250 warmest/lowest-headroom → GP9/900 cleanest/highest-headroom (§3). Drive dominates the choice. |
+| **CAL** knob *(→+7.5)* | `cal_level` | 3.0 · **6.0** · 7.5 · 9.0 dB | Reference fluxivity in dB over 185 nWb/m (+6 = 355). Sets where 0 VU sits in flux = **headroom, not volume**; higher = more headroom before saturation + higher noise floor. UA per-tape: 250→+3, 456→+6, 900/GP9→+9 (push past for extra color). |
+| **INPUT** knob *(→0)* | `input_level` | −12 … **0** … +24 dB | **Primary drive / saturation** (gain into the tape, like a console fader). Hotter = more harmonics + more tape compression + more level *and* true-peak. The main "amount" knob — stop when the top starts to spit (rising 3rd harmonic). |
+| **OUTPUT** knob *(→0)* | `output_level` | −24 … **0** … +12 dB | Post-tape make-up gain. Pull it **down** as you push Input so you A/B **loudness-matched**. No tone change. |
+| **IPS** knob *(→15)* | `ips` | Off · 7.5 · **15** · 30 IPS | Tape speed = head-bump centre (doubles per speed doubling), HF roll-off, headroom/noise, compression onset. 15 = warm default (LF bump, more compression); 30 = flattest/most-extended top, lowest noise, tighter lows, **AES-EQ-locked** (no NAB/CCIR); OFF stops the transport. |
+| **VU meter** *(−20…+3)* | *(read-only)* | **0 VU = −12 dBFS** | Post-tape level / how hard you're driving the tape. Near 0 VU = heavy compression/saturation. **Not a peak meter** — meter true-peak separately. |
+
+### Top bar (UAD Toolbar — shell, **not** A800 params, **not** reachable from a headless float dict)
+
+| Panel control | What it is |
+|---|---|
+| **IN** *(lit)* | Engage / bypass the whole plugin (shell in/bypass). Lit = processing. |
+| **A / B** | Compare two full-settings snapshots; both save with the project. |
+| **COPY / PASTE** | Copy/paste the entire setting between instances. For a reproducible **headless** render use a dumped opaque **`dump_state`** blob — **not** Copy/Paste or the preset browser (UA's preset format is not a generic `.vstpreset`). |
+| **preset name / palette / "…"** | Preset browser · GUI colour · options menu (Copy A→B, Auto Cal, etc.). |
+
+### Secondary (behind the reel deck — click the **Studer badge / "Open"**; *not* on the screenshot)
+
+| Hidden control | Param | Notes |
+|---|---|---|
+| **HF Driver / Bias** (Red card) | `bias` (0–15.5 V, def 10.18) · `hf_record_eq` (0–10, def 1.8) | **Over-bias = warmer/smoother/lower-distortion/duller top; under-bias = brighter/spittier/more 3rd-harmonic** — the deepest warm↔harsh control after Input. `hf_record_eq` injects pre-tape sparkle = a **brightness** control, *not* a de-harsher. |
+| **Emphasis EQ** | `emphasis_eq` | **NAB** = ~50 Hz bass shelf (bassier); **CCIR** leaner/brighter. **AES-locked at 30 IPS** (LEDs dim). Also sets hum (NAB 60 Hz / CCIR 50 Hz). |
+| **Repro EQ / Sync EQ** (White / Yellow) | `repro_hf_eq`·`repro_lf_eq`·`sync_hf_eq`·`sync_lf_eq` (0–10) | Playback-path trims (Repro active on the default path). **`repro_hf_eq` DOWN is the most direct top-end kill** (measured −1364 centroid at 0). |
+| **Noise / Auto Cal / Gang** | `noise`·`hum_noise`·`hiss_noise`·`auto_cal`·`gang` | Noise (Blue) OFF default + stacks across instances; **Auto Cal ON** (aligns bias+EQ on any Tape/Speed/Emphasis change); **Gang = destructive global link** of all instances (see Pitfalls). |
+
+### Build & headless notes
+
+- **UADx vs UAD-2.** "UADx" is UA's **native (CPU) build** — VST3/AU/AAX, **no Apollo/Satellite/PCIe DSP needed**.
+  One purchase grants both the DSP and native licenses, and UA states the native A800 is sonically identical to the
+  DSP version (a marketing claim, not an independent null-test — UA does publish a DSP-vs-native FAQ for the ATR-102).
+- **Licensing.** iLok-**account** based, but a **perpetual** UADx license uses **local/computer authorization — no
+  USB dongle required** (dongle/cloud only for portability or the UAD **Spark** subscription). On a render farm an
+  iLok account + machine auth + **PACE** must still be present even though no UAD DSP hardware is — the iLok/PACE
+  landmine the repo flags. See [[uadx-uaudio-build-renders-headless]].
+- **The right binary.** Load **`uaudio_studer_a800.vst3`** (this UADx native build — renders headless). The
+  `UAD ….component`/twin passes audio through offline — never use it.
+
+---
+
 ## Sources
 
 UA Studer A800 manual (help.uaudio.com) · uaudio.com product page · Sound on Sound A800 review · Tape Op
 review · pluginoise.com (UAD Ampex vs Studer) · masteryourtrack.com (tape IPS) · gearspace.com (IPS, NAB vs
 CCIR threads) · vintagedigital.com.au (A800 hardware spec) · endino.com/graphs (measured recorder curves) ·
-Sage Audio / Sweetwater / CCRMA (tape physics & harmonics) · MRL / pSpatial (NAB vs IEC). Plus **our own
-isolation/sweep measurements** (Part A) on `uaudio_studer_a800.vst3` via Pedalboard.
+Sage Audio / Sweetwater / CCRMA (tape physics & harmonics) · MRL / pSpatial (NAB vs IEC) · UA UADx-native +
+iLok offline-auth FAQ (help.uaudio.com) · SonicScoop / Jacquire King "3 tape techniques" · Production Expert
+(how pros use tape) · Mix Online "Analog Tape 101 Pt 3: Bias Magic" · till.com (symmetric curve → odd harmonics)
+· Rod Elliott/ESP (THD↔IMD) · IEEE / MRL (even-order = improper-bias indicator). Plus **our own isolation/sweep
+measurements** (Part A) on `uaudio_studer_a800.vst3` via Pedalboard, and a **2026-06-03 web + adversarial
+fact-check** (27 agents) that confirmed every load-bearing claim and scoped the caveats above.

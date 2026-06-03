@@ -1,0 +1,25 @@
+{
+  "name": "pultec-hlf-3c-tame-harsh-top",
+  "description": "Roll off a harsh / brittle / fizzy / over-bright TOP with the UADx Pultec HLF-3C passive LOW-pass (high-cut) only. A 10 KCS high-cut softens digital edge, cymbal spit, and hiss/air (measured -3.1 dB @10k, -11.5 @15k, ~18 dB/oct) — a smooth, non-resonant 'darken' that's gentler-sounding than a surgical LPF. Low-cut left Off so the body/lows are untouched. Pure filter (0.000% THD): it DARKENS by removing top, it does not de-harsh dynamically (for ringing/level-dependent harshness use [[de-harsh]] / [[de-ess]] / fabfilter-pro-q-4 spectral instead).",
+  "intended_for": "a bright/harsh bus, cymbal-heavy drum overheads/bus, digital-sounding master, or hissy source where you want a smooth analog top rolloff rather than a clinical brickwall LPF",
+  "plugin_build": "UADx 'uaudio_pultec_hlf-3c.vst3' (UADx native build that RENDERS headless via Pedalboard 0.9.23 — NOT the 'UAD Pultec HLF-3C.component'/Universal Audio twins, which pass audio through offline). 4 params, all enums; string enums (low_cut/high_cut/enable) MUST go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_hlf-3c.vst3", "params": {
+        "low_cut": "Off",
+        "high_cut": "10 KCS",
+        "enable": "In",
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "DARKEN, not de-harsh. This is a static low-pass: it removes top broadband. If the harshness is a narrow ring or only spikes on loud hits, a STATIC cut dulls the whole thing — use the dynamic tools ([[de-harsh]] resonance suppressor, [[de-ess]] split-band, or fabfilter-pro-q-4 Spectral Dynamics) instead/as well.",
+    "HIGH CUT slope: ~18 dB/oct here (10 KCS = -3.1 @10k, -11.5 @15k). Gentler = 15 KCS (only -5 @15k, ~12 dB/oct, just an 'air trim'); darker = 8 KCS (-3 @8k region) or 6 KCS for a clearly vintage/dark top.",
+    "Pair with a touch of [[excite]] or an apply-eq presence bell at 3-5 kHz AFTER if it gets dull — the HLF-3C removes the fizz above, the presence move keeps the clarity below it.",
+    "Pure filter, 0.000% THD, +0.59 dB passband makeup gain (harness peak-normalizes). Verify with measure-spectrum: 10k/12.5k/16k bands drop, everything below ~5 kHz unchanged, centroid lowers. A 0.00 delta = the .component twin loaded."
+  ]
+}

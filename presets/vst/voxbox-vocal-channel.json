@@ -1,0 +1,48 @@
+{
+  "name": "voxbox-vocal-channel",
+  "description": "The canonical Manley VOXBOX use: a complete tube VOCAL channel in one pass — Mic-mode tube preamp (input 3 / gain 50, gentle even-harmonic warmth) with the 80 Hz low-cut engaged, the passive-opto compressor leveling the vocal (nominal 3:1, program-dependent, first in the chain; comp_thresh 9, Medium attack / Med Slow release = smooth, transparent ride that keeps articulation), the passive Pultec-style EQ adding chest/body (lo_peak 3 @100 Hz), de-honking the low-mids (mid_dip -3 @700 Hz) and opening air (hi_peak 5 @12 kHz), and the frequency-conscious de-esser taming sibilance (sel 6K, thr 8). This is a STARTING POINT tuned for lead vocals; the numbers were sanity-rendered on the Watercolors drum loop (it renders, crest ~19) but are meant for a dry vocal — set comp_thresh and de_ess_thr by ear/meter to the actual voice.",
+  "intended_for": "lead/backing VOCALS — the box's reason to exist (tube pre -> ELOP -> Pultec EQ -> de-ess in one channel). Also a strong starting point for bass DI and acoustic guitar (drop the de-esser). Re-tune comp_thresh (GR) and de_ess_thr to the source level.",
+  "plugin_build": "UADx 'uaudio_manley_voxbox.vst3' (UADx NATIVE — RENDERS headless via Pedalboard 0.9.23; NOT the 'UAD Manley VOXBOX.component' passthrough twin). 25 params, all enums; the string switches (source_select=Mic, low_cut='80 Hz', comp_byp/eq_byp/de_ess_byp=In, comp_attack/comp_rel, de_ess_sel, sc_link, transformer_byp) MUST go through this setattr harness — apply-vst-chain's float dict can't set them.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_manley_voxbox.vst3", "params": {
+        "source_select": "Mic",
+        "low_cut": "80 Hz",
+        "phase": 0.0,
+        "input": 3.0,
+        "gain": 50.0,
+        "sc_link": "Link",
+        "comp_byp": "In",
+        "comp_thresh": 9.0,
+        "comp_attack": "Medium",
+        "comp_rel": "Med Slow",
+        "eq_byp": "In",
+        "lo_peak": 3.0,
+        "lo_peak_freq": 100.0,
+        "mid_dip": -3.0,
+        "mid_dip_freq": 700.0,
+        "hi_peak": 5.0,
+        "hi_peak_freq": 12000.0,
+        "de_ess_byp": "In",
+        "de_ess_sel": "6K",
+        "de_ess_thr": 8.0,
+        "meter": "GR",
+        "transformer_byp": "In",
+        "output": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "TUNE TO THE VOICE. comp_thresh is RELATIVE TO INPUT — higher number = more GR. For a dry vocal at a sane level, start comp_thresh ~5-7 and watch the GR meter for ~3 dB on loud phrases (Manley/UA guidance: don't exceed ~-3 dB GR on tracking or it softens); raise `input` if it won't grab. The compressor is a smooth, program-dependent passive-opto (nominal 3:1) sitting FIRST in the chain (before the preamp) — Medium attack + Med Slow release keeps consonants intact while leveling the body. For a great singer, Slow attack + Slow release mimics fader-riding.",
+    "DE-ESS: de_ess_sel picks the detection band (6K is typical sibilance; 9K/12K for brighter mics, 3K for chesty/proximity / 'sounds that hurt'). It notches the DETECTOR (frequency-conscious — the whole signal ducks when the chosen band exceeds threshold). de_ess_thr higher = more ducking; measured it needs ~thr 8+ to act meaningfully and only acts where there's energy at that freq (~-1.8 dB @6k at thr 10). Set by the D-S meter / by ear; aim for natural, not removed. (The final 'Limit' position of the same knob is a smooth opto LA-2A-style wideband 10:1 limiter, NOT de-ess — see voxbox-bus-tube-glue.)",
+    "sc_link 'Link'/'Sep' is a STEREO L/R link (it links the two channels' compressor thresholds on a stereo source) — it is NOT a comp<->de-ess link. On a mono vocal it's moot (the plugin locks mono-in to Link); measured Sep == Link on this mono material. Left at 'Link' here for the mono/stereo default.",
+    "PULTEC EQ is passive and the 0-10 dials are nonlinear (the action is 5-10; under ~3 barely moves). lo_peak/hi_peak are boost BELLS, mid_dip a cut BELL. Classic vocal Pultec: lo_peak @100 for chest, hi_peak @10-16k for air, mid_dip @500-1k to de-box/de-honk.",
+    "low_cut '80 Hz' (or '120 Hz') is the input HPF — engage it on close vocals to drop rumble/proximity before the preamp.",
+    "Harness peak-normalizes to -1 dBFS (absorbs the Mic-mode level). Set dump_state=true via apply-vst-chain once dialed for a byte-stable re-render."
+  ]
+}

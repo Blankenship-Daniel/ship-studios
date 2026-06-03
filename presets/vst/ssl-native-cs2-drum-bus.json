@@ -1,0 +1,41 @@
+{
+  "name": "ssl-native-cs2-drum-bus",
+  "description": "Clean, punchy SSL drum-bus tone + glue via the SSL Native Channel Strip 2: HPF 35 Hz, E-series EQ (low thump + de-box + air shelf), and the channel compressor in FAST-ATTACK (the mode that actually grabs drums — see plugin_build note) for ~3 dB GR. Validated on the Watercolors no-room drum bus (bus_70s_balanced.wav): crest 24.9 -> 28.96 dB (MCP measure-loudness), so the move adds punch, not just level. SSL is a CLEAN console — color is the EQ+comp, NOT drive; do NOT gain-stage into it.",
+  "intended_for": "a dry / no-room drum bus (or a full mix bus, with gentler settings) that wants console tone + glue without the warmth of tape or the aggression of API",
+  "plugin_build": "SSL Native Channel Strip 2.vst3 (VST3, /Library/Audio/Plug-Ins/VST3/). Renders headless via Pedalboard, iLok-authorized on this rig (SSL Native = iLok — RE-VERIFY load+render on any other machine, iLok is a render-farm landmine). The channel comp's NORMAL (non-fast) attack is so transient-preserving it grabs only ~1 dB GR on a peaky drum bus even at min threshold/4:1 — engage compressor_fast_attack='In' to actually compress drums; here that RAISED crest (fast attack + 0.1 s release = transient-emphasis), so MEASURE crest+GR for your material.",
+  "target_signature": {
+    "source": "bus_70s_balanced.wav (60 s dry drum bus, -1 dBFS)",
+    "crest_db_dry": 24.91,
+    "crest_db_processed": 28.96,
+    "note": "peak-normalized; crest UP = punch. true-peak -1.0 dBTP."
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "SSL Native Channel Strip 2.vst3", "params": {
+        "input_trim_db": 0.0,
+        "filters_in": "In", "high_pass_filter_hz": 35.0, "low_pass_filter_khz": "OUT",
+        "eq_in": "In", "eq_type": "E",
+        "lf_type": "Bell", "lf_frequency_hz": 90.0, "lf_gain_db": 3.0,
+        "lmf_frequency_khz": 0.45, "lmf_gain_db": -3.0, "lmf_q": 1.2,
+        "hf_type": "Shelf", "hf_freq_khz": 10.0, "hf_gain_db": 2.5,
+        "dynamics_in": "In",
+        "compressor_threshold_db": -8.0, "compressor_ratio": 4.0,
+        "compressor_fast_attack": "In", "compressor_peak": "RMS",
+        "compressor_release_s": 0.1, "compressor_auto_make_up": true,
+        "gate_range_db": 0.0,
+        "width": 100.0, "output_trim_db": 0.0
+      }}
+    ]
+  },
+  "notes": [
+    "EVERY SSL CS2 param is a discrete enum in Pedalboard. Numeric ones (gains/thresholds/ratio/trims/Q/mix/width) accept a plain float via setattr, but STRING enums ('In'/'Out','E'/'G','Shelf'/'Bell','RMS'/'Peak','Gate'/'Exp') and the LOG-STEPPED frequencies need exact values -> use THIS harness (apply_vst_preset.py setattr), NOT apply-vst-chain's float-only dict.",
+    "high_pass_filter_hz is log-stepped: 35.0 is valid, 40.0 throws 'not in list'. If you change it, pick a value the plugin accepts (the harness try/excepts a miss and leaves it OUT - which silently disables the HPF). low_pass_filter_khz='OUT' = LP off.",
+    "Default order is Filters -> EQ -> Dynamics. To compress into the EQ, add dynamics_pre_eq='In'. For frequency-conscious comp, route eq_to_s_c='In' or filters_to_s_c='In'.",
+    "E vs G EQ is SUBTLE but real (measured): G is slightly brighter (higher centroid), E slightly warmer/fuller in the upper-mids. E chosen here for drum warmth; swap eq_type='G' for a cleaner/airier top.",
+    "Gentler MIX-BUS variant: drop compressor_ratio to 2.0, raise compressor_threshold_db so GR is ~1-2 dB, consider compressor_fast_attack='Out' for transparent leveling, ease the EQ to +-2 dB. Parallel: compressor_mix < 100.",
+    "Auto make-up is ON by default; offset with compressor_auto_make_up_offset_db. Re-set the threshold to YOUR track level after recall - presets don't carry your level."
+  ]
+}

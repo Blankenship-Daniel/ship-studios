@@ -1,0 +1,41 @@
+{
+  "name": "fabfilter-promb-drum-deharsh",
+  "description": "Dynamic presence/harshness control on FabFilter Pro-MB, headless. ONE compression band over ~3-9 kHz that ducks the harsh presence region ONLY when it spikes above threshold, leaving the lows and steady top untouched (true band-split dynamic EQ — Pro-MB's core trick). The drum-bus de-harsh / de-ess move. Validated on the Watercolors drum loop. Reproducible because (a) Pro-MB's bare load is a TRUE passthrough (all 6 bands default Unused — measured 0.00 dB vs input, so unlike Pro-Q you do NOT flatten first) and (b) it sets band_1_state=Enabled AND a NONZERO band_1_range (the master 'amount' knob — at range 0 a band does nothing no matter the threshold/ratio, measured).",
+  "intended_for": "a drum bus / drum loop / bright bus that gets harsh or spitty in the 3-9 kHz presence band on loud hits, where a static EQ cut would dull the steady top",
+  "plugin_build": "FabFilter 'Pro-MB.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; all 156 params are Pedalboard valid_values lists settable via setattr — numeric snap to grid, string enums exact)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -3.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Pro-MB.vst3", "params": {
+        "band_1_state": "Enabled",
+        "band_1_low_crossover": 3000.0, "band_1_low_slope": "24.0 dB/oct",
+        "band_1_high_crossover": 9000.0, "band_1_high_slope": "24.0 dB/oct",
+        "band_1_dynamics_mode": "Compression",
+        "band_1_threshold": -30.0,
+        "band_1_range": -9.0,
+        "band_1_ratio": "4.00:1",
+        "band_1_attack": 8.0,
+        "band_1_release": 35.0,
+        "band_1_knee": 12.0,
+        "band_1_lookahead": 2.0,
+        "band_1_level": 0.0,
+
+        "processing_mode": "Dynamic Phase",
+        "oversampling": "Off",
+        "lookahead_enabled": true,
+        "mix": 100.0,
+        "input_level": 0.0, "output_level": 0.0
+      }}
+    ]
+  },
+  "notes": [
+    "RANGE IS THE MASTER KNOB: band_1_range must be NONZERO or the band does nothing — measured: a band Enabled with threshold -35 / ratio 4:1 but range 0 == the dry input bit-for-bit. range is the MAX gain change (negative = downward, i.e. compress above threshold here). threshold and ratio only shape HOW it reaches that range.",
+    "NO NEED TO FLATTEN: unlike FabFilter Pro-Q (whose bare load restores the last GUI curve), Pro-MB's bare load is a true passthrough — all 6 band slots default to Unused (band_N_state). So a fresh instance + this one Enabled band is clean; you do not have to disable the other bands.",
+    "WHY THE HARNESS, NOT apply-vst-chain: every Pro-MB param is an enum (valid_values). apply-vst-chain's float-only dict can set the NUMERIC ones (range/threshold/crossover) but CANNOT set the STRING enums band_1_state / band_1_dynamics_mode / band_1_ratio / the slopes / processing_mode, and cannot ENABLE a band. Measured: setting band_1_range/threshold/crossover via apply-vst-chain returned changed:false (band stayed Unused). Use this harness (setattr) or a dumped state_path.",
+    "ATTACK/RELEASE are exposed as a normalized 0..100 scale (NOT ms) on this Pedalboard build (default 20). 8/35 here = fairly fast attack to catch transient harshness, medium release. Knee 12 (soft) for a gentle, dynamic-EQ-like duck. lookahead 2 ms (global lookahead_enabled true) so the duck starts slightly before the transient.",
+    "Dynamic Phase (default) keeps near-linear-phase magnitude with low latency and no pre-ring — right for drum transients. Switch to Minimum Phase for lowest latency, or Linear Phase only when phase coherence across a parallel sum matters.",
+    "Verify with measure-spectrum: expect a lower spectral centroid + steeper (more negative) tilt and 3-9 kHz pulled down a few dB ON PEAKS while sub/low are untouched (band-split). Push band_1_range more negative or threshold lower for a stronger duck. For de-ESS specifically, narrow to ~5-9 kHz."
+  ]
+}

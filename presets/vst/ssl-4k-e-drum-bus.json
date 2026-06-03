@@ -1,0 +1,38 @@
+{
+  "name": "ssl-4k-e-drum-bus",
+  "description": "Punchy, weighty 'British console' drum bus from the SSL 4K E (SL 4000 E channel strip) alone — the SSL counterpart to the tight-70s-api / blackbird-a5 (API = forward) and warm Studer/Neve (tape) directions. Uses the '242 Black' EQ (its 'legendary low-end weight' — measured: Black put the most energy in the low band of the three colours) for a kick-bell thump + de-box + light presence, and the channel VCA comp at 4:1 with FAST attack OUT (slow = transients pass) for punch from the dynamics, not the EQ. Measured on watercolors bus_punchy_pre (60 s dry drum bus): crest 21.6 -> 23.2 (punch UP), spectral centroid stays warm (2223 -> ~2272, NOT brighter), L/R corr 0.983, mono-sum loss 0.64 dB. The punch is the comp; the weight is the Black EQ.",
+  "intended_for": "a dry-ish, measured-balanced drum bus/loop — SSL 4K E supplies low-end weight (Black EQ) + de-box + slow-attack VCA punch in one box (SSL = clean/weighty/controlled, the contrast to API forwardness and tape warmth)",
+  "plugin_build": "SSL 4K E.vst3 (VST3 — renders headless via Pedalboard; iLok/PACE, authorized on this machine; RE-VERIFY on any other rig with presets/vst/probe_plugin.py 'SSL 4K E')",
+  "headless_notes": "ALMOST EVERY SSL 4K E param is a discrete/enum (Pedalboard valid_values). FLOAT-valued ones (lf_gain_db, *_frequency_*, *_q, compressor_threshold_db/release_s, mic_db, width, input/output_trim_db) can go through apply-vst-chain's float dict. STRING enums — compressor_ratio ('4.0','∞'), fader_level_db, pan, eq_colour (Brown/Black/Orange), lf_type/hf_type (Shelf/Bell), and every Out/In routing toggle — CANNOT: apply-vst-chain reports them 'set' but the value silently does not take (measured: compressor_ratio=4 via the float dict gave crest 22.3 vs this harness's exact '4.0' string => 23.2). This harness's setattr handles them; it also snaps log-stepped string enums like high_pass_filter_hz to the nearest valid value. output is peak-trimmed by the harness so the comp makeup-gain level jump is handled.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "SSL 4K E.vst3", "params": {
+        "filters_in": "In",
+        "high_pass_filter_hz": 40,
+        "eq_in": "In",
+        "eq_colour": "Black",
+        "lf_type": "Bell", "lf_frequency_hz": 80.0, "lf_gain_db": 3.0,
+        "lmf_frequency_khz": 0.45, "lmf_gain_db": -2.0, "lmf_q": 1.2,
+        "hmf_frequency_khz": 3.0, "hmf_gain_db": 1.5, "hmf_q": 1.0,
+        "dynamics_in": "In",
+        "compressor_ratio": "4.0",
+        "compressor_threshold_db": -16.0,
+        "compressor_release_s": 0.15,
+        "compressor_fast_attack": "Out",
+        "compressor_auto_make_up": true,
+        "analogue_vca": true
+      }}
+    ]
+  },
+  "notes": [
+    "EQ COLOUR is the SSL 4K E's signature lever and the three are genuinely different at IDENTICAL dial settings (measured, same +4 LF / +3 HMF / +4 HF on the dry bus): '02 Brown' = brightest top + air (centroid +202, the original 'gritty/musical' E EQ); '242 Black' = fattest LOW band + smoother top ('legendary low-end weight' — why this drum-bus preset uses it for kick weight); '132 Orange' = the rare PASSIVE EQ, gentlest top but nearly DOUBLES the 2.5-5 kHz presence (hi-mid ratio 0.034->0.068) => most forward mids, 'great for kick & snare'. Pick the colour for the tone you want, THEN dial.",
+    "The COMP'S FAST BUTTON is the punch lever, and it is TEXTBOOK here (the OPPOSITE of the UAD API Vision strip): FAST attack OUT (slower/auto attack) lets transients through -> crest UP (4:1 slow 23.1, 10:1 slow 25.1 vs dry 21.6); FAST attack IN (~1 ms, the classic 'grabby' SSL VCA) catches transients -> crest DOWN (21.3) + brighter/denser. For measured punch keep FAST OUT; engage FAST for aggressive transient control / density (lower crest).",
+    "Punch is the COMP, weight is the EQ. The Black LF bell @ 80 + de-box @ 450 gave weight without raising centroid; the slow comp gave the crest. Do NOT chase punch with top-end boosts (the E EQ is constant-Q — it will not auto-narrow like API/SSL-G proportional-Q, so a big top boost just gets bright).",
+    "compressor_auto_make_up=true raises the body up to peaks => part of why crest rises; it also pushes true-peak, so the harness peak-trims to -1 dBFS. Re-set compressor_threshold_db to YOUR source level (this was tuned to a ~-23 LUFS dry bus); a hotter bus needs a higher threshold for the same GR.",
+    "For a brighter/airier or grittier variant, switch eq_colour to 'Brown' and/or drive the preamp with mic_db (the MIC knob, 0-50 — adds console grit, 'spice on kick/snare/bass'); for max forward mid snap on a kick/snare bus, try 'Orange'. Re-measure centroid/crest after any colour change.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/ssl-4k-e-drum-bus.json <in.wav> <out.wav>"
+  ]
+}

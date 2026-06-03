@@ -1,0 +1,38 @@
+{
+  "name": "hitsville-eq-motown-drum-bus",
+  "description": "Forward, weighty 'Motown' drum-bus tone from the UADx Hitsville EQ (the custom 7-band passive/proportional-Q graphic EQ built in-house at Motown's Hitsville U.S.A. studio in Detroit by Mike McLean). A clean, no-distortion EQ (measured 0.000% THD): the colour is purely the fixed-frequency curve + the interactive proportional-Q bells. Move: 50 +3 (kick weight), 130 +1 (body), 320 -2 (de-box the low-mids), 2000 +1 (attack), 5000 +2 (snare/stick snap), 12500 +2 (cymbal air), GAIN -2 to compensate the boosts and stay peak-safe. Measured dry->processed on the watercolors drum bus: low ratio 0.542->0.661 (weight), low-mid 0.378->0.248 (de-boxed), centroid 3128->3531 (+403, forward/air), crest 23.6->22.9 (transients kept — it's EQ, not compression). Built & verified 2026-06-03.",
+  "intended_for": "a stereo drum bus or full drum loop you want bigger, cleaner-in-the-mids and more present/airy — the classic Motown sound. The proportional-Q means small dial moves are broad/musical; push a band past ~+5 for a tighter, more focused bell.",
+  "plugin_build": "UADx 'uaudio_hitsville_eq.vst3' (UADx native — RENDERS headless via Pedalboard, no-iLok/UA-account auth). NOT the 'UAD Hitsville EQ.component' twin (passthrough offline). Distinct from 'uaudio_hitsville_eq_mastering.vst3' (the stereo-linked mastering variant).",
+  "target_signature": {
+    "comment": "measured dry->processed on projects/watercolors/mix/bus_warm_pre_dry.wav via the harness (peak-trimmed to -1 dBFS, so LUFS/true-peak rise vs dry; the tonal ratios/centroid/tilt/crest are the level-independent truth). Dry: crest 23.6, centroid 3128, tilt -2.26, low 0.542, low_mid 0.378, high 0.0115. Sanity-check a re-apply.",
+    "crest_db": 22.9, "centroid_hz": 3531, "tilt_db_per_oct": -2.00,
+    "band_ratio_low": 0.661, "band_ratio_low_mid": 0.248, "band_ratio_high": 0.0195
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_hitsville_eq.vst3", "params": {
+        "1_50": 3.0,
+        "2_130": 1.0,
+        "3_320": -2.0,
+        "4_800": 0.0,
+        "5_2000": 1.0,
+        "6_5000": 2.0,
+        "7_12500": 2.0,
+        "gain": -2.0,
+        "bypass": "In",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "ALL 11 params are stepped enums. The 7 band knobs (1_50/2_130/3_320/4_800/5_2000/6_5000/7_12500) and `gain` are NUMERIC enums in 1 dB steps over -8..+8 — a float reaches them, so this EQ (unlike the SSL/Neve/API console strips) is fully drivable from apply-vst-chain's float dict. The harness is only needed for the gain-stage/peak-trim and the string/bool enums (`bypass`, `power`, `master_bypass`).",
+    "`bypass` is the hardware IN/OUT/OFF switch: 'In' = EQ engaged (default), 'Out' = EQ bands bypassed but the unit stays in-circuit (only the ~1.7 dB unity headroom path remains — measured), 'Off' = true bypass. Keep 'In' to hear the EQ.",
+    "NO harmonic colour: the EQ path measured 0.000% THD at -20/-6/-1 dBFS. The ONLY distortion is the GAIN makeup clipping a hot signal — gain +8 on a -1 dBFS sine = 4.1% THD (digital clip past 0 dBFS). So use GAIN to COMPENSATE boosts (cut), not to push level into the ceiling. GAIN is otherwise a perfectly linear output trim (+/-0.03 dB).",
+    "Proportional-Q (measured on band 6 @5k): +2 -> broad/gentle (peak:octave ~1.1), +5 -> ~1.8, +8 -> ~3.5 (narrow, focused). Small boosts behave like a broad tilt; large boosts like a bell. Bands are INTERACTIVE/overlapping (~+1.5-2 dB bleed into neighbours).",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/hitsville-eq-motown-drum-bus.json <in.wav> <out.wav>. Re-measure: a 0.00 delta means the .component twin loaded instead of uaudio_."
+  ]
+}

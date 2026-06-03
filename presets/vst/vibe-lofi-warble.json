@@ -1,0 +1,28 @@
+{
+  "name": "vibe-lofi-warble",
+  "description": "LO-FI, vintage/tape-wobble character on a drum loop, bus, or melodic stem from the UADx Vibe Analog Machines: the VINTAGIZE machine at drive 50 with WARBLE 35. VINTAGIZE is a dark, band-limited, mid-forward voicing (measured on the Watercolors loop, peak-norm -1 dBFS: spectral centroid 1593 -> 1078 Hz, tilt -2.71 -> -3.57 dB/oct, top rolled off hard above 8 kHz, low-mid energy dominant, crest 14.63 -> 12.82) — the classic 'old tape / sampled-from-vinyl' tone. WARBLE adds tape WOW/FLUTTER, i.e. time-varying PITCH modulation: on a 1 kHz tone the fundamental smears progressively (concentration 1.00 at w0 -> 0.85 at w30 -> 0.28 at w50 -> 0.08 at w100), so 35 is a musical, audible-but-not-seasick wobble. IMPORTANT: warble is invisible to the spectrum/crest meters (it's temporal pitch, not tone or level) — confirm it by ear or on a sustained/tonal source, not measure-spectrum.",
+  "intended_for": "a drum loop / bus / keys / synth you want to sound LO-FI, vintage, tape-degraded, or 'sampled off an old record' — dark + band-limited + wobbling. Push warble higher for a more broken/seasick effect, lower for subtle drift.",
+  "plugin_build": "UADx 'uaudio_verve.vst3' (codename 'verve', product 'UADx Vibe Analog Machines'). UADx native, RENDERS headless via Pedalboard (verified). 6 enum params; 'machine' is a string enum -> this setattr harness (apply-vst-chain's float dict can set param_1/param_2/output_trim but NOT the machine name).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_verve.vst3", "params": {
+        "machine": "VINTAGIZE",
+        "param_1": 50.0,
+        "param_2": 35.0,
+        "output_trim": 0.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "PARAM MAP (measured): param_1 = DRIVE (amount of the VINTAGIZE color), param_2 = WARBLE (tape wow/flutter pitch modulation, 0-100) — VINTAGIZE is a TAPE machine so the 2nd knob is warble; on the 4 PREAMP machines (Edge/Glow/Distort/Sputter) this same slot is a TONE/brightness control. output_trim = clean output level, machine = voicing. drive 0 is NOT bypass.",
+    "WARBLE IS PITCH MODULATION, NOT TONE/LEVEL. RMS and the third-octave spectrum are unchanged across warble settings (verified: VINTAGIZE warble 0/30/60 -> identical centroid/bands). Don't expect measure-spectrum to show it; audition it. On a steady tonal source the fundamental visibly smears.",
+    "MACHINE OPTIONS for lo-fi: VINTAGIZE (dark/old-tape), SPUTTER (gritty even-harmonic, 43% THD at drive 40), DISTORT (balanced even+odd distortion), EDGE (darkens, even-harmonic edge), OVERDRIVE/FIRE (heavy odd-harmonic clip — crushes transients, generates harsh top). Combine any with warble for wobble.",
+    "DRIVE pushes the grit/band-limiting harder; WARBLE pushes the wobble. They're independent. It is NOT gain-compensated -> harness peak-normalizes; A/B loudness-matched.",
+    "Color/FX insert, not mastering. Verify the tonal half with measure-spectrum (expect centroid DOWN, tilt steeper, top gutted, low-mid up); a 0.00 delta = wrong build loaded."
+  ]
+}

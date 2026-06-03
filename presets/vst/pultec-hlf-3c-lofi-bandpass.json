@@ -1,0 +1,26 @@
+{
+  "name": "pultec-hlf-3c-lofi-bandpass",
+  "description": "AGGRESSIVE vintage / lo-fi / 'old-radio' band-limit with the UADx Pultec HLF-3C passive filter set. A 250 CPS low-cut (high-pass) strips the lows (measured -8.4 dB @200, -24.8 @100) and a 3 KCS high-cut (low-pass) strips the highs (measured -13.7 @5k, -30.6 @10k), leaving a midrange-focused band (~250 Hz - 3 kHz) for a telephone / broken-speaker / 1960s-record / drum-bus-in-a-box effect. Smoother than a brickwall bandpass because the passive ~18 dB/oct slopes are non-resonant. Pure filter — no boost/Q/gain, 0.000% THD; reach for saturate-loop AFTER this for a crunchier lo-fi.",
+  "intended_for": "a lo-fi / vintage / 'distant' send or print — band-limit a full mix, drum bus, or vocal to a midrange telephone/old-radio character; a great parallel/send layer",
+  "plugin_build": "UADx 'uaudio_pultec_hlf-3c.vst3' (UADx native build that RENDERS headless via Pedalboard 0.9.23 — NOT the 'UAD Pultec HLF-3C.component'/Universal Audio twins, which pass audio through offline). 4 params, all enums; the string enums (low_cut/high_cut/enable) MUST go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_hlf-3c.vst3", "params": {
+        "low_cut": "250 CPS",
+        "high_cut": "3 KCS",
+        "enable": "In",
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "BAND = roughly 250 Hz - 3 kHz. Push it harder (more 'telephone') with low_cut 500 CPS + high_cut 1.5 KCS; back it off (lo-fi but fuller) with low_cut 150 CPS + high_cut 5 KCS.",
+    "The two knobs must not cross/overlap into nothing: keep low_cut well below high_cut or you'll cancel most of the signal. 250/3k leaves a useful 3.5-octave window.",
+    "Pure filter, 0.000% THD — for a grungier lo-fi, follow with saturate-loop (tape/soft-clip) or a bit-reduction; the HLF-3C supplies the band-limit, not the dirt.",
+    "Best as a PARALLEL / send layer blended under the dry, or printed for an FX section. As an insert on a full mix it's an obvious effect, not a corrective move.",
+    "Verify with measure-spectrum: expect a clear midrange hump with steep skirts below ~250 Hz and above ~3 kHz, centroid pulled toward the band centre."
+  ]
+}

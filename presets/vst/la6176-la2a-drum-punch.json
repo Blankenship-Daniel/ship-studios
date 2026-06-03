@@ -1,0 +1,48 @@
+{
+  "name": "la6176-la2a-drum-punch",
+  "description": "Punch-enhancing drum glue using the UADx LA-6176's LA-2A (opto) dynamics mode. On percussive material the slow, program-dependent opto attack lets the transients THROUGH while leveling the sustain/ring, so crest goes UP (measured: pk3 13.6, pk6 15.2, pk9 18.2 vs 14.2 dry) — the opposite of the 1176's fast FET grab. A little high shelf +3 @7k adds snap/presence. Clean Line preamp (no drive). MEASURE on the Watercolors 8-bar loop; expect crest to RISE and the body to glue.",
+  "intended_for": "a drum bus / room / loop that wants smooth opto glue that PRESERVES (even exaggerates) punch — and any source where you want the LA-2A's gentle, program-dependent leveling instead of the 1176's bite",
+  "plugin_build": "uaudio_la_6176.vst3 (UADx native build — renders headless; the 'UAD LA-6176 Channel Strip.component' twin passes through, do not use it). 26 enum params; dyn_mode/la2a_ratio + the string switches need this setattr harness, not the float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_la_6176.vst3", "params": {
+        "input_select": "Line",
+        "input_pad": "Off",
+        "input_gain": 0.0,
+        "polarity": "In 0",
+        "cut_filter": "Off",
+        "eq_bypass": "EQ In",
+        "eq_lo_freq": 100.0,
+        "eq_lo_gain": 0.0,
+        "eq_hi_freq": 7000.0,
+        "eq_hi_gain": 3.0,
+        "level": 6.0,
+        "dyn_bypass": "Dyn In",
+        "dyn_mode": "LA2A",
+        "1176_atk": 5.0,
+        "1176_rel": 10.0,
+        "1176_ratio": "8:1",
+        "1176_input": 3.0,
+        "1176_output": 6.6,
+        "1176_sc_filt": false,
+        "1176_mix": 10.0,
+        "la2a_ratio": "Comp",
+        "la2a_pk_red": 6.0,
+        "la2a_gain": 6.0,
+        "meter": "GR",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "LA-2A ON DRUMS RAISES CREST. Slow opto attack misses the fast drum transient (peak survives) while it levels the sustained ring -> RMS drops -> crest rises. pk_red is the amount/drive into the opto: pk3 -> crest 13.6, pk6 -> 15.2, pk9 -> 18.2. Use higher pk_red for MORE punch enhancement, not less.",
+    "On SUSTAINED sources (vocals, bass, pads, the 2-bus) the same opto clamps hard and program-dependently -> smooth, transparent leveling (heavy GR on steady tones in our test). It is the 'set it and forget it' leveler, the 1176 is the 'grab it' compressor.",
+    "la2a_ratio: Comp vs Limit -> Limit is a higher internal ratio (slightly more GR / firmer ceiling). la2a_gain is the makeup (the harness peak-normalizes anyway).",
+    "The 1176_* params are inert here (dyn_mode=LA2A) but set to sane defaults so a later switch to '1176' is predictable.",
+    "A/B loudness-matched: a crest rise can read as 'more dynamic/punchy', so confirm it is not just a level/EQ illusion."
+  ]
+}

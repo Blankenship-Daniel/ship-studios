@@ -1,0 +1,33 @@
+{
+  "name": "fc660-parallel-smash",
+  "description": "New-York parallel drum smash through the UADx Fairchild 660: a hard-crushed wet (hot input, high threshold = lots of GR, Time Constant 1 = fastest, sidechain filter Off) blended back via the plugin's own MIX knob at ~40%, so the dry transients return while the wet adds tube density + aggression underneath. Measured on the Watercolors warm drum bus: crest 17.17->15.34 (denser), low-band punch 27.15->24.9, LRA 2.44->2.27, +1.81 LU, true-peak -0.98 — bigger/denser, the dry blend keeps the attack.",
+  "intended_for": "a drum bus / room you want bigger and more aggressive without losing the dry punch",
+  "plugin_build": "uaudio_fairchild_660.vst3 (UADx native — renders headless; not the .component twin)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_fairchild_660.vst3", "params": {
+        "meter": "GR",
+        "input": 0.0,
+        "thresh": 8.0,
+        "time_const": 1.0,
+        "sc_filt": "Off",
+        "bal": 0.0,
+        "dc_thr": 7.5,
+        "output": 0.0,
+        "mix": 40.0,
+        "headroom": 12.0,
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "MIX is the built-in parallel blend (100 = fully wet). Crush the wet hard (high input + high thresh + fast TC), then dial MIX 30-50% to bring the dry punch back.",
+    "TIME_CONST 1 is the fastest position (catches transients, lowest crest = most controlled). Speed up the wet to slam it; the dry blend restores attack.",
+    "INPUT 0 = hottest drive (most GR + most harmonic color). HEADROOM 12 runs it a touch hotter than the default 16.",
+    "Re-dial MIX by ear/crest to taste; lower MIX = more dry punch, higher = more density."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "saturn2-parallel-smash",
+  "description": "Aggressive PARALLEL drum/room saturation on FabFilter Saturn 2, headless. ONE band driven hard with a British Rock Amp style (dense odd-harmonic grit), blended UNDER the dry signal via the global Mix so the transients survive — Saturn's own dry/wet is the parallel path, no aux bus needed. Measured: full-wet hard drive collapses crest to ~5.6; pulling Mix back to ~30 restores crest to ~12.7 while keeping the grit. Swap the style to Destroy/Rectify/Foldback for outright destruction. Validated on the Watercolors drum loop.",
+  "intended_for": "a drum bus, room, or parallel aux that wants saturated aggression/density blended under the clean hits; New-York-style parallel grit without an external send",
+  "plugin_build": "FabFilter 'Saturn 2.vst3' (renders headless via Pedalboard 0.9.23, no-iLok; 956 params; string enums via setattr only)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "FabFilter Saturn 2.vst3", "params": {
+        "num_active_bands": 1.0,
+        "band_1_enabled": true,
+        "band_1_style": "British Rock Amp",
+        "band_1_drive": 45.0,
+        "band_1_dynamics": 0.0,
+        "band_1_feedback_amount": 0.0,
+        "band_1_bass": 0.0,
+        "band_1_mid": 0.0,
+        "band_1_treble": 0.0,
+        "band_1_presence": 0.0,
+        "band_1_mix": 100.0,
+        "band_1_level": 0.0,
+        "mix": 30.0,
+        "input_gain": 0.0,
+        "output_gain": -1.0,
+        "channel_mode": "Left/Right",
+        "processing_mode": "Minimum Phase",
+        "high_quality_mode": "Good"
+      }}
+    ]
+  },
+  "notes": [
+    "PARALLEL via the global `mix` (here 30%): full-wet hard drive crushes crest (measured British/American amp styles hit 50-130% THD on a sine; on drums full-wet drive 80 -> crest 5.6). The global Mix blends the smashed signal under the dry, restoring transients (measured Warm Tube drive80 mix30 -> crest 12.7). Lower mix = subtler, higher = more aggressive.",
+    "STYLE = the character: British Rock Amp / American Plexi Amp / Lead Amp = dense ODD-harmonic guitar-amp grit (measured H3-dominant, THD 50-130%). For destruction swap band_1_style to 'Destroy' (bit-crush+SR-reduction+clip, measured crest ~4, inharmonic), 'Rectify' (octave-up: full-wave rectification removes the fundamental -> 2k/4k/6k even harmonics, measured crest 21.8), or 'Foldback' (wavefolder, measured 5th harmonic LOUDER than the fundamental). All are string enums -> set via this harness only.",
+    "USE HQ FOR HOT STYLES: with hard amp/destroy drive, raise high_quality_mode to 'Good' (8x) or 'Superb' (32x) to cut aliasing — the render DOES change with HQ (measured maxD 0.18 Off->Superb on a hot high-freq signal). 'Superb' is heavy on CPU; fine for an offline render.",
+    "For a band-limited parallel smash (grit only in the 1-5 kHz bite zone, sub left clean), make it multiband: num_active_bands 2-3, set band crossovers, drive only the mid/high band, and keep the low band at band_N_mix=0. See saturn2-bass-multiband.json for the band-targeting pattern.",
+    "Set every param explicitly (bare load restores the GUI 'Warm Tape' state). drive 0 is NOT clean; use mix/bypass for a true dry reference when A/B-ing."
+  ]
+}

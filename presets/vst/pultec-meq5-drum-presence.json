@@ -1,0 +1,29 @@
+{
+  "name": "pultec-meq5-drum-presence",
+  "description": "Forward, snappy drum-bus tone from the UADx Pultec MEQ-5 alone — low-mid body + a carved 'box' + stick/snare presence, all broad and musical (passive midrange EQ, not surgical). Moves (0-10 dial ~= dB here, measured): LOW PEAK 200 CPS @3 (~+2.4 dB body/thump fullness) + DIP 500 CPS @4 (~-4.9 dB carve the boxy low-mid) + HIGH PEAK 3 KCS @5 (~+3.9 dB attack/presence). Measured on watercolors bus_punchy_pre (60 s dry drum bus), peak-normalized -1 dBFS: see docs/vst/pultec-meq-5.md for before->after band ratios / centroid. NOTE the MEQ-5 dial IS roughly dB (unlike the Hitsville '8 ~= +5 dB' knob): boosts reach ~+10.7 dB (LOW PEAK) / ~+8.8 dB (HIGH PEAK) at 10, the DIP saturates to ~-11 dB by ~7-8.",
+  "intended_for": "a stereo drum bus / drum loop that wants forward attack + cleared boxiness without harshness; also snare/tom/room buses. This is a TONAL EQ stage — do compression/glue ([[fairchild-660]] / [[ssl-bus-compressor-2]]) and loudness/limiting ([[master-track]]) separately.",
+  "plugin_build": "uaudio_pultec_meq-5.vst3 (UADx native — RENDERS headless via Pedalboard, verified on this rig: hm_peak=10 @3k moved the signal by 0.285 max-abs vs flat; master_bypass=True is a TRUE NULL, bit-identical to input. Do NOT use a 'UAD Pultec MEQ-5.component' twin if present — the UAD/DSP twins pass audio through unprocessed offline. UADx authorizes via iLok account (no dongle); RE-VERIFY load+render on any other machine.)",
+  "headless_notes": "All 10 MEQ-5 params are ENUMs. apply-vst-chain's float dict CAN set the three amount knobs (lm_peak / mid_dip / hm_peak, 0.0..10.0 floats) but SILENTLY DROPS the STRING enums — the frequency selectors (lm_freq / mid_freq / hm_freq, e.g. '500 CPS' / '3 KCS'), the output trim ('0.0 dB'), and enable ('In'/'Out'). So a chain built with the float dict alone keeps the DEFAULT freqs (lm 200 / mid 700 / hm 1.5k) and you get the wrong bands. Build with THIS harness (setattr handles every enum). 'CPS' = Hz, 'KCS' = kHz (vintage cycles-per-second labels).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_meq-5.vst3", "params": {
+        "power": true,
+        "master_bypass": false,
+        "enable": "In",
+        "lm_freq": "200 CPS", "lm_peak": 3.0,
+        "mid_freq": "500 CPS", "mid_dip": 4.0,
+        "hm_freq": "3 KCS", "hm_peak": 5.0,
+        "output": "0.0 dB"
+      }}
+    ]
+  },
+  "notes": [
+    "MEASURED amount->dB (this rig): LOW PEAK ~+1.0 dB/unit, accelerating to ~+10.7 dB at 10; HIGH PEAK ~+0.9 dB/unit to ~+8.8 dB at 10; DIP nonlinear/saturating (~-1.4@2, -4.9@4, -8.9@6, -10.7@8, -11.0@10) so most of the cut is in by ~6-7. Bells are BROAD (~1.5-2 octaves) and musical; the DIP is a touch more focused (~1 octave). The HIGH PEAK gets NARROWER at higher freq settings (5 KCS is a focused presence bell; 1.5 KCS is broad).",
+    "To add the gentle Pultec harmonic colour (modeled tube/transformer make-up amp), raise input_gain_db (drive the INPUT) — measured THD rises 0.012% (-18 dBFS) -> 0.096% (0 dBFS). The 'output' trim is a CLEAN post-gain and does NOT saturate, so it can't add colour; use it only for makeup. Re-measure after adding drive.",
+    "The boost+dip-same-frequency 'Pultec-style' move does NOT cancel: LOW PEAK 700 @10 + DIP 700 @10 nets ~+2.3 dB at 700 with slightly scooped shoulders = a tighter, more focused midrange peak.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/pultec-meq5-drum-presence.json <in.wav> <out.wav>"
+  ]
+}

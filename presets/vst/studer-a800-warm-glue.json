@@ -1,0 +1,20 @@
+{
+  "name": "studer-a800-warm-glue",
+  "description": "Standalone single-plugin starting point for the UADx Studer A800 = the doc's DEFAULT warm/glue recipe (REPRO / 456 / 15 IPS / NAB / Cal +6 / Auto Cal ON / Noise OFF). Gentle Input (3 dB) for an LF head-bump + tape compression without the upper-mid edge driven tape adds. Tape measurably DARKENS (centroid −341 on our drum bus) — it warms/glues, it does not brighten. Use as the base for warmth/glue on a stem, drum bus, or 2-bus; raise input_level to taste (stop when the top spits). Built 2026-06-03.",
+  "intended_for": "a stem / drum bus / mix bus that wants tape warmth + glue (LF weight, gentle transient rounding) with no harshness — the neutral default before you push it",
+  "plugin_build": "uaudio_studer_a800.vst3 (UADx native — renders headless; never the UAD ….component twin)",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "chain": [
+      {"file": "uaudio_studer_a800.vst3", "params": {"path_select": "Repro", "ips": "15 IPS", "tape_type": "456", "emphasis_eq": "NAB", "cal_level": 6.0, "auto_cal": true, "noise": false, "input_level": 3.0, "output_level": -1.5}}
+    ]
+  },
+  "notes": [
+    "GAIN-STAGE FIRST: the A800 is a −12 dBFS = 0 VU plugin. A near-0 dBFS source slams it; a −18-referenced feed under-drives ~6 dB. Set input_gain_db (or pre-trim) so peaks land near 0 VU, then drive input_level to taste.",
+    "DRIVE to taste: raise input_level until you see only ~1–3 dB of transient reduction (crest drop) on the loudest hits; STOP the moment the top starts to spit (that is rising 3rd harmonic = new harshness). Trim output_level to gain-match.",
+    "VERIFY: centroid + tilt should go DOWN (LF lift + HF softening), not a 2–5 kHz rise; crest should not collapse (glue ≠ squash). measure-spectrum / measure-loudness / measure-microdynamics / check-clipping.",
+    "VARIANTS: tighter/punchy → 30 IPS + GP9/900 + cal 9 and push Input; darker/tame harshness → drop repro_hf_eq (most direct), less Input, or 30 IPS; fat/dark → 7.5 IPS. See docs/vst/studer-a800.md §7 decision table.",
+    "If too dull, do NOT add hf_record_eq / HF Driver (re-adds brightness + changes the saturation) — lighten drive or move toward 30 IPS / CCIR."
+  ]
+}

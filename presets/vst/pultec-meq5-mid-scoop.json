@@ -1,0 +1,28 @@
+{
+  "name": "pultec-meq5-mid-scoop",
+  "description": "The classic Pultec MEQ-5 DE-HONK / DE-BOX move — a focused midrange scoop to pull boxiness/honk/cardboard out of guitars, toms, room mics, or a congested mix, with a little presence restored on top. Moves (measured 0-10 ~= dB): DIP 700 CPS @5 (~-7 dB scoop the box/honk) + HIGH PEAK 4 KCS @3 (~+2.2 dB restore presence) + a touch of LOW PEAK 200 CPS @2 (~+1.6 dB keep body under the scoop). The MEQ-5 is the MIDRANGE Pultec — this is its single most idiomatic use. Broad/musical, not surgical (notch with [[fabfilter-pro-q-4]] if you need narrow).",
+  "intended_for": "boxy/honky/midrangey sources — electric or acoustic guitars, toms, room mics, a muddy 2-bus, or any source that sounds 'cardboard' / 'telephone' in the 400-800 Hz region. Tonal stage only; compress/limit elsewhere.",
+  "plugin_build": "uaudio_pultec_meq-5.vst3 (UADx native — RENDERS headless via Pedalboard, verified on this rig. master_bypass=True is a TRUE NULL. iLok account, no dongle; re-verify on a new machine. Do not use a UAD/DSP '.component' twin — passthrough offline.)",
+  "headless_notes": "All 10 params are ENUMs; the STRING enums (lm_freq/mid_freq/hm_freq frequency selectors, output, enable) are SILENTLY DROPPED by apply-vst-chain's float dict — only lm_peak/mid_dip/hm_peak (float amounts) set that way. Use THIS harness so the DIP actually lands on 700 (not the default 700... here mid default IS 700, but lm/hm defaults are 200/1.5k, so a float-dict build would mis-place those). 'CPS'=Hz, 'KCS'=kHz.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_meq-5.vst3", "params": {
+        "power": true,
+        "master_bypass": false,
+        "enable": "In",
+        "lm_freq": "200 CPS", "lm_peak": 2.0,
+        "mid_freq": "700 CPS", "mid_dip": 5.0,
+        "hm_freq": "4 KCS", "hm_peak": 3.0,
+        "output": "0.0 dB"
+      }}
+    ]
+  },
+  "notes": [
+    "Pick the DIP frequency to the box: 300-500 CPS for boom/tubbiness, 700 CPS-1 KCS for cardboard/honk, 1.5-3 KCS for nasal/harsh. The DIP saturates (~-9 dB by amount 6), so amounts 4-6 give a strong, musical scoop; go gentler (2-3) for subtlety.",
+    "The MEQ-5 DIP is ~1 octave wide at the center freq — broader than a parametric notch. If you need a narrow surgical notch (ringing resonance), use [[fabfilter-pro-q-4]] / suppress-resonances instead; reach for the MEQ-5 for the BROAD musical scoop.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/pultec-meq5-mid-scoop.json <in.wav> <out.wav>"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "ampex-atr-master-glue",
+  "description": "Transparent 2-bus / mastering tape polish on the UADx Ampex ATR-102 — REPRO, 30 IPS, Ampex 456, Cal +6, 1\" tape, transformer ON (the even-harmonic gloss), modeled wow&flutter/crosstalk/hiss OFF for a clean master. The 1\"/30-IPS combo = the tightest, most hi-fi format: leaner/controlled low end + a slightly open top, with essentially transparent dynamics (measured crest 25.0 dry -> 24.9). Width untouched (1.0) — never narrow a master. Drive harder for audible compression.",
+  "intended_for": "a near-final stereo MIX / 2-bus, as a stage-5 color insert BEFORE render-mastered (the limiter). NOT a limiter.",
+  "plugin_build": "uaudio_*.vst3 (UADx native build — renders headless; the UAD *.component twin passes audio through unprocessed offline, do NOT use it)",
+  "target_signature": {
+    "comment": "measured dry -> processed on projects/drums-kit/mix/bus_70s_balanced.wav (peak-normed), +6 dB drive; use to sanity-check a re-apply. centroid in [L] measure-spectrum units (dry == 4266). 30 IPS keeps the top open (Δ+62 vs dry) while 1\" tightens the low (band_low 0.58 -> 0.53).",
+    "centroid_hz": 4328, "tilt_db_per_oct": -2.54, "band_low": 0.531, "band_high": 0.0063,
+    "crest_db": 24.93, "lufs_i": -20.54
+  },
+  "recipe": {
+    "input_gain_db": 6,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_ampex_atr-102_tape.vst3", "params": {
+        "path_select": "REPRO", "ips": "30 IPS", "tape_type": "456", "cal_level": 6.0,
+        "head_width": "1", "emphasis_eq": "NAB",
+        "transformer": true, "wow_flutter": false, "crosstalk": false, "hiss_hum": false,
+        "auto_cal": true, "auto_gain": true
+      }}
+    ]
+  },
+  "notes": [
+    "input_gain_db drives the Record level. +6 assumes a ~-18..-23 LUFS bus; LOWER it for a hot near-0 dBFS master (the ATR's 0 VU = -12 dBFS, so a -18-referenced feed under-drives ~6 dB). Drive only until crest drops ~1-2 dB.",
+    "Transformer ON is the ATR's signature even-order (2nd) gloss — measured to lift centroid ~+356 Hz vs OFF (3515 -> 3871 at +10/15 IPS) and confirmed by a 1 kHz sine probe (H2 -55 ON vs -70 OFF; the odd 3rd is the tape, unchanged). Turn it OFF for the darkest, purest-tape tone.",
+    "30 IPS + 1\" = the tightest, most extended/hi-fi mastering format (open top, leaner controlled bottom). For warmth/heft + a bigger head bump drop to 15 IPS and 1/2\" (see ampex-atr-warm-2bus).",
+    "emphasis_eq is AES-locked at 30 IPS (NAB/CCIR has no effect there) — it only matters at 7.5/15 IPS.",
+    "auto_cal:true is asserted with the full speed/tape/cal/width set so the model re-aligns bias+EQ for THIS config. A partial param set that only changes ips can leave repro-EQ mis-calibrated for the old speed (measured ~-800 Hz darker at 30 IPS). Keep auto_cal near the end of the params.",
+    "wow&flutter/crosstalk/hiss OFF for a clean master; turn wow&flutter ON for vintage vibe.",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/ampex-atr-master-glue.json <in.wav> <out.wav>"
+  ]
+}

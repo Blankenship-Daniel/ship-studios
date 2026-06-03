@@ -1,0 +1,34 @@
+{
+  "name": "pultec-master-smile",
+  "description": "A gentle, broad Pultec 'smile' for a 2-bus / master: a small low-end trick at 30 CPS (lf_boost 3 + lf_atten 2 → a touch of tight sub weight with the boxy region pulled), plus a broad, gentle 16 KCS air boost (q10 = broadest) and a hair of 20 KCS atten to keep the very top silky. Mastering moves stay small (fractions of a dB up to ~2 dB) — the Pultec is a broad tone tool, not surgery; pair it with a surgical EQ for notches. Sits BEFORE the limiter on the 2-bus. Harness peak-normalizes to -1 dBFS; loudness-match before judging. NOTE: even fully 'flat' the engaged unit prints a faint passive/tube colour + ~+1 dB makeup (see notes), so this is colour-glue + a smile, not transparent EQ.",
+  "intended_for": "a near-final stereo mix / 2-bus that wants a gentle, broad, vintage smile + a little glue/colour before the limiter (master stage)",
+  "plugin_build": "UADx 'uaudio_pultec_eqp-1a.vst3' (the UADx native build that RENDERS headless via Pedalboard; NOT the 'UAD Pultec EQP-1A.component'/Legacy twins, which pass audio through unprocessed offline). 12 params; low_freq/high_freq/hf_atten_freq/enable/output are STRING enums that must go through this setattr harness, not apply-vst-chain's float dict.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_pultec_eqp-1a.vst3", "params": {
+        "enable": "In",
+        "low_freq": "30 CPS",
+        "lf_boost": 3.0,
+        "lf_atten": 2.0,
+        "high_freq": "16 KCS",
+        "hf_boost": 4.0,
+        "hf_q": 10.0,
+        "hf_atten_freq": "20 KCS",
+        "hf_atten": 0.0,
+        "output": "0.0 dB",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "MASTER GENTLY. Keep knob moves in the 2-4 range here; the knobs are nonlinear (most action 4->8) so even '3' is a real but modest move. Bigger smiles belong on a bus, not a master.",
+    "EQ-BYPASS IS NOT A NULL on this unit: 'enable=Out' keeps the transformer+tube amp path (measured slightly BRIGHTER than dry, +1.9 dB @8k); only master_bypass=true is a true null. So engaging the Pultec at all imparts a gentle colour + ~+1 dB makeup with a hair of top softening — part of the 'sounds better even flat' lore.",
+    "Pick CPS for the low character: 30 CPS = tight sub bump (used here), 60-100 CPS = fuller low that reaches into the low-mids (can muddy a master — usually keep it low).",
+    "Tube/transformer saturation is FAINT (~0.002% THD at -18 dBFS, ~0.01% at -6 dBFS, faintly odd-harmonic) — the Pultec colours mostly via its CURVE shapes, not heavy drive. For obvious analogue weight/glue on a master, stack a tape (ampex-atr-102) or vari-mu (fairchild-660) after it.",
+    "Verify with measure-loudness + measure-spectrum + check-streaming-targets after the limiter. Expect a small low lift, a hair of air, crest roughly held. A 0.00 delta means the .component twin loaded instead of uaudio_."
+  ]
+}

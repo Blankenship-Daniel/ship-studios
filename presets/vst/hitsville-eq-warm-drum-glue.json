@@ -1,0 +1,37 @@
+{
+  "name": "hitsville-eq-warm-drum-glue",
+  "description": "WARM, tight drum-bus tone from the UADx Hitsville EQ — the house warm+tight variant of the Motown move, with the present/airy top pulled back so it never reads brittle. Move: 50 +3 (kick weight), 130 +1 (body), 320 -2 (de-box the low-mids), 2000/5000 left FLAT (no presence push — avoids the 5-7 kHz brittleness), 12500 +1 (just a hint of cymbal air), GAIN -1. Warmth here = a low-tilt + de-boxed mids on a clean EQ (the Hitsville adds NO saturation — 0.000% THD), so for transformer-style warmth pair it with a tape/console stage (Studer/Ampex/Neve). Measured dry->processed on the watercolors drum bus: low ratio up, low-mid de-boxed, centroid barely moved (warm, not bright), crest preserved.",
+  "intended_for": "a stereo drum bus you want warm + tight + glued without extra top — the house warm preference. Stack a tape/console saturation stage ([[studer-a800]]/[[ampex-atr-102]]/[[kit-bb-n105]]) for harmonic warmth; the Hitsville supplies the clean tonal shape.",
+  "plugin_build": "UADx 'uaudio_hitsville_eq.vst3' (UADx native — RENDERS headless via Pedalboard, no-iLok). NOT the 'UAD Hitsville EQ.component' twin (passthrough offline).",
+  "target_signature": {
+    "comment": "measured dry->processed on projects/watercolors/mix/bus_warm_pre_dry.wav via the harness (peak-trim -1 dBFS). Dry: crest 23.6, centroid 3128, tilt -2.26, low 0.542, low_mid 0.378, high 0.0115.",
+    "crest_db": 21.8, "centroid_hz": 3129, "tilt_db_per_oct": -2.43,
+    "band_ratio_low": 0.696, "band_ratio_low_mid": 0.249, "band_ratio_high": 0.0096
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "uaudio_hitsville_eq.vst3", "params": {
+        "1_50": 3.0,
+        "2_130": 1.0,
+        "3_320": -2.0,
+        "4_800": 0.0,
+        "5_2000": 0.0,
+        "6_5000": 0.0,
+        "7_12500": 1.0,
+        "gain": -1.0,
+        "bypass": "In",
+        "power": true,
+        "master_bypass": false
+      }}
+    ]
+  },
+  "notes": [
+    "The Hitsville EQ has NO saturation/colour of its own (0.000% THD measured) — 'warm' is purely the tonal tilt (low weight + de-boxed mids + restrained top). For harmonic warmth, add a tape/console stage; this preset is the EQ shape only.",
+    "Top kept restrained on purpose: 2000 & 5000 flat, 12500 only +1. Bump 5000 +2 / 12500 +2 for the forward Motown variant (see hitsville-eq-motown-drum-bus.json), but watch 5-7 kHz brittleness on hat/cymbals.",
+    "GAIN is a clean linear trim; here -1 compensates the modest boosts. Never use a GAIN BOOST to make it louder on hot material — it clips past 0 dBFS (the only distortion this plugin produces).",
+    "Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/hitsville-eq-warm-drum-glue.json <in.wav> <out.wav>"
+  ]
+}

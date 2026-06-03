@@ -71,4 +71,5 @@ warmth isn't a loudness illusion.
 - [[stem-process]] — the per-stem corrective + color stage that feeds this (best source for the bus)
 - [[studer-a800]] — the tape engine here (why 30 IPS = tight + warm) · [[mix-balance]] — the measured balance method
 - [[drum-mix]] — the role-aware kit sum · [[finalize-mix]] — the generic bus-glue stage · [[master-track]] — loudness after this
+- `warm-bus-shootout` (workflow) — A/B/C several tuning variants (e.g. default vs `--hs-gain -2 --repro-hf 3`) through a warmth/tightness/life judge panel
 - Recipe + preference: `presets/mix/warm-tight-drum-bus.json`

@@ -56,10 +56,15 @@ every name below is verified against CLAUDE.md.
    WAV so each comparison is level-fair. For a drum kit use `drum-prep
    audition <dir> --reference <ref>` instead, which emits loudness-matched
    compare halves directly.
-5. **Optional perceptual rank** — `[G] compare-audio-files {paths: [<variant
-   WAVs, 2–10>], ...}`. Returns discriminating features and a relative
-   ordering. Feed it the variants (not the A/B concatenations) so it judges the
-   candidates themselves.
+5. **Optional perceptual rank** — two paths:
+   - *Quick:* `[G] compare-audio-files {paths: [<variant WAVs, 2–10>], ...}` —
+     discriminating features + a relative ordering in one call. Feed it the
+     variants (not the A/B concatenations) so it judges the candidates themselves.
+   - *Rigorous (multi-agent):* run the **`audio-shootout` workflow** — one
+     independent, meter-grounded Gemini lens agent per (variant × criterion),
+     ranked with surfaced dissent. Pass the level-matched variants from steps
+     2–4 as `variants:[{name, path(ABSOLUTE), meters}]`, plus your `intent` and
+     `criteria`. Requires multi-agent opt-in.
 6. **Present the fork** — lay out the matrix, the A/B file paths to audition,
    the optional Gemini ranking, and your recommendation with its trade-off.
    Stop and let the user choose.
@@ -105,4 +110,5 @@ every name below is verified against CLAUDE.md.
 - [[level-match]] — gain-only loudness match (the primitive behind a fair A/B)
 - [[master-track]] — once a loudness/ceiling variant wins, master to it for real
 - [[reference-match]] — the EQ step whose strength this can sweep
+- `audio-shootout` (workflow) — the multi-lens judge panel this step delegates to for a ranked pick
 - [[vst-shootout]] — the same shootout discipline for VST plugin chains

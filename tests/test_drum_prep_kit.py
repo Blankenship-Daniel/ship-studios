@@ -38,6 +38,29 @@ def test_detect_topology(tmp_path) -> None:
     assert "snare bottom.aif" not in anchors  # has a partner
 
 
+def test_fx_with_partner_excluded_and_flagged(tmp_path) -> None:
+    # An FX/return (plate/reverb/send) given a partner in kit.json must NOT enter
+    # partner_pairs — aligning it would corrupt the return — and must be flagged by
+    # validation, the same rule as ambience/room. (FX is excluded from anchored_to_oh
+    # but used to slip into partner_pairs.)
+    src = _make(tmp_path, ["overheads - stereo.aif", "snare top.aif", "snare plate.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "snare plate.aif", "role": "fx", "partner": "snare top.aif"}]}))
+    kit = resolve_kit(src, strict=False)
+    assert kit.by_name("snare plate.aif").role == Role.FX
+    assert not any(p.role == Role.FX for p, _ in partner_pairs(kit))
+    assert ("snare plate.aif", "snare top.aif") not in {(p.name, a.name) for p, a in partner_pairs(kit)}
+    assert any("snare plate.aif" in w and "partner" in w for w in kit.warnings)
+
+
+def test_fx_with_partner_fails_strict(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif", "snare top.aif", "snare plate.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "snare plate.aif", "role": "fx", "partner": "snare top.aif"}]}))
+    with pytest.raises(KitError, match="partner"):
+        resolve_kit(src, strict=True)
+
+
 def test_manifest_overrides_detection(tmp_path) -> None:
     src = _make(tmp_path, ["weird.aif", "overheads - stereo.aif"])
     (tmp_path / "kit.json").write_text(json.dumps({"stems": [{"file": "weird.aif", "role": "snare_top"}]}))

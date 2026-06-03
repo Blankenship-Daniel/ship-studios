@@ -72,12 +72,19 @@ def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
     click.echo(json.dumps(result, indent=2, default=str))
 
 
-def _default_out(path: str, suffix: str) -> str:
-    """Default output path: ``<dir>/<stem>.<suffix><ext>`` next to ``path``."""
+def _default_master_out(mix_path: str) -> str:
+    """Default master output: ``<project>/masters/<stem>.master<ext>``.
+
+    Honors the project layout (CLAUDE.md: "Always master into ``masters/``, never
+    overwrite ``mix/``"). When the mix sits in a ``mix/`` dir, the master goes to
+    the sibling ``masters/``; otherwise a ``masters/`` dir beside the mix. The
+    loops ``render-mastered`` tool creates the parent dir, so it need not exist.
+    """
     from pathlib import Path
 
-    p = Path(path)
-    return str(p.with_name(f"{p.stem}.{suffix}{p.suffix}"))
+    p = Path(mix_path)
+    project = p.parent.parent if p.parent.name == "mix" else p.parent
+    return str(project / "masters" / f"{p.stem}.master{p.suffix}")
 
 
 def _parse_bars(bars: str | None) -> list[int] | None:
@@ -182,7 +189,7 @@ def main() -> None:
 @click.argument("mix_path", type=click.Path())
 @click.option("--out", "out_path", type=click.Path(), default=None,
               help="Where to write the rendered master WAV "
-                   "(default: <mix dir>/<stem>.master.wav).")
+                   "(default: <project>/masters/<stem>.master.wav).")
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
 @click.option("--platform", "target_platform", default="spotify", show_default=True,
@@ -211,7 +218,7 @@ def master(
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import master_track
 
-    resolved_out = out_path or _default_out(mix_path, "master")
+    resolved_out = out_path or _default_master_out(mix_path)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:

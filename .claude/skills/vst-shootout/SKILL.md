@@ -27,8 +27,10 @@ focused); this compares **plugin chains**.
 3. **Measure each** — `[L] measure-loudness` + `[L] measure-spectrum` (+ `measure-stereo`/`measure-microdynamics`
    as relevant). Build a comparison table.
 4. **Judge** — score the variants against the goal across distinct lenses (tone, dynamics, image,
-   musicality). For a rigorous pick, run a **Workflow adversarial judge panel** (parallel lenses →
-   synthesis) — requires multi-agent opt-in. Optionally add Gemini ears via `[G] compare-to-reference`.
+   musicality). For a rigorous pick, run the **`audio-shootout` workflow** (one meter-grounded Gemini
+   lens agent per variant × criterion → ranked, with dissent) — requires multi-agent opt-in. Pass the
+   level-matched variant WAVs as `variants:[{name,path(ABSOLUTE),meters}]` + your `intent`/`criteria`.
+   Optionally add Gemini ears via `[G] compare-to-reference`.
 5. **Pick + refine** — declare the winner, note dissent, apply one concrete refinement, and (optionally)
    `render-ab` a loudness-matched audition. Save the winner with `[[vst-preset]]`.
 
@@ -52,3 +54,4 @@ focused); this compares **plugin chains**.
 
 - `[[variant-shootout]]` — the loudness/mix-version sibling · `[[vst-chain]]` / `[[vst-preset]]` — render the variants
 - `[[vst-verify]]` — pre-screen · `[[vst]]` — index/doctrine
+- `audio-shootout` (workflow) — the multi-lens judge panel this delegates to for the ranked pick

@@ -35,7 +35,10 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
    the output; a **0.00 detail change = passthrough**, regardless of `changed:true`.
 4. **Refresh the inventory (on demand)** — to turn the load-probe list into a render-verified one, probe
    the titles in [`demo/headless-safe-titles.txt`](../../../demo/headless-safe-titles.txt) and keep only
-   `RENDERS ✓`. This is a big job (hundreds of plugin loads) — do it deliberately, not casually.
+   `RENDERS ✓`. This is a big job (hundreds of plugin loads). At scale, run the **`vst-probe-inventory`
+   workflow** — it chunks the list and fans the probe out over parallel agents (≤16 concurrent), then
+   merges into a render-verified inventory + verdict table. Gather the list inline (this file or
+   `[L] list-vst-plugins`) and pass it as `args.plugins`.
 
 ## Outputs
 
@@ -60,3 +63,4 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
 
 - `[[vst]]` — suite index/doctrine · `[[vst-chain]]` / `[[vst-browse]]` — feed verified picks into these
 - `[[vst-preset]]` — once verified, capture the chain as a preset
+- `vst-probe-inventory` (workflow) — at-scale parallel render-verification of many plugins → a render-verified inventory

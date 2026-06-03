@@ -406,6 +406,30 @@ async def test_understand_audio_json_prompt_without_schema_is_noop(recording_hub
     assert "audio-to-json" not in recording_hub.tool_sequence
 
 
+async def test_understand_audio_full_ordered_sequence(recording_hub) -> None:
+    # All flags on: the six understanding tools fire in source order, ending
+    # with audio-to-json — pins its ordered POSITION, not just its args.
+    schema = {"type": "object", "properties": {"bpm": {"type": "number"}}}
+    await pipelines.understand_audio(
+        recording_hub,
+        "ref.wav",
+        transcribe=True,
+        region=(60.0, 75.0, "what happens here?"),
+        event_description="kick drum hits",
+        labels=["house", "techno"],
+        compare_paths=["other.wav"],
+        json_schema=schema,
+    )
+    assert recording_hub.server_tool_sequence == [
+        (GEMINI_SERVER, "transcribe-audio"),
+        (GEMINI_SERVER, "describe-audio-region"),
+        (GEMINI_SERVER, "extract-audio-events"),
+        (GEMINI_SERVER, "classify-audio"),
+        (GEMINI_SERVER, "compare-audio-files"),
+        (GEMINI_SERVER, "audio-to-json"),
+    ]
+
+
 @pytest.mark.parametrize(
     "pipeline_result_key, coro_factory",
     [

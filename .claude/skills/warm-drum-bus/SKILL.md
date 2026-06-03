@@ -1,6 +1,7 @@
 ---
 name: warm-drum-bus
 description: "Use when the user wants a WARM drum bus with a tight/controlled bottom end — 'warm drum bus', 'make the drums warm', 'my drum sound', 'warm and tight drums', 'controlled low end on the kit', 'tape-warm drum glue', 'warm up the drum bus'. The user's PREFERRED drum-bus recipe: measured warm balance → tilt EQ + low-band multiband control → Studer A800 30 IPS tape. Warmth from tape/tilt (NOT bright EQ); tight lows from HPF + low multiband + 30 IPS. Local DSP + the `vst` extra (Studer)."
+argument-hint: <drum-bus.wav | stems-dir>
 ---
 
 # warm-drum-bus — the user's warm, tight/controlled drum bus

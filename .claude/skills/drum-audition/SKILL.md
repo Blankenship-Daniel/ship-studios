@@ -1,6 +1,7 @@
 ---
 name: drum-audition
 description: Use when the user wants to hear the drum-prep result fairly — "A/B my drums before and after", "render a loudness-matched audition", "let me hear the EQ change", "compare my kit to the reference". Builds coherent stereo kit sums and renders loudness-matched (ITU-R BS.1770) A/B WAVs: before-vs-after EQ, and reference-vs-after. Local drum-prep CLI, not the MCP servers.
+argument-hint: <stems dir> <reference.wav>
 ---
 
 # Loudness-matched A/B auditions of a drum kit

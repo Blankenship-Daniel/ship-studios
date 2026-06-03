@@ -1,6 +1,7 @@
 ---
 name: mastering-plan
 description: Use when the user wants a mastering chain DESIGNED before rendering — "what mastering chain should I use", "suggest a master chain for this", "I want it loud and warm, plan the master", "recommend EQ/comp/limiter settings for mastering", "give me a starting chain for club/streaming/vinyl", "plan the master from a creative brief". Meter-grounded, typed chain PLAN (no audio rendered). Gemini-driven, needs GEMINI_API_KEY. Stemmy MCP.
+argument-hint: <near-final-mix.wav> [intent/platform brief]
 ---
 
 # Mastering plan — meter-grounded chain design (no render)

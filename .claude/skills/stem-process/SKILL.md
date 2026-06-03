@@ -1,6 +1,7 @@
 ---
 name: stem-process
 description: "Use when the user wants to PROCESS the individual stems of a multi-mic kit — 'process the individual stems', 'clean up and color each stem', 'per-stem corrective + tone on my drums', 'treat each mic separately then re-sum', 'EQ/de-harsh/compress each drum stem'. Per-stem MEASURED corrective (clean, de-box, de-harsh, dynamic-EQ, transient) + optional console/tape color, with before/after verification and an optional re-sum A/B. Local DSP + the `vst` extra for color."
+argument-hint: <stems-dir> [duration_s]
 ---
 
 # stem-process — measured per-stem corrective + color for a multi-mic kit

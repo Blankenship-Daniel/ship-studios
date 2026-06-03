@@ -1,6 +1,7 @@
 ---
 name: drum-tune
 description: Use when the user wants to tune a drum sample to the song — "tune the kick to the key", "what note is this kick", "pitch this tom", "these samples clash with the bass". Measures a drum's fundamental (Hz/note/cents) and, optionally, retunes a SAMPLE by resampling. Local drum-prep CLI, not the stemmy MCP servers.
+argument-hint: <sample.wav> [target key/note]
 ---
 
 # Tune a drum sample to the song

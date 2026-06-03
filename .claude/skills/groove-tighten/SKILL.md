@@ -1,6 +1,7 @@
 ---
 name: groove-tighten
 description: Use when a loop's timing is loose — "tighten the timing", "quantize this loop to the grid", "make it exactly 4 bars", "snap the groove", "the loop drifts / doesn't line up", "fix the timing on this loop". Quantizes onsets to the BPM grid (groove) or stretches to exact bars (length), then re-runs optimize-seam because quantizing shifts onsets and breaks the wrap point, and QCs. Wraps the otherwise-unwrapped quantize-loop. BPM is REQUIRED — read it from track.md, never guess.
+argument-hint: <loop.wav> [bpm] [bars]
 ---
 
 # Groove-tighten — quantize a loop, then re-fix the seam

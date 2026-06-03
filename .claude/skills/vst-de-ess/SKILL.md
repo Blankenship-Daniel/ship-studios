@@ -1,6 +1,7 @@
 ---
 name: vst-de-ess
 description: "Use when the user wants to tame sibilance / harsh 'ess' on a vocal or bright track via their own plugin — 'de-ess this vocal', 'the s's are harsh', 'tame the sibilance', 'too much ess on the lead', 'de-ess the cymbals'. Pairs Gemini find-sibilance to set the band/threshold, then applies a headless-safe de-esser (FabFilter Pro-DS, SSL DeEss, Lindell 902). Stemmy MCP, the `vst` extra + GEMINI_API_KEY."
+argument-hint: <vocal.wav>
 ---
 
 # vst-de-ess — tame sibilance with your own de-esser

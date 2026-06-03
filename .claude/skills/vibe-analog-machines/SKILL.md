@@ -1,6 +1,7 @@
 ---
 name: vibe-analog-machines
 description: "Use when running the UAD/UADx Vibe Analog Machines (formerly Verve Analog Machines) for fast analog 'vibe' — saturation, warmth, lo-fi tape character, wobble, or preamp grit — on a drum bus, loop, stem, beat, vocal, or mix bus — 'Vibe Analog Machines', 'Verve Analog Machines', 'UAD Vibe', 'add some vibe/character', 'analog saturation/warmth', 'lo-fi / vintage / tape / wobble it', 'sweeten the drums', 'thicken / glow / sputter / distort this', or when you want a one-machine-at-a-time colour box (pick a machine, turn up drive, add warble or tone). The measured, plugin-specific deep-dive of [[vst-saturate]] — a 10-machine (6 tape + 4 preamp) harmonic-saturation + modulation character effect (NOT an EQ, NOT a compressor), grounded in the real 6-param surface + per-machine THD/tonal numbers in docs/vst/vibe-analog-machines.md. Renders headless (UADx native; iLok account, no dongle). A faster/lo-fi cousin of the tape skills [[studer-a800]] / [[ampex-atr-102]] / [[softube-tape]]. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [vibe: sweeten|warm|glow|edge|thicken|vintagize|distort|overdrive|fire|sputter] [+warble]
 ---
 
 # vibe-analog-machines — drive the UADx Vibe Analog Machines (measured)
@@ -23,7 +24,7 @@ family. Full field guide — real surface, the machine map, footguns, recipes, o
 2. **Renders headless — load `uaudio_verve.vst3`.** `probe_plugin.py` → `RENDERS ✓`; **bypass is sample-accurate to
    dry**. UADx native; needs an **iLok *account*** (software, no dongle) — authorized & verified processing here,
    re-verify elsewhere. Don't load the `UAD …`/`.component`/AU twins (passthrough-offline risk —
-   [[uadx-uaudio-build-renders-headless]]).
+   [[vst-verify]]).
 3. **6 params; `machine` is a STRING enum → use the [[vst-preset]] harness, not `apply-vst-chain`'s float dict**
    (which sets the numerics but silently misses the machine name — the whole point of the plugin).
 4. **`param_1` = DRIVE; `param_2` = WARBLE (tape machines) / TONE (preamp machines); `output_trim` = the bipolar −/0/+
@@ -90,7 +91,7 @@ Tone, not warble — warble doesn't move the centroid). Essentials = the 4 tape 
 4. **Prove it** — re-`measure-spectrum`/`measure-loudness` (match the tell row). **Warble won't show** — confirm by
    ear / `[G] detect-mix-issues`. A 0.00 delta = passthrough twin. A/B loudness-matched ([[level-match]] / `[L] render-ab`).
 5. **QC** — `[G] detect-mix-issues` / `mastering-feedback` for over-drive (harsh/fizzy) or too-dark/lo-fi; cross-check
-   any mono "dark/harsh" flag vs the meters ([[gemini-mastering-feedback-cross-check]]). It's a colour insert, **not a
+   any mono "dark/harsh" flag vs the meters ([[gemini-audio-understanding]]). It's a colour insert, **not a
    master** — hand off to [[master-track]].
 
 ## Move table (measured)
@@ -98,7 +99,7 @@ Tone, not warble — warble doesn't move the centroid). Essentials = the 4 tape 
 | Goal | Vibe move |
 |---|---|
 | **Clean sweeten / air on drums** ★ | `SWEETEN`, drive 50 — centroid ↑, +air, crest held (the shipped `vibe-sweeten-drum-glue`). |
-| **Warm + glued drum bus** ★ | `WARM`, drive 65 — crest 14.6→12.1, warmer, top gently rolled (the shipped `vibe-warm-drum-bus`; matches [[drum-bus-warm-tight-preference]]; SoS also recommends Warm @ drive ~65 on drums). |
+| **Warm + glued drum bus** ★ | `WARM`, drive 65 — crest 14.6→12.1, warmer, top gently rolled (the shipped `vibe-warm-drum-bus`; matches [[warm-drum-bus]]; SoS also recommends Warm @ drive ~65 on drums). |
 | **Dark tube warmth** | `GLOW`, drive 40–60, **Tone ~30–50** — valve warmth; lower Tone = darker. |
 | **Body / weight + tighter** | `THICKEN`, drive 50–70 — low-mid up, crest UP. |
 | **Lo-fi / vintage tape wobble** ★ | `VINTAGIZE`, drive 50, **warble 35** — dark/band-limited + audible wow/flutter (the shipped `vibe-lofi-warble`). |
@@ -134,4 +135,4 @@ the preset/`.state` path. A/B loudness-matched so "vibe" isn't a level illusion.
 - [[vst-saturate]] — the generic skill this specializes · [[vst-preset]] — apply enum/all-explicit chains · [[vst-verify]] — prove the build renders · [[vst-chain]] — the backbone · [[vst]] — index/doctrine
 - Tape/warm siblings (proper tape machines): [[studer-a800]] (multitrack, darkens) · [[ampex-atr-102]] (mastering tape) · [[softube-tape]] (3-machine) · [[fabfilter-saturn-2]] (multiband saturator) · console colour [[helios-type-69]] / [[kit-bb-n105]]
 - Pure-DSP twins (no plugin, deterministic): tanh/tape/soft-clip colour → `[L] saturate-loop`; air/presence → [[excite]]; EQ → `[L] apply-eq`
-- [[mix-check]] (find the problem first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where a warm/lo-fi colour fits) · [[uadx-uaudio-build-renders-headless]] (why the build matters)
+- [[mix-check]] (find the problem first) · [[warm-drum-bus]] / [[drum-stems-warm-loops]] (where a warm/lo-fi colour fits) · [[vst-verify]] (why the build matters)

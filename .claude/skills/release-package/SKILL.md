@@ -1,6 +1,7 @@
 ---
 name: release-package
 description: Use when the user wants finished masters assembled into a distribution-ready release — "package this release for distribution", "prep these masters for DistroKid/Bandcamp/CD Baby", "assemble the album/EP for upload", "make a release folder", "get these tracks ready to ship to a distributor". Assembles ALREADY-mastered tracks with consistent artist/album tagging, the export format matrix, per-platform compliance, and one loudness-consistency manifest. Distinct from [[batch-master]] (which masters) — this assembles + QCs + tags existing masters; it does not master.
+argument-hint: <masters-dir> [artist/album/year] [platform]
 ---
 
 # Release-package — assemble finished masters for distribution

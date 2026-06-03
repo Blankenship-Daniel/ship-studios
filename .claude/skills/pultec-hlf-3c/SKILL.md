@@ -1,6 +1,7 @@
 ---
 name: pultec-hlf-3c
 description: "Use when running the UAD/UADx Pultec HLF-3C for clean, musical high-pass / low-pass FILTERING on a stem, bus, mix, or master — 'Pultec HLF-3C', 'Pultec filter', 'high-pass the rumble', 'roll off the harsh top', 'low-cut / high-cut filter', 'tame the cymbals / hiss / digital edge', 'band-limit this', 'lo-fi / telephone / vintage filter effect', or when you want a smooth passive filter instead of a surgical Butterworth HPF/LPF. The measured, plugin-specific deep-dive of [[vst-eq]] — a PURE FILTER (low-cut 50–2000 CPS + high-cut 1.5–15 KCS, no boost/Q/gain, 0.000% THD), grounded in the real 4-enum-param surface + isolation/slope/render numbers in docs/vst/pultec-hlf-3c.md. NOT a tonal EQ (that's the EQP-1A) — it only removes the extremes. Stemmy MCP, the `vst` extra. UADx native (iLok account, no dongle; verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: low-cut|high-cut|band-limit|lofi|tame-top|rumble]
 ---
 
 # pultec-hlf-3c — drive the UADx Pultec HLF-3C passive filter (measured)
@@ -17,7 +18,7 @@ This skill is the workflow.
 
 1. **Renders headless — use the `uaudio_` build.** `uaudio_pultec_hlf-3c.vst3` loads + processes (UADx native, iLok
    *account*, no dongle here). The `UAD Pultec HLF-3C.component` / `/Universal Audio/…vst3` twins are the
-   **passthrough** offline build — never load those ([[uadx-uaudio-build-renders-headless]]).
+   **passthrough** offline build — never load those ([[vst-verify]]).
 2. **⚠️ The standard probe FALSE-FLAGS it as passthrough.** `presets/vst/probe_plugin.py` reports
    "PASSTHROUGH ✗ (ignores params)" — a **false negative**: the plugin has no gain/level/drive param, so the probe
    falls back to the first param (`low_cut`) and `extreme()` pushes it to its *first* enum value `'Off'` = the
@@ -79,7 +80,7 @@ This skill is the workflow.
    presence bell / [[excite]] *below* the cut; if it's thin after a low-cut, that low energy is gone — don't expect
    the filter to give it back.
 6. **QC** — `[G] detect-mix-issues` / `mastering-feedback` for over-filtering (thin/dull/muffled); cross-check any
-   mono "dark/thin" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a corrective filter
+   mono "dark/thin" flag against the meters ([[gemini-audio-understanding]]). It's a corrective filter
    insert, not a master — hand the result to [[master-track]] for loudness.
 
 ## Move table (measured on the Watercolors drum loop)
@@ -123,4 +124,4 @@ false-flags it), that it's a **pure filter — no tone/color added**, and the pr
 - [[vst-eq]] — the generic skill this specializes · [[vst-preset]] — apply enum/all-explicit chains · [[vst-verify]] — prove the build renders (with a REAL value here) · [[vst-chain]] — the backbone · [[vst]] — index/doctrine
 - Pultec siblings (tonal, NOT filters): [[fabfilter-pro-q-4]] (surgical/dynamic EQ) · [[helios-type-69]] (passive inductor EQ + drive) · [[hitsville-eq]] / [[hitsville-eq-mastering]] (Motown graphic EQ) — and the UADx **EQP-1A** / **MEQ-5** boost-cut Pultecs (no measured skill yet)
 - Pure-DSP twins (no plugin): high/low-pass + tilt → `[L] apply-eq`; **dynamic** harshness (ring/level-dependent) → [[de-harsh]] / [[de-ess]] (a static high-cut just dulls); add air/presence → [[excite]]; saturation/warmth → `[L] saturate-loop`
-- [[mix-check]] (find what to filter first) · [[uadx-uaudio-build-renders-headless]] (why the build matters)
+- [[mix-check]] (find what to filter first) · [[vst-verify]] (why the build matters)

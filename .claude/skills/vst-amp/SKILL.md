@@ -1,6 +1,7 @@
 ---
 name: vst-amp
 description: "Use when the user wants guitar/bass amp or pedal tone on a DI/clean track via their own plugin — 'reamp this DI', 'add a guitar amp sim', 'run the bass through an amp', 'TONEX/NAM this', 'give the guitar a Marshall/metal tone'. Applies a headless-safe amp/pedal sim (TONEX, NeuralAmpModeler, UAD Softube Amp Rooms) to a DI/clean source. Stemmy MCP, the `vst` extra."
+argument-hint: <DI.wav> [tone: clean/crunch/high-gain, bass/guitar]
 ---
 
 # vst-amp — guitar/bass amp + pedal tone with your own plugin

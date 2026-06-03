@@ -1,6 +1,7 @@
 ---
 name: gemini-audio
 description: Use when the user asks what Gemini can do with audio, which Gemini model/format/limit/price fits an audio task, or where the Gemini audio docs live — "what can Gemini do with audio", "which gemini model for audio", "gemini audio token cost", "gemini audio file-size / duration limit", "does gemini do TTS / music / realtime audio", "gemini audio capabilities / docs / limits". The index to the Gemini-audio reference suite (docs/gemini-audio/); routes to the per-area skills. Reference, not a pipeline — it points at docs, it does not process audio.
+argument-hint: [topic, e.g. "token cost" | "tts voices" | "does it hear stereo"]
 ---
 
 # Gemini audio — capability reference (index)

@@ -1,6 +1,7 @@
 ---
 name: dbx-160
 description: "Use when running the UADx dbx 160 Compressor for punchy/aggressive VCA compression on drums (kick/snare/room), bass, or a drum bus — 'dbx 160', 'dbx compressor', 'put the dbx on the snare/kick/drums/bass', 'that dbx snare thwack/knock', 'punchy VCA compression', 'add punch to the drums', 'parallel-smash the drum bus', 'New York compression', '4:1 on everything'. The measured, plugin-specific deep-dive of [[vst-compress]] — a feed-forward, true-RMS, hard-knee Blackmer-VCA compressor that on drums ADDS punch (RAISES crest) rather than leveling it, and is exceptionally CLEAN (its character is dynamic, not harmonic), grounded in the real 8-enum-param Pedalboard surface + ratio/threshold/sidechain/parallel/THD render numbers in docs/vst/dbx-160.md. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: drum-punch|bus-glue|parallel|snare|bass]
 ---
 
 # dbx-160 — drive the UADx dbx 160 Compressor (measured)
@@ -52,7 +53,7 @@ recipes, the variant/folklore corrections, sources — lives in
 - **Load the `uaudio_dbx_160.vst3` UADx native build** — it **renders headless & processes offline**
   (`RENDERS ✓` here). The `/Library/Audio/Plug-Ins/Components/UAD dbx 160.component` and
   `/VST3/Universal Audio/.../UAD dbx 160.vst3` twins are legacy UAD builds and **pass audio through unprocessed**
-  offline — never use them ([[vst-verify]] / [[vst-hosting-outside-daw]]). UADx native is the no-iLok-dongle
+  offline — never use them ([[vst-verify]] / [[vst]]). UADx native is the no-iLok-dongle
   perpetual lineage, but re-verify `RENDERS ✓` on a new machine.
 - Balance the bus first ([[mix-balance]]); hand the punched/glued result to [[master-track]] — this is a
   punch/leveling stage, **not** a master/limiter.
@@ -76,7 +77,7 @@ recipes, the variant/folklore corrections, sources — lives in
    [[level-match]]) so "punchier" isn't just "louder."
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch pumping (lower the ratio / engage PULL/SC) or a
    thin/over-compressed bus; reconcile any mono "dull/dynamics" flag against the stereo meters
-   ([[gemini-mastering-feedback-cross-check]]).
+   ([[gemini-audio-understanding]]).
 
 ## Recipes (measured starting points — re-dial to your level)
 
@@ -132,4 +133,4 @@ loudness-matched so "punchier" isn't "louder."
 - [[vst-compress]] — the generic compressor skill this specializes · [[la-3a]] — opto LEVELER (drops crest, odd-harmonic) vs the dbx's punch (raises crest, clean) · [[fairchild-660]] — tube COLOR (holds crest, even-harmonic) · [[ssl-bus-compressor-2]] — clean VCA stereo glue
 - [[vst-preset]] — apply enum chains (required for the ratio) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[finalize-mix]] / [[stem-master]] — stages this fits · [[drum-punch]] — pure-DSP transient design (no plugin) · [[multiband-compress]] — band-split dynamics
-- [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR
+- [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR

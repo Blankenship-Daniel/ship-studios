@@ -1,6 +1,7 @@
 ---
 name: vst-chain
 description: "Use when the user wants to run an arbitrary chain of their own VST3/AU effect plugins on an audio file — 'run these plugins on my mix', 'apply Pultec then Black 76 to this stem', 'process this through a VST chain', 'insert my plugin on this loop'. The generic, headless, measured apply-vst-chain workflow that every other vst-* skill is a preset of. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [plugins/intent]
 ---
 
 # vst-chain — apply a headless VST3/AU effect chain to a WAV

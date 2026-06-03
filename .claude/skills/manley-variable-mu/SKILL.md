@@ -1,6 +1,7 @@
 ---
 name: manley-variable-mu
 description: "Use when running the UADx Manley Variable Mu for CLEAN/transparent vari-mu tube glue, leveling, M/S mastering, or parallel compression on a mix bus, 2-bus, master, drum bus, vocal, or bass — 'Manley Variable Mu', 'Vari-Mu', 'Variable Mu compressor', 'transparent tube bus glue', 'glue the mix bus with the Manley', 'mastering compressor', 'M/S bus compression', 'vari-mu on the 2-bus', 'parallel-smash the drums with the Manley'. The measured, plugin-specific deep-dive of [[vst-compress]] — an all-tube variable-mu compressor that LEVELS macro-dynamics while KEEPING transients (crest held/up, even-harmonic color only when driven), grounded in the real 23-enum-param Pedalboard surface + threshold/input/attack/recovery/comp-vs-limit/headroom/M-S render numbers in docs/vst/manley-variable-mu.md. The CLEAN counterpart to the thicker [[fairchild-660]]. Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: drum-glue|bus-glue|parallel|master-ms]
 ---
 
 # manley-variable-mu — drive the UADx Manley Variable Mu (measured)
@@ -57,7 +58,7 @@ recipes, pitfalls, Manley-vs-Fairchild, sources — lives in
 - **Load the `uaudio_manley_variable_mu.vst3` UADx native build** — it **renders headless & processes offline**
   (`RENDERS ✓` here). The `/Library/Audio/Plug-Ins/Components/UAD Manley Variable Mu.component` twin **passes
   audio through unprocessed** offline (`PASSTHROUGH ✗`) — never use it ([[vst-verify]] /
-  [[vst-hosting-outside-daw]]). UADx native = no-iLok lineage, but re-verify `RENDERS ✓` on a new machine.
+  [[vst]]). UADx native = no-iLok lineage, but re-verify `RENDERS ✓` on a new machine.
 - Balance the bus first ([[mix-balance]]); hand the glued result to [[master-track]] — color/glue stage, not a
   master/limiter.
 
@@ -81,7 +82,7 @@ recipes, pitfalls, Manley-vs-Fairchild, sources — lives in
    isn't just "louder."
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch pumping (too-fast attack/recovery or too much
    GR) or a choked bus; reconcile any mono "dull" flag against the stereo meters
-   ([[gemini-mastering-feedback-cross-check]]).
+   ([[gemini-audio-understanding]]).
 
 ## Recipes (measured starting points — re-dial to your level)
 
@@ -131,4 +132,4 @@ isn't just "louder." If they wanted *thick/colored* glue instead of *clean*, poi
 - [[vst-preset]] — apply enum chains (required here) · [[vst-verify]] — prove the build renders · [[vst-shootout]] — judge setting variants
 - [[finalize-mix]] / [[stem-master]] / [[master-track]] — stages this fits · [[level-match]] — loudness-matched A/B
 - [[ampex-atr-102]] / [[studer-a800]] — tube/tape color siblings · [[drum-punch]] — pure-DSP transient design (no plugin)
-- [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini mono) own crest/GR/width
+- [[gemini-audio-understanding]] — why meters (not Gemini mono) own crest/GR/width

@@ -1,6 +1,7 @@
 ---
 name: sample-pack
 description: Use when the user wants to assemble a sellable sample pack — "make a sample pack", "package these as a kit for sale", "oneshots + loops into a pack", "build a drum kit pack with previews". Assembles one-shots + loops into a tagged, organized, multi-format pack with metadata/blurbs. Primarily stemmy-loops.
+argument-hint: <source.wav> <bpm>
 ---
 
 # Assemble a sellable sample pack

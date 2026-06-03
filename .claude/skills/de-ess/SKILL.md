@@ -1,6 +1,7 @@
 ---
 name: de-ess
 description: Use when sibilance ("ess"/"sh"/"t") is harsh on a vocal, lead, or bright bus — "de-ess the vocal", "the esses are spitty/harsh", "tame the sibilance", "too much 's' on the lead", "the hi-hat/cymbals are spitting". Finds the sibilant band with find-sibilance, then ducks ONLY that band with the native split-band de-ess (no plugin), proven by the 4–9 kHz band-energy delta. Pure DSP for the render; find-sibilance is Gemini. Stemmy MCP.
+argument-hint: <vocal-or-bus.wav>
 ---
 
 # De-ess — measured split-band sibilance control

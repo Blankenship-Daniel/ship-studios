@@ -1,6 +1,7 @@
 ---
 name: master-track
 description: Use when the user wants to master a near-final stereo mix to a platform-ready master — "master this track", "get this to -14 LUFS", "make it streaming-ready", "final master for Spotify", "loud but clean", "export master deliverables". Drives the full measure → perceptual feedback → render → re-check → export chain across BOTH MCP servers (loops for DSP measurement/render/export, gemini for the perceptual mastering read and streaming compliance).
+argument-hint: <mix.wav> [target platform/LUFS]
 ---
 
 # Master a track to a platform-ready deliverable

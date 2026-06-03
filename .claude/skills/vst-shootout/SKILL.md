@@ -1,6 +1,7 @@
 ---
 name: vst-shootout
 description: "Use when the user wants to compare several VST chains/presets and pick the best — 'try a few vintage chains and pick the best', 'shoot out these plugin variants', 'A/B my VST chains', 'which compressor/tape sounds best on this', 'explore a few mastering chains'. Renders N VST chain/preset variants on one source, measures each, and adversarially judges them to a winner. The VST-chain cousin of variant-shootout (which is loudness/mix-version focused). Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal/variants, e.g. "vintage drum flavors"]
 ---
 
 # vst-shootout — render N VST chains and judge to a winner

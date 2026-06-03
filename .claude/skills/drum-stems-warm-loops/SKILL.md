@@ -1,6 +1,7 @@
 ---
 name: drum-stems-warm-loops
 description: "Use when the user has a FOLDER of drum stems (kick, snare, overheads, room, +optional FX returns) and wants the whole job done end-to-end: process the stems, volume-balance them, EQ them, sum them into the user's WARM/tight drum bus, and cut drum loops — 'turn these drum stems into a warm bus and loops', 'process+mix my drum stems and make loops', 'warm drum bus + loop pack from this folder', 'do the whole drum-stems-to-loops workflow'. The composite pipeline that chains [[stem-process]] → [[mix-balance]] → [[warm-drum-bus]] → [[loops-to-deliverables]], parameterized by a stems folder + slug, with two confirm-points (BPM, FX-return A/B). Local DSP + the stemmy MCP servers; needs the `vst` extra (Studer/API) + GEMINI_API_KEY (perceptual A/B)."
+argument-hint: <stems-folder> [slug]
 ---
 
 # drum-stems-warm-loops — drum stems → warm/tight bus → loops (end to end)
@@ -57,7 +58,7 @@ Measured-LUFS warm spread (bright stem **down**, body/room **up**), one global �
 ### Stage 4b — FX-return decide-by-ear (Gemini), then promote
 
 Loudness-match the two warm buses (peak-safe gain to a common LUFS) and A/B by ear: `compare-audio-files` (which is better for a warm/tight bus?) **plus** `detect-mix-issues` on the with-FX bus (does the reverb add wash/mud?). Promote the winner → `projects/<slug>/mix/bus_warm.wav`.
-- **Gemini hears ~16 kbps MONO → cross-check every claim against the meters** (`[[gemini-mastering-feedback-cross-check]]`): a "serious boominess / cut the lows" flag is often the mono downmix exaggerating centered kick/bass — trust the *stereo* tilt vs the approved signature. Gemini may also **hallucinate content over near-silence** (it once reported a "spoken-word voiceover" on a −65 dBFS tail) — verify structure with a meter/energy scan, not Gemini's ears.
+- **Gemini hears ~16 kbps MONO → cross-check every claim against the meters** (`[[gemini-audio-understanding]]`): a "serious boominess / cut the lows" flag is often the mono downmix exaggerating centered kick/bass — trust the *stereo* tilt vs the approved signature. Gemini may also **hallucinate content over near-silence** (it once reported a "spoken-word voiceover" on a −65 dBFS tail) — verify structure with a meter/energy scan, not Gemini's ears.
 
 ## Stage 5 — create loops (raw + mastered)
 
@@ -67,7 +68,7 @@ Loudness-match the two warm buses (peak-safe gain to a common LUFS) and A/B by e
 4. `$VENV scripts/loops/build_loops.py artifacts/<slug>-loops projects/<slug>/loops projects/<slug>/deliverables --name-prefix <slug>_drums --target-lufs -15` — per loop: seam → **raw** (tagged, no re-master, keeps warm character) and **mastered** (gentle −15, ×3 formats, tagged). It encodes the tagging gotchas (below).
 5. `uv run --no-sync drum-prep verify-tags projects/<slug>/loops` and `…/deliverables` → expect `all_tagged=True` ([[delivery-qc]]).
 
-**Tagging gotchas (handled in `build_loops.py` — don't undo):** `export-deliverables tag=true` drops the RIFF INFO → export `tag=False` then tag after; and `tag-deliverable` force-writes **PCM_24**, so tagging a 16-bit file upgrades it — 24-bit exports get the full in-WAV tag, **16-bit (distribution) keeps PCM_16 and has the RIFF LIST chunk spliced in from a tagged 24-bit twin** (true 16-bit *with* the in-WAV tag — beats sidecar-only; see [[stemmy-loops-tagging-gotchas]]). **Master gently**: drums are high-crest, so a low LUFS target over-limits (−12 collapsed crest 14→9); −15 preserves it.
+**Tagging gotchas (handled in `build_loops.py` — don't undo):** `export-deliverables tag=true` drops the RIFF INFO → export `tag=False` then tag after; and `tag-deliverable` force-writes **PCM_24**, so tagging a 16-bit file upgrades it — 24-bit exports get the full in-WAV tag, **16-bit (distribution) keeps PCM_16 and has the RIFF LIST chunk spliced in from a tagged 24-bit twin** (true 16-bit *with* the in-WAV tag — beats sidecar-only; see [[delivery-qc]]). **Master gently**: drums are high-crest, so a low LUFS target over-limits (−12 collapsed crest 14→9); −15 preserves it.
 
 ## Outputs
 
@@ -91,4 +92,4 @@ Per-stage before→after metrics; the final warm signature vs the approved (tilt
 For no-checkpoint runs (CI/batch), pass the BPM up front and pre-decide the FX return (skip the Gemini A/B), or fold these into a `ship-studios` CLI subcommand over `ship_studios/pipelines.py`. Interactive runs should keep both confirm-points.
 
 ## Related
-[[format-fix]] · [[drum-phase-align]] · [[stem-process]] · [[mix-balance]] · [[warm-drum-bus]] · [[studer-a800]] · [[api-vision-channel-strip]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-mastering-feedback-cross-check]] · [[master-track]]
+[[format-fix]] · [[drum-phase-align]] · [[stem-process]] · [[mix-balance]] · [[warm-drum-bus]] · [[studer-a800]] · [[api-vision-channel-strip]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-audio-understanding]] · [[master-track]]

@@ -1,6 +1,7 @@
 ---
 name: gemini-music-generation
 description: Use when the user asks about generating music with Gemini / Google — "generate music with gemini", "lyria", "ai music / backing track / instrumental generation", "generate an instrumental", "AI-generate a loop / jingle / stock music", "make a song from a prompt", "lyria realtime", "text to music". Reference for Lyria (Lyria 3 clip/pro + Lyria RealTime; MP3/WAV 44.1 kHz; ⚠️ preview/experimental) — NOT wired in this repo. Points to docs/gemini-audio/music-generation.md. Reference + wire-up note, not a tool.
+argument-hint: [topic, e.g. "lyria models" | "output format" | "realtime"]
 ---
 
 # Gemini music generation (Lyria) — reference (text → music)

@@ -1,6 +1,7 @@
 ---
 name: gemini-speech-generation
 description: Use when the user asks about Gemini text-to-speech / generating spoken audio — "gemini tts", "text to speech", "generate a voiceover / narration", "synthesize speech", "gemini tts voices / multi-speaker", "what voice or language for gemini speech", "make Gemini talk". Reference for Gemini TTS — a pre-rendered, one-shot speech file (NOT real-time conversation; that's the Live API, [[gemini-live-audio]]). 30 voices, PCM 24 kHz, ⚠️ preview; NOT wired in this repo (stemmy-gemini is read-only). Points to docs/gemini-audio/speech-generation.md. Reference + wire-up note, not a tool.
+argument-hint: [topic, e.g. "voices" | "output format" | "wire it up"]
 ---
 
 # Gemini speech generation / TTS — reference (text → speech)

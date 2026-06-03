@@ -1,6 +1,7 @@
 ---
 name: manley-voxbox
 description: "Use when running the UAD/UADx Manley VOXBOX Channel Strip for an all-tube VOCAL channel, or for smooth tube colour + opto compression + passive Pultec EQ + de-essing on vocals, bass, acoustic, drums, or a bus — 'Manley VOXBOX', 'VOXBOX', 'tube vocal channel strip', 'put the VOXBOX on the vocal', 'that Manley tube sound', 'opto comp + Pultec EQ + de-ess in one box', 'smooth hi-fi tube channel'. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — a 4-block tube strip (tube pre + passive electro-optical compressor + passive MEQ-5-style 3-band EQ + de-esser/opto-limiter), grounded in the real 25-enum-param Pedalboard surface + isolation/THD/comp/EQ/de-ess render numbers in docs/vst/manley-voxbox.md. The SMOOTH/OPEN tube counterpart to the clean [[ssl-native-channel-strip-2]] and punchy [[api-vision-channel-strip]] / [[kit-bb-a5]]. Renders headless (UADx native, no dongle here). Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: vocal|drum-glue|bus-glue|colour|level|air|de-box|de-ess|limit]
 ---
 
 # manley-voxbox — drive the UADx Manley VOXBOX Channel Strip (measured)
@@ -18,7 +19,7 @@ This skill is the workflow.
 
 1. **Renders headless — use the `uaudio_` build.** `uaudio_manley_voxbox.vst3` loads + processes (UADx native). The
    `UAD Manley VOXBOX.component` twin is the **passthrough** offline build — never load it
-   ([[uadx-uaudio-build-renders-headless]]). UADx native = no DSP/iLok dongle for the render here.
+   ([[vst-verify]]). UADx native = no DSP/iLok dongle for the render here.
 2. **The audio path is NOT the GUI layout.** Internal flow is **INPUT → COMPRESSOR → tube PREAMP → EQ → DE-ESS/LIMITER
    → OUTPUT** — the **compressor is FIRST** (it clamps transients before the first tube), and it's **fixed**. So `input`
    feeds the comp *and* the tube.
@@ -79,7 +80,7 @@ Freq grids: LOW 20–1000 · MID 200–7000 · HIGH **1500/2000/3000/4000/5000/6
    transients) or DOWN under heavy drive; **`Limit` → crest DOWN** (peak control); EQ moves centroid/tilt. A 0.00 delta
    = passthrough twin. A/B loudness-matched ([[level-match]] / `[L] render-ab`).
 8. **QC** — `[G] detect-mix-issues` / `mastering-feedback` (genre/intent set) for over-drive or over-de-ess; cross-check
-   any mono "harsh/dull" flag against the meters ([[gemini-mastering-feedback-cross-check]]). It's a per-track/bus
+   any mono "harsh/dull" flag against the meters ([[gemini-audio-understanding]]). It's a per-track/bus
    insert, not a master — hand the result to [[master-track]] for loudness.
 
 ## Move table (measured)
@@ -128,4 +129,4 @@ preset/`.state` path. A/B loudness-matched so warmth isn't a level illusion.
 - Channel-strip siblings: [[ssl-native-channel-strip-2]] / [[ssl-4k-e]] (clean British) · [[api-vision-channel-strip]] / [[kit-bb-a5]] (punchy API) · [[kit-bb-n105]] / [[kit-bb-n73]] (Neve, warm) · [[helios-type-69]] (warm British pre+EQ, no comp)
 - Tube cousins: [[fairchild-660]] (vari-mu tube comp) · [[studer-a800]] / [[ampex-atr-102]] (tape warmth)
 - Pure-DSP twins (no plugin): opto/tube colour → `[L] saturate-loop`; leveling → `[L] compress-loop`; de-ess → [[de-ess]]; air → [[excite]]; surgical/tilt EQ + weight → `[L] apply-eq`
-- [[mix-check]] (find the problems first) · [[uadx-uaudio-build-renders-headless]] (why the build matters)
+- [[mix-check]] (find the problems first) · [[vst-verify]] (why the build matters)

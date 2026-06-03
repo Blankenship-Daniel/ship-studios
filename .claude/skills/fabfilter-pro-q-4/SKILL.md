@@ -1,6 +1,7 @@
 ---
 name: fabfilter-pro-q-4
 description: "Use when running FabFilter Pro-Q 4 for surgical, dynamic, or spectral EQ on a stem/bus/loop — 'Pro-Q 4', 'FabFilter EQ', 'surgical-EQ this', 'notch out that resonance', 'dynamic EQ the mud', 'spectral de-harsh / de-ess with Pro-Q', 'mid/side EQ the master', 'add Pro-Q Warm character'. The measured, plugin-specific deep-dive of [[vst-eq]] — a 24-band parametric EQ with per-band dynamic EQ, the new Spectral Dynamics (Soothe-style), Character saturation, and Zero-Latency/Natural/Linear phase, grounded in the real 581-param Pedalboard surface + our render results in docs/vst/fabfilter-pro-q-4.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [goal: notch|de-harsh|de-ess|dynamic|mid-side|tilt|character]
 ---
 
 # fabfilter-pro-q-4 — drive FabFilter Pro-Q 4 (measured)
@@ -16,7 +17,7 @@ air-only Maag). Full field guide — real param surface, footguns, recipes, our 
 
 1. **Renders headless AND no-iLok — uniquely safe here.** It loads + processes through Pedalboard 0.9.23
    (param-response confirmed), and FabFilter uses a **simple license key, no iLok/PACE/UAD dongle** — so unlike
-   the [[vst-hosting-outside-daw]] landmines it's a clean render-farm candidate. Use the **VST3** Pro-Q 4 path
+   the [[vst]] landmines it's a clean render-farm candidate. Use the **VST3** Pro-Q 4 path
    (the AU `.component` twin + Pro-Q 3 are also installed — don't grab those).
 2. **A bare load is NOT flat — it restores FabFilter's last-saved GUI curve** (ours came up as the screenshot:
    band 1 Low Cut @30 Hz, band 2 Bell @202, band 3 Bell @4085). So every "fresh" render rides a leftover curve.
@@ -65,7 +66,7 @@ air-only Maag). Full field guide — real param surface, footguns, recipes, our 
    changed** (a 0.00 spectrum delta = passthrough). For a dynamic/spectral band, the cut shows on peaks while
    steady level is preserved (that's the point). A/B loudness-matched (`[L] render-ab` / [[level-match]]).
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) to catch over-EQ (thin/dull/harsh); cross-check any mono
-   "dark/boxy" flag against the stereo bands ([[gemini-mastering-feedback-cross-check]]). It's a per-track/bus
+   "dark/boxy" flag against the stereo bands ([[gemini-audio-understanding]]). It's a per-track/bus
    insert, not a master — hand the result to [[master-track]] for loudness.
 
 ## Move table
@@ -116,4 +117,4 @@ path. A/B loudness-matched so taste isn't a level illusion.
 - Pure-DSP twins (no plugin, deterministic): [[de-harsh]] (suppress-resonances) · [[dynamic-eq]] (apply-dynamic-eq) ·
   [[de-ess]] · [[reference-match]] / [[house-curve]] (match-eq) · `[L] apply-eq`
 - [[mix-check]] (find the problems first) · `[G] find-resonances` / `find-sibilance` to target the surgical/de-ess
-  bands · [[gemini-mastering-feedback-cross-check]] — why meters (not Gemini) own the spectrum read
+  bands · [[gemini-audio-understanding]] — why meters (not Gemini) own the spectrum read

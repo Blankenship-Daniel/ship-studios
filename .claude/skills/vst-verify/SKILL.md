@@ -1,6 +1,7 @@
 ---
 name: vst-verify
 description: "Use when you need to know whether a plugin actually PROCESSES audio headless, not just loads — 'does this plugin really work here', 'is <plugin> passthrough', 'my plugin did nothing / output unchanged', 'verify these render headless', 'uaudio vs UAD which one works', 'rebuild the headless-safe list properly'. A processing-probe: pushes a parameter and confirms the output responds (0.00 = passthrough). The backstop the rest of the vst suite relies on. Stemmy MCP, the `vst` extra."
+argument-hint: <plugin.vst3 | basename | "/abs/path"> [more…]
 ---
 
 # vst-verify — does this plugin RENDER headless, or just load?

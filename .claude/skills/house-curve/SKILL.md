@@ -1,6 +1,7 @@
 ---
 name: house-curve
 description: Use when a whole EP/album needs ONE shared tonal target, or you want a reusable reference profile — "build a house curve from these references", "make all my tracks share the same tonal balance", "give the EP one consistent sound", "match every mix to this set of references", "create a target curve for the album", "save a tonal target I can reuse". Power-averages references into a versioned profile, then matches each mix to it. Pure DSP, no API key. Stemmy MCP.
+argument-hint: <references...> -- <mixes-or-album-dir>
 ---
 
 # House curve — one shared tonal target across a release

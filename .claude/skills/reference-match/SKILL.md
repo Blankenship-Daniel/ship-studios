@@ -1,6 +1,7 @@
 ---
 name: reference-match
 description: Use when the user wants a mix to sound like a reference track — "make it sound like <ref>", "match this reference", "A/B against this song", "get the same tonal balance as <ref>", "match the loudness of <ref>", "why doesn't mine sound as full as theirs". Derives numeric + perceptual deltas vs the reference, applies EQ to close the gap, and renders a loudness-matched A/B audition. Spans BOTH servers.
+argument-hint: <mix.wav> <reference.wav>
 ---
 
 # Match a mix to a reference

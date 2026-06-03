@@ -1,6 +1,7 @@
 ---
 name: softube-tape
 description: "Use when running the Softube Tape plugin for analog tape color, warmth, glue, or lo-fi on a stem/drum-bus/mix-bus/loop — 'Softube Tape', 'add tape', 'tape glue/warmth on the drums', 'tape on the 2-bus', 'parallel tape on the kick/bass', 'lo-fi tape character', 'Type A/B/C tape', or the three-machine deck with the RC-1 Remote Control (AMOUNT/TYPE/TAPE SPEED). The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real 15-param surface + isolation numbers in docs/vst/softube-tape.md. NOT the Ampex ([[ampex-atr-102]]) or Studer ([[studer-a800]]). Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: warm|tight|mix-glue|parallel|lofi]
 ---
 
 # softube-tape — drive the Softube Tape plugin (measured)
@@ -38,7 +39,7 @@ the *why* and the tables.
 
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - The plugin renders **headless via Pedalboard** (Softube/iLok-PACE — authorized on this rig). iLok is a
-  render-farm landmine ([[vst-hosting-outside-daw]]): **verify load+render on any new machine** ([[vst-verify]]).
+  render-farm landmine ([[vst]]): **verify load+render on any new machine** ([[vst-verify]]).
 - **Harness is mandatory.** 13 of 15 params are **string enums** (`color_type`, `tape_speed`, `dry_wet`,
   `speed_stability`, `high_freq_trim`, `crosstalk`, `input_db`, `output_db`) — `apply-vst-chain`'s float-only
   dict **cannot** set them. Use the **[[vst-preset]]** harness (`presets/vst/apply_vst_preset.py`); it
@@ -97,5 +98,5 @@ State the Type / IPS / Amount / DRY-WET / HF-Trim / Crosstalk, the before→afte
 - [`docs/vst/softube-tape.md`](../../../docs/vst/softube-tape.md) — the full measured field guide (levers, theory, decision table, sources)
 - [[vst-saturate]] — the generic tape/harmonic-color skill this specializes · [[vst-preset]] — apply enum/parallel chains · [[vst-verify]] — prove the build renders · [[vst-chain]] — backbone recipe · [[vst-shootout]] — render Type/IPS/Amount variants & judge
 - [[studer-a800]] (punchy multitrack tape) · [[ampex-atr-102]] (smooth 2-bus master tape) — the UAD siblings; Softube Tape is subtler + far more CPU-efficient, with fewer formulas
-- [[softube-transient-shaper]] — the other Softube unit · [[warm-drum-bus]] / [[drum-bus-warm-tight-preference]] — the warm+tight drum-bus pref this serves · [[finalize-mix]] / [[master-track]] — the stages a tape insert lives in
-- [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves · [[vst-hosting-outside-daw]] — the iLok/headless caveats
+- [[softube-transient-shaper]] — the other Softube unit · [[warm-drum-bus]] — the warm+tight drum-bus pref this serves · [[finalize-mix]] / [[master-track]] — the stages a tape insert lives in
+- [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves · [[vst]] — the iLok/headless caveats

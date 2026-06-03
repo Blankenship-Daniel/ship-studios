@@ -1,6 +1,7 @@
 ---
 name: kit-bb-a5
 description: "Use when running the KIT Plugins BB A5 (Blackbird Studio API Legacy console strip) for punchy/forward 'American console' tone on drums, bus, bass, or guitar — 'KIT BB A5', 'Blackbird channel strip', 'API console on the drums', 'that Blackbird/API punchy sound', 'use the BB A5', or when you need the 55A/55L/56L API EQ modules + Mic-mode console drive dialed without harshness. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real 46-param surface + isolation/drive/EQ numbers in docs/vst/kit-bb-a5.md. Stemmy MCP, the `vst` extra. iLok/PACE (verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: punchy-bus/clean-eq/smash]
 ---
 
 # kit-bb-a5 — drive the KIT Plugins BB A5 (Blackbird API console strip, measured)

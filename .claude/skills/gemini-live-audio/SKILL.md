@@ -1,6 +1,7 @@
 ---
 name: gemini-live-audio
 description: Use when the user asks about Gemini real-time / streaming / conversational audio — "gemini live api", "realtime voice", "streaming audio in/out", "voice conversation", "barge-in / interrupt the model", "live audio monitoring", "native audio dialog". Reference for the Live API — real-time, bidirectional, streaming voice conversation (NOT one-shot TTS file generation; that's [[gemini-speech-generation]]). 16 kHz PCM in / 24 kHz PCM out, WebSocket, ⚠️ preview; NOT wired in this repo (doesn't fit the stdio request/response MCP shape). Points to docs/gemini-audio/live-api.md. Reference + wire-up note, not a tool.
+argument-hint: [topic, e.g. "audio format" | "session limits" | "models"]
 ---
 
 # Gemini Live API — reference (real-time audio in ↔ out)

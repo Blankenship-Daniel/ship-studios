@@ -1,6 +1,7 @@
 ---
 name: vst-compress
 description: "Use when the user wants to compress a stem/bus with their own compressor plugin — 'run an 1176 on the vocal', 'LA-2A the bass', 'bus-compress the drums with my plugin', 'glue this with a real comp', 'add an opto/FET/VCA compressor'. Applies a headless-safe compressor (Black 76, Comp FET-76, FabFilter Pro-C, SSL Bus Comp, Tube-Tech CL 1B) with crest/PLR measured before/after. Stemmy MCP, the `vst` extra."
+argument-hint: <audio.wav> [comp/intent]
 ---
 
 # vst-compress — compress a track with your own comp plugin

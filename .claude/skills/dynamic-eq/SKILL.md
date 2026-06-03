@@ -1,6 +1,7 @@
 ---
 name: dynamic-eq
 description: Use when a frequency problem is LEVEL-DEPENDENT, not constant — "carve the mud only when the kick hits", "tame 3 kHz only on loud phrases", "the low-mids build up only on the chorus", "de-boom the bass only on the loud notes", "fill the sub only when it dips". Threshold-gated per-band EQ that fires by the band's own level (cut above / boost below). Pure DSP, no API key. Stemmy MCP.
+argument-hint: <mix-or-stem.wav>
 ---
 
 # Dynamic EQ — threshold-gated, level-dependent per-band carving

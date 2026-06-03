@@ -1,6 +1,7 @@
 ---
 name: pultec-meq-5
 description: "Use when running the UAD/UADx Pultec MEQ-5 Mid-Range Equalizer for broad, musical MIDRANGE shaping on drums, drum bus, guitars, vocals, bass, or a mix bus — 'Pultec MEQ-5', 'MEQ-5', 'Pultec midrange EQ', 'de-honk / de-box this', 'scoop the mids', 'midrange presence / attack', 'add presence to the snare', 'that passive Pultec mid EQ', or when you want forgiving low-mid/mid/high-mid moves from a passive LC + tube EQ. The measured, plugin-specific deep-dive of [[vst-eq]] — three overlapping sections (LOW PEAK boost 200-1000 Hz · DIP cut 200-7000 Hz · HIGH PEAK boost 1.5-5 kHz) + an output trim; grounded in the real 10-param surface + transfer-function / THD / render numbers in docs/vst/pultec-meq-5.md. The MIDRANGE companion to [[pultec-eqp-1a]] (lows + air) and [[pultec-hlf-3c]] (filters). BROAD/musical, not surgical (pair with [[fabfilter-pro-q-4]] for notches). Stemmy MCP, the `vst` extra. UADx native (iLok account; verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: de-box|presence|warm-body|scoop|attack]
 ---
 
 # pultec-meq-5 — drive the UADx Pultec MEQ-5 mid-range EQ (measured)
@@ -19,7 +20,7 @@ surgical. Full field guide — param surface, curve tables, recipes, history —
 1. **Renders headless — load the `uaudio_` build.** `uaudio_pultec_meq-5.vst3` loads + processes (UADx native;
    hm_peak=10 @3k moved the signal 0.285 max-abs). `master_bypass=True` is the **only TRUE null** (bit-identical
    to input). Don't load any `UAD …`/`Legacy .component` twin (passthrough offline). iLok account, no dongle —
-   **re-verify on a new machine** ([[uadx-uaudio-build-renders-headless]]).
+   **re-verify on a new machine** ([[vst-verify]]).
 2. **The MEQ-5 0–10 dial is ROUGHLY dB here** — *unlike* the [[pultec-eqp-1a]] (nonlinear, not-dB) and
    [[hitsville-eq-mastering]] ("8 ≈ +5 dB") knobs. Measured: **LOW PEAK ≈ +1 dB/unit → +10.7 dB max**;
    **HIGH PEAK ≈ +0.9/unit → +8.8 dB max**; the **DIP saturates** (~−1.4 @2, −4.9 @4, −8.9 @6, **−11 dB max**,
@@ -123,4 +124,4 @@ surgical. Full field guide — param surface, curve tables, recipes, history —
 - [[vst-eq]] — the generic EQ skill this specializes · [[vst-preset]] — apply enum/all-explicit chains (use here) · [[vst-verify]] — prove the build renders · [[vst-chain]] — the backbone · [[vst]] — index/doctrine
 - Vintage-EQ neighbours: [[helios-type-69]] (warm British preamp+EQ) · [[hitsville-eq]] / [[hitsville-eq-mastering]] (Motown graphic) · [[fabfilter-pro-q-4]] (clean surgical/dynamic — pair for notches)
 - [[master-track]] — loudness/limiting AFTER · [[finalize-mix]] — bus-glue stage · [[mix-check]] (find the problem first) · [[drum-punch]] (attack via transients, not EQ)
-- [[uadx-uaudio-build-renders-headless]] (why the build matters) · [[gemini-mastering-feedback-cross-check]] (trust meters over mono ears)
+- [[vst-verify]] (why the build matters) · [[gemini-audio-understanding]] (trust meters over mono ears)

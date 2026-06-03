@@ -1,6 +1,7 @@
 ---
 name: excite
 description: Use when a mix/stem is dull, lacks air or presence, and a static EQ shelf would just raise hiss — "add air to the top", "it sounds dull/dark/flat", "give the vocal presence/forwardness", "open up the highs", "needs sparkle/sheen without getting harsh", "the cymbals have no shimmer". Band-limited parallel harmonic excitement that generates air/presence from the material itself, with a 5–7 kHz harshness guard. Pure DSP, no API key. Stemmy MCP.
+argument-hint: <mix-or-stem.wav>
 ---
 
 # Excite — band-limited parallel harmonic air / presence

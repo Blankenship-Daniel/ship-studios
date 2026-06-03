@@ -1,6 +1,7 @@
 ---
 name: multitrack-triage
 description: Use when the user has a pile of raw, interface-named multi-mic recordings and wants them cleaned and organized before alignment/mixing — "clean up these raw stems", "triage my drum session recordings", "which channels are dead", "are these the same song or different takes", "split/organize this Logic dump", "the ADAT tracks are clipped", "figure out which mic is which", "prep these for drum-prep". Turns a flat folder of interface-input WAVs into clean, song-split, role-labeled per-song kits with a kit.json ready for [[drum-prep]]. Local DSP + sox/ffmpeg + Gemini ears; never mutates a DAW project.
+argument-hint: <raw stems dir>
 ---
 
 # Triage raw multi-mic recordings into clean, labeled kits

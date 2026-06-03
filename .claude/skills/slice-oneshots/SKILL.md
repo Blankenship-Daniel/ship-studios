@@ -1,6 +1,7 @@
 ---
 name: slice-oneshots
 description: Use when the user wants the individual hits out of a loop/break for a sampler — "chop this break into hits", "slice into one-shots", "give me the individual drum hits", "extract the hits for my sampler", "cut this loop into single samples". Lightweight onset-slice → per-hit WAVs → QC → optional tag, WITHOUT sample-pack's sales packaging (no format matrix, README, or blurbs). For a sellable multiformat pack use [[sample-pack]] instead. Pure DSP, no API key.
+argument-hint: <loop-or-break.wav>
 ---
 
 # Slice one-shots — chop a loop/break into per-hit WAVs

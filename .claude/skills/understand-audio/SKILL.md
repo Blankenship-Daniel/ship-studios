@@ -1,6 +1,7 @@
 ---
 name: understand-audio
 description: Use when the user wants to understand a reference track or stem perceptually — "what's in this audio", "transcribe this", "what happens at 1:30", "find every kick / drop / crash", "is this house or techno", "compare these references", "pull the song structure as JSON". Pure Gemini audio understanding via stemmy-gemini — no rendering, never modifies the audio. The recon step before [[mix-check]] / [[master-track]] / [[reference-match]].
+argument-hint: <audio.wav> [question or goal]
 ---
 
 # Understand audio perceptually (Gemini)

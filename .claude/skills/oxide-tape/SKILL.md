@@ -1,6 +1,7 @@
 ---
 name: oxide-tape
 description: "Use when running the UAD/UADx Oxide Tape Recorder for fast, simple analog tape warmth, glue, or lo-fi color on a stem/drum-bus/mix-bus/master/loop — 'Oxide Tape Recorder', 'UAD Oxide', 'put Oxide on the drums/mix', 'quick tape warmth', 'simple tape glue', 'add some tape', 'lo-fi tape', or when you want the stripped-down UA tape machine (one Input drive + IPS/EQ/NR switches) instead of the full Ampex/Studer surface. The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real 8-param surface + isolation/harmonic numbers in docs/vst/oxide-tape.md. The lighter, faster cousin of [[ampex-atr-102]] (mastering) and [[studer-a800]] (multitrack). Stemmy MCP, the `vst` extra."
+argument-hint: <wav-or-bus> [goal: warm|master|lofi|clean]
 ---
 
 # oxide-tape — drive the UAD/UADx Oxide Tape Recorder (measured)
@@ -43,7 +44,7 @@ is the workflow; pull the doc for the *why* and the tables.
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - Renders **headless via Pedalboard** (UADx native, no iLok dongle — authorized on this rig; `bypass` == dry
   bit-for-bit). Load **`uaudio_oxide_tape.vst3`** — the **`UAD Oxide Tape.component`** twin passes audio through
-  unprocessed offline ([[uadx-uaudio-build-renders-headless]]). Verify on any new machine ([[vst-verify]]).
+  unprocessed offline (load the `uaudio_*.vst3` build, not the `.component` twin). Verify on any new machine ([[vst-verify]]).
 - **Harness for the switches.** `input_level` / `output_level` are **numeric** (drivable from `apply-vst-chain`'s
   float dict), but `path_select` / `ips` / `emphasis_eq` / `noise_reduct` are **string/bool enums** the float
   dict silently ignores → use the **[[vst-preset]]** harness (`presets/vst/apply_vst_preset.py`). Exact enum
@@ -102,6 +103,6 @@ loudness-matched.
 
 - [`docs/vst/oxide-tape.md`](../../../docs/vst/oxide-tape.md) — the full measured field guide (levers, theory, recipes, sources)
 - [[vst-saturate]] — the generic tape/harmonic-color skill this specializes · [[vst-preset]] — apply enum chains · [[vst-verify]] — prove the build renders · [[vst-chain]] — backbone recipe · [[vst-shootout]] — render IPS/EQ/Input variants & judge
-- [[ampex-atr-102]] (smooth 2-bus mastering tape) · [[studer-a800]] (punchy multitrack tape) · [[softube-tape]] (Softube's own 3-machine deck) · [[ampex-atr-102-mastering-tape]] — the fuller UAD siblings; Oxide is the fast/light one
-- [[vibe-analog-machines]] — the lo-fi/character cousin · [[warm-drum-bus]] / [[drum-bus-warm-tight-preference]] — the warm drum-bus pref this serves · [[finalize-mix]] / [[master-track]] — the stages a tape insert lives in
-- [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves · [[vst-hosting-outside-daw]] / [[uadx-uaudio-build-renders-headless]] — the UADx/headless caveats
+- [[ampex-atr-102]] (smooth 2-bus mastering tape) · [[studer-a800]] (punchy multitrack tape) · [[softube-tape]] (Softube's own 3-machine deck) — the fuller UAD siblings; Oxide is the fast/light one
+- [[vibe-analog-machines]] — the lo-fi/character cousin · [[warm-drum-bus]] — the warm drum-bus pref this serves · [[finalize-mix]] / [[master-track]] — the stages a tape insert lives in
+- [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves · [[vst]] / [[vst-verify]] — the UADx/headless caveats

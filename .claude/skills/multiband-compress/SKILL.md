@@ -1,6 +1,7 @@
 ---
 name: multiband-compress
 description: Use when different frequency bands need different dynamics control — "compress the lows and highs separately", "the kick is uneven but the cymbals are fine", "control the boomy bass without squashing the top", "even out the low end only", "multiband compress this", "the bass jumps around in the mix". Splits into LR4 bands and compresses each independently, proven by per-band gain reduction + crest. Pure DSP, no API key. Stemmy MCP.
+argument-hint: <mix-or-stem.wav>
 ---
 
 # Multiband compression — per-band dynamics, measured

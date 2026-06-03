@@ -1,6 +1,7 @@
 ---
 name: ssl-4k-e
 description: "Use when running the SSL 4K E channel strip (SSL's SL 4000 E console emulation) for clean, weighty, controlled 'British console' tone on drums, bus, bass, or vocals — 'SSL 4K E', 'SSL E channel strip', 'SSL 4000 E', 'put an SSL channel on the drums', 'that SSL console weight/glue', 'Brown/Black/Orange EQ', or when you need the 02/242/132 EQ cards + grabby VCA comp dialed for weight + punch without harshness. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real 49-param surface + isolation/colour/comp numbers in docs/vst/ssl-4k-e.md. The CLEAN/WEIGHTY counterpart to API forwardness ([[api-vision-channel-strip]]/[[kit-bb-a5]]) and Neve/tape warmth ([[studer-a800]]/[[kit-bb-n105]]). Stemmy MCP, the `vst` extra. iLok/PACE (verified-headless on this rig)."
+argument-hint: <audio.wav> [goal: drum-bus/glue/kick/snare/air]
 ---
 
 # ssl-4k-e — drive the SSL 4K E Channel Strip (measured)

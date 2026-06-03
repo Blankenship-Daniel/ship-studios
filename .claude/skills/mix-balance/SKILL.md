@@ -1,6 +1,7 @@
 ---
 name: mix-balance
 description: "Use FIRST whenever you sum stems/mics to a bus, or when an element sits wrong in a mix — 'mix these stems', 'balance the kit', 'set the levels', 'the hi-hat / cymbals / overheads are too loud', 'something's too loud/buried', 'gain-stage the mix', 'why is X dominating'. Sets stem VOLUMES by MEASURED loudness (LUFS) to deliberate per-role targets — the step to do BEFORE any EQ/tone. A balance problem is not an EQ problem. Stemmy MCP / local DSP."
+argument-hint: <stems dir or files> [intent, e.g. "kick/snare forward, OH under"]
 ---
 
 # mix-balance — mix stem volumes by measured loudness (before EQ)

@@ -1,6 +1,7 @@
 ---
 name: ssl-native-channel-strip-2
 description: "Use when running the SSL Native Channel Strip 2 for clean/precise console tone, glue, surgical EQ, or gating on a stem or bus — 'SSL Native Channel Strip 2', 'SSL channel strip on the drums/vocal/bus', 'that clean SSL console sound', 'SSL EQ + comp', 'gate the snare with the SSL', or when you want the XL 9000K 4-band EQ (E/G), the channel comp, and the gate/expander dialed without added color. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real 51-param Pedalboard surface + our isolation/comp-map/E-vs-G/preset renders in docs/vst/ssl-native-channel-strip-2.md. The CLEAN SSL counterpart to the warm Neve ([[kit-bb-n105]]/[[studer-a800]]) and forward API ([[api-vision-channel-strip]]/[[kit-bb-a5]]). Stemmy MCP, the `vst` extra. iLok/PACE (verified-headless on this rig)."
+argument-hint: <wav-or-bus> [role: drum-bus|kick|snare|overheads|vocal|bass|mix-bus]
 ---
 
 # ssl-native-channel-strip-2 — drive the SSL Native Channel Strip 2 (measured)
@@ -36,7 +37,7 @@ table, our own measured numbers — lives in
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst` in `../stemmy-loops-mcp`).
 - The **`SSL Native Channel Strip 2.vst3`** (VST3 — `[L] list-vst-plugins {name_contains:"channel strip"}`). Renders
   headless via Pedalboard, **iLok/PACE machine-authorized here** — iLok is a render-farm landmine, so **re-verify
-  load+render on any other machine** ([[vst-hosting-outside-daw]]); machine activation (not Cloud) is the reliable
+  load+render on any other machine** ([[vst]]); machine activation (not Cloud) is the reliable
   headless route. AU twin is macOS-only — use the VST3.
 - **Run patches through the [[vst-preset]] harness** — `presets/vst/apply_vst_preset.py <preset.json> <in> <out>`
   with the `vst` venv. `apply-vst-chain`'s `parameters` is float-only and silently misses every enum.
@@ -63,7 +64,7 @@ table, our own measured numbers — lives in
 5. **Prove it** — re-`measure-loudness`/`measure-spectrum`. Glue = crest steady/down at low GR; punch = **crest UP**;
    tone = centroid/tilt moved as intended. Loudness-match the A/B with **OUT TRIM** (or `[L] render-ab`).
 6. **QC** — `[G] detect-mix-issues` (genre/intent set) for over-comp pump / harsh top; cross-check any mono "dark"
-   claim against the stereo meters ([[gemini-mastering-feedback-cross-check]]). It's a **bus/stem insert, not a
+   claim against the stereo meters ([[gemini-audio-understanding]]). It's a **bus/stem insert, not a
    master** — hand off to [[master-track]] for loudness.
 
 ## Ready-made preset

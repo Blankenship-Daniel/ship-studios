@@ -1,6 +1,7 @@
 ---
 name: sampler-kit
 description: Use when the user wants a tuned, playable drum kit from a break — "make a sampler kit", "chop and tune these hits to the key", "build a tuned drum kit from this break", "tune the kick/toms so they don't clash with the bass". Chops a break into one-shots, tunes the PITCHED hits (kick/toms) to the song root, QCs, tags, and exports a multiformat one-shot kit. Distinct from [[sample-pack]] (sellable assembly) and [[slice-oneshots]] (no tuning). You designate which hits are pitched — there is no auto kick/snare classifier.
+argument-hint: <break.wav> [key/root]
 ---
 
 # Sampler-kit — chop, tune to key, tag, export a one-shot kit

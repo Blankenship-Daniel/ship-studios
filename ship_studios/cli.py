@@ -351,6 +351,54 @@ def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
     _run(_go())
 
 
+@main.command(name="stem-master")
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+              help="JSON object mapping a stem NAME (filename without extension) to "
+                   "its corrective moves (eq_bands / deess / suppress / "
+                   "dynamic_eq_bands / compress / multiband / shape_bands).")
+@click.option("--cross-check", is_flag=True, default=False,
+              help="Also run the loops detect-masking cross-check.")
+@click.option("--max-conflicts", type=int, default=8, show_default=True,
+              help="Max masking conflicts analyze-stem-masking reports.")
+def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
+                    cross_check: bool, max_conflicts: int) -> None:
+    """Per-stem corrective + masking verification (sum + master are separate).
+
+    Pass two or more stem files. Then sum the corrected stems with
+    `drum-prep stem-mix` and master the bus with `ship-studios master` — those
+    stages are local DSP / a separate pipeline, by design.
+    """
+    from pathlib import Path
+
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import stem_master
+
+    if len(stem_paths) < 2:
+        raise click.BadParameter(
+            "pass at least two stem files", param_hint="STEM_PATHS"
+        )
+    stems: dict[str, str] = {}
+    for p in stem_paths:
+        name = Path(p).stem
+        if name in stems:
+            raise click.BadParameter(
+                f"duplicate stem name {name!r} (rename so the names are unique)",
+                param_hint="STEM_PATHS",
+            )
+        stems[name] = p
+    corrections = _load_json_obj(corrections_json, "--corrections-json")
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await stem_master(
+                hub, stems, corrections=corrections,
+                cross_check=cross_check, max_conflicts=max_conflicts,
+            )
+
+    _run(_go())
+
+
 @main.command(name="mix-check")
 @click.argument("mix_path", type=click.Path())
 @click.option("--severity", "severity_threshold", default="any", show_default=True,

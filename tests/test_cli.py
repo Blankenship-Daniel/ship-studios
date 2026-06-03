@@ -44,6 +44,7 @@ def patched_pipelines(monkeypatch: pytest.MonkeyPatch):
         "reference_match",
         "house_curve",
         "batch_master",
+        "stem_master",
         "loops_to_deliverables",
         "understand_audio",
     ):
@@ -223,6 +224,30 @@ def test_batch_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
 def test_batch_master_requires_a_mix(runner: CliRunner, patched_pipelines) -> None:
     result = runner.invoke(cli.main, ["batch-master"])
     assert result.exit_code == 2
+
+
+def test_stem_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["stem-master", "kick.wav", "bass.wav", "--cross-check"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "stem_master"
+    # the dict is keyed by filename stem (no extension).
+    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert kwargs["cross_check"] is True
+
+
+def test_stem_master_requires_two_stems(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["stem-master", "only.wav"])
+    assert result.exit_code == 2
+
+
+def test_stem_master_rejects_duplicate_names(runner: CliRunner, patched_pipelines) -> None:
+    # Same basename in two dirs would collide in the name->path dict.
+    result = runner.invoke(cli.main, ["stem-master", "a/kick.wav", "b/kick.wav"])
+    assert result.exit_code == 2
+    assert "duplicate stem name" in result.output
 
 
 def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> None:
@@ -438,6 +463,7 @@ def test_main_group_has_all_subcommands() -> None:
         "mix-check",
         "reference-match",
         "house-curve",
+        "stem-master",
         "loops",
         "understand",
         "doctor",

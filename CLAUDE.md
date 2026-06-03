@@ -377,11 +377,12 @@ ship-studios batch-master    projects/<album>/mix/*.wav --platform spotify
 ship-studios mix-check       projects/<track>/mix/draft.wav
 ship-studios reference-match projects/<track>/mix/draft.wav --reference projects/<track>/refs/ref.wav
 ship-studios house-curve     projects/<track>/mix/draft.wav --reference refs/a.wav --reference refs/b.wav
+ship-studios stem-master     projects/<track>/stems/kick.wav projects/<track>/stems/bass.wav  # then drum-prep stem-mix + master
 ship-studios loops           projects/<track>/stems/drums.wav --bpm 120
 ship-studios understand      projects/<track>/refs/ref.wav
 ```
 
-The seven pipeline subcommands (`master`, `batch-master`, `mix-check`, `reference-match`, `house-curve`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
+The eight pipeline subcommands (`master`, `batch-master`, `mix-check`, `reference-match`, `house-curve`, `stem-master`, `loops`, `understand`) each map to the matching function in `ship_studios/pipelines.py`, talking to both servers through the hub in `ship_studios/mcp_client.py`. `doctor` is a self-contained setup check in `ship_studios/cli.py` (it only reads env vars + sibling-repo presence — no pipeline, no server launch). `stem-master` drives only the MCP-side per-stem corrective + masking-verify steps — summing the corrected stems (`drum-prep stem-mix`) and mastering the bus (`ship-studios master`) are separate local-DSP / pipeline stages, by design. Use the CLI for batch/CI runs; use the skills/slash commands for interactive work.
 
 ---
 

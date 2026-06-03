@@ -1,6 +1,6 @@
 # Gemini audio — caveats, limits & known gaps
 
-**Status:** reference (read before trusting any Gemini audio read) · **Date:** 2026-05-31 · **Last verified:** 2026-05-31 · **Scope:** all four audio areas.
+**Status:** reference (read before trusting any Gemini audio read) · **Date:** 2026-05-31 · **Last verified:** 2026-06-03 · **Scope:** all four audio areas.
 
 The capability docs say what Gemini *can* do. This one says where it **silently misleads** or
 where the public facts are thin. Most matter directly to mix/master critique. Items flagged
@@ -44,6 +44,14 @@ The repo default `gemini-3.1-pro-preview`, all TTS models, all Live models, and 
 models are **preview** — IDs, prices, limits, and availability can change without notice. Pin
 the model, and don't build an SLA on a preview model. (`gemini-2.5-flash`/`-pro` are GA.)
 
+### 6. ⚠️ Possible Gemini-3 audio/ASR regression
+A 2026-06-02 report flags that the **whole Gemini 3 series may have regressed on audio/ASR**
+versus the 2.5 line. Unconfirmed, but it means a model bump is **not** a safe drop-in: the
+repo default and `gemini-3.5-flash` could read *worse* on real material than `gemini-2.5-pro`.
+**Don't auto-upgrade the critique model.** The model-currency decision is **ear-gated** — A/B
+candidate models on your own audio (`scripts/gemini_model_ab.py`) before changing
+`STEMMY_MCP_MODEL`, and keep `gemini-2.5-pro` as the conservative audio fallback.
+
 ---
 
 ## Hard limits (verified)
@@ -71,10 +79,14 @@ From the research completeness pass — facts implementers hit that Google doesn
   are not clearly documented. Handle defensively.
 - **Structured-output validation failures.** Numeric bounds are advisory; the model can emit
   out-of-range or omit non-required fields — **clamp/validate server-side** (the repo does).
-- **Prompt caching for audio.** Caching exists; the per-page discount currently shows ~**50%**
-  on cached retrieval ([docs/pricing](https://ai.google.dev/gemini-api/docs/pricing)), while
-  the roadmap cites up to 90% implicit on 2.5+. Treat the exact figure as ⚠️ and re-check;
-  caching a long file once across a multi-tool run is still worthwhile.
+- **Prompt caching for audio.** Caching exists; as of 2026-06 **implicit and explicit caching
+  give the same ~75% discount** on cached input tokens (the older "~50% / up-to-90%" split is
+  stale — [docs/pricing](https://ai.google.dev/gemini-api/docs/pricing)). The explicit-cache
+  minimum is ~**4,096 tokens** on `gemini-3.x` (≈ 2:08 of audio at 32 tok/s) and ~**1,024–2,048**
+  on `gemini-2.5` — *not* the old ~32,768-token floor — so a typical 3–4 min mix (~5,760–7,680
+  audio tokens) **clears it**, and caching one file across a multi-tool run is worthwhile. Treat
+  exact figures as ⚠️ version-dependent and re-check. See
+  [models-and-pricing.md](models-and-pricing.md#context-caching).
 - **Mono-downmix algorithm** (simple L+R/2? envelope?) is unspecified — so "sounds thin" from
   Gemini could be a downmix artifact. Cross-check with a meter.
 - **TTS audio-tag taxonomy.** Many inline tags exist (`[whispers]`, `[excited]`, …) but there's
@@ -84,9 +96,11 @@ From the research completeness pass — facts implementers hit that Google doesn
   are version-specific and thinly documented — ⚠️ confirm in the live guide.
 - **Lyria RealTime** is experimental; control-latency and exact stream format (research cites
   PCM 48 kHz, ~2 s control latency) are not firmly pinned — ⚠️.
-- **Post-cutoff model IDs.** Treat any model name newer than `gemini-3.1` cautiously; verify
-  against the live [models](https://ai.google.dev/gemini-api/docs/models) page. This reference
-  deliberately centers on `gemini-3.1-pro-preview` (repo default) and the GA 2.5 line.
+- **Post-cutoff model IDs.** Verify any newer name against the live
+  [models](https://ai.google.dev/gemini-api/docs/models) page. `gemini-3.5-flash` is now GA
+  (2026-05-19, audio-capable). This reference centers on `gemini-3.1-pro-preview` (repo default)
+  and the GA 2.5 line, with `gemini-3.5-flash` as a GA flash alternative — but the whole Gemini 3
+  series carries an ⚠️ audio-regression caveat (see #6 below); pick by ear, not by version number.
 
 ---
 

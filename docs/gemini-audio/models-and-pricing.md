@@ -1,6 +1,6 @@
 # Gemini audio — models & pricing
 
-**Status:** reference · **Date:** 2026-05-31 · **Last verified:** 2026-05-31 against [docs/models](https://ai.google.dev/gemini-api/docs/models) and [docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) · **Scope:** which models do audio, context, and audio token prices.
+**Status:** reference · **Date:** 2026-05-31 · **Last verified:** 2026-06-03 against [docs/models](https://ai.google.dev/gemini-api/docs/models) and [docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) · **Scope:** which models do audio, context, and audio token prices.
 
 ⚠️ Prices and model IDs change often and several entries are **preview**. Every figure is from
 the May 2026 pricing/models pages; re-fetch before committing a budget. Prices are USD per 1M
@@ -31,6 +31,7 @@ All return **text** (not audio). Context window for the current Pro/Flash lines 
 | Model | Audio in | Status | Text in (≤200k) | Audio in | Output |
 |---|---|---|---|---|---|
 | `gemini-3.1-pro-preview` *(repo default)* | ✅ | ⚠️ preview | $2.00 (>200k: $4.00) | not separately listed → billed at the input-token rate | $12.00 (>200k: $18.00) |
+| `gemini-3.5-flash` | ✅ | GA (2026-05-19) | not separately listed | not separately listed → billed at the input-token rate | — |
 | `gemini-2.5-pro` | ✅ | GA | $1.25 (>200k: $2.50) | not separately listed | $10.00 (>200k: $15.00) |
 | `gemini-2.5-flash` | ✅ | GA | $0.30 | **$1.00** | $2.50 |
 | `gemini-2.5-flash-lite` | ✅ | GA | $0.10 | **$0.30** | $0.40 |
@@ -38,8 +39,10 @@ All return **text** (not audio). Context window for the current Pro/Flash lines 
 Notes:
 - Pro models don't break audio out as a separate line — audio input is billed at the model's
   standard input-token price (×32 tokens/sec).
-- ⚠️ The research pass surfaced a "gemini-3.5-flash" entry that could **not** be confirmed on
-  the live models page; it is intentionally omitted. Verify any sub-3.1 / post-3.1 names live.
+- `gemini-3.5-flash` is now **GA (announced 2026-05-19)**, audio-capable, with a 1M-token input
+  / 64K-token output window. (An earlier research pass couldn't confirm it on the live models
+  page; it has since shipped.) Re-fetch its exact per-token prices before committing a budget —
+  they weren't broken out as a separate audio line on the pricing page at last check.
 
 **Picking a model:** compound critique (tonal + dynamics + feel) → `gemini-3.1-pro-preview`
 (repo default) or `gemini-2.5-pro` (GA, best diarization); cheap/fast classification →
@@ -85,8 +88,12 @@ Billed differently (per-generation/clip, not always per audio-token). ([music-ge
 ## Context caching
 
 Caching a long audio file once and reusing it across a multi-tool run cuts repeat input cost.
-The pricing page currently lists ~**50%** off cached-content retrieval; the repo roadmap cites
-up to **90%** implicit on the 2.5+ generation (minimum ~32,768 tokens ≈ 17 min of audio).
+As of 2026-06, **implicit and explicit caching give the same ~75% discount** on cached input
+tokens (the older "~50% / up-to-90%" split is stale). The explicit-cache **minimum** is
+~**4,096 tokens** on `gemini-3.x` (≈ 2:08 of audio at 32 tok/s) and ~**1,024–2,048 tokens** on
+`gemini-2.5` — so the earlier "~32,768 tokens ≈ 17 min" floor no longer holds. A typical
+3–4 min mix is ~**5,760–7,680 audio tokens** (32 tok/s), which **clears** the 3.x minimum, so a
+multi-tool critique run over one mix is worth caching.
 ⚠️ Treat the exact discount as version-dependent — see [docs/pricing](https://ai.google.dev/gemini-api/docs/pricing)
 and [docs/caching](https://ai.google.dev/gemini-api/docs/caching).
 

@@ -331,6 +331,7 @@ uv sync   # no extras — all deps bundled
 | `GEMINI_API_KEY` | `[G]` Gemini perceptual tools + `[L] describe-loops` |
 | `STEMMY_LLM_MODEL` / `STEMMY_LLM_CAPTION_MODEL` | optional `[L]` model overrides |
 | `STEMMY_MCP_MODEL` | optional `[G]` Gemini model override (default `gemini-3.1-pro-preview`) |
+| `STEMMY_LISTEN_MODEL` | optional `[L] describe-loops` Gemini model override (default `gemini-3.1-pro-preview`). **Separate from `STEMMY_MCP_MODEL`** — the loops server's listen tool reads its own var, so to move *every* Gemini read off the default you must set this **alongside** `STEMMY_MCP_MODEL` (changing only `STEMMY_MCP_MODEL` leaves `describe-loops` on the old model — the footgun) |
 | `STEMMY_MCP_THINKING_LEVEL` / `STEMMY_MCP_THINKING_BUDGET` | optional `[G]` per-call thinking-tier override (else a per-tool default tier is used: high for verdict/critique tools, low for cheap tags) |
 | `STEMMY_MCP_ALLOWED_ROOTS` | optional `[G]` filesystem allow-list |
 

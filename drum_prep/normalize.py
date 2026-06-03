@@ -5,7 +5,8 @@ ARE the kit balance, so normalizing each file independently destroys it.
 ``mode="global"`` applies ONE gain (derived from the loudest peak across the
 whole set) to every stem and to both channels of the stereo files — relative
 balance and stereo image untouched. ``mode="per_file"`` is offered but warned
-against (it changes the kit balance). Source bit/format is preserved.
+against (it changes the kit balance). The source bit-depth/subtype is preserved;
+the output container follows the output extension (writes ``.wav`` names).
 
 Verified non-destructive: writes to ``<src>/normalized/`` (never edits inputs).
 """

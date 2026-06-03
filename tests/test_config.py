@@ -124,17 +124,46 @@ def test_documented_overrides_reach_the_server_env(
     monkeypatch.setenv("GEMINI_API_KEY", "g")
     monkeypatch.setenv("STEMMY_MCP_MODEL", "gemini-x")
     monkeypatch.setenv("STEMMY_MCP_THINKING_LEVEL", "high")
+    monkeypatch.setenv("STEMMY_MCP_THINKING_BUDGET", "4096")
     monkeypatch.setenv("STEMMY_MCP_ALLOWED_ROOTS", "/tmp")
     gemini_env = config.server_parameters(config.GEMINI_SERVER).env
     assert gemini_env["STEMMY_MCP_MODEL"] == "gemini-x"
     assert gemini_env["STEMMY_MCP_THINKING_LEVEL"] == "high"
+    assert gemini_env["STEMMY_MCP_THINKING_BUDGET"] == "4096"
     assert gemini_env["STEMMY_MCP_ALLOWED_ROOTS"] == "/tmp"
 
     monkeypatch.setenv("STEMMY_LLM_MODEL", "claude-x")
+    monkeypatch.setenv("STEMMY_LLM_CAPTION_MODEL", "claude-haiku-x")
+    # describe-loops reads its OWN Gemini model var on the loops server (distinct
+    # from the gemini server's STEMMY_MCP_MODEL) — the footgun if not forwarded.
+    monkeypatch.setenv("STEMMY_LISTEN_MODEL", "gemini-listen-x")
     loops_env = config.server_parameters(config.LOOPS_SERVER).env
     assert loops_env["STEMMY_LLM_MODEL"] == "claude-x"
-    # gemini-only overrides never leak into the loops server's env.
+    assert loops_env["STEMMY_LLM_CAPTION_MODEL"] == "claude-haiku-x"
+    assert loops_env["STEMMY_LISTEN_MODEL"] == "gemini-listen-x"
+    # gemini-only overrides never leak into the loops server's env, and the
+    # loops-only listen override never leaks into the gemini server's.
     assert "STEMMY_MCP_MODEL" not in loops_env
+    assert "STEMMY_MCP_THINKING_BUDGET" not in loops_env
+    assert "STEMMY_LISTEN_MODEL" not in gemini_env
+
+
+def test_override_env_sets_are_locked() -> None:
+    # Lock the full expected override surface so a future drop (or an accidental
+    # addition that isn't documented in CLAUDE.md) is caught here.
+    assert config.LOOPS_OVERRIDE_ENV == (
+        "STEMMY_LLM_MODEL",
+        "STEMMY_LLM_CAPTION_MODEL",
+        "STEMMY_LISTEN_MODEL",
+        "STEMMY_CACHE_DIR",
+        "STEMMY_NO_CACHE",
+    )
+    assert config.GEMINI_OVERRIDE_ENV == (
+        "STEMMY_MCP_MODEL",
+        "STEMMY_MCP_THINKING_LEVEL",
+        "STEMMY_MCP_THINKING_BUDGET",
+        "STEMMY_MCP_ALLOWED_ROOTS",
+    )
 
 
 def test_timeouts_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -145,7 +174,18 @@ def test_timeouts_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
     assert config.startup_timeout_s() == 5.0
     assert config.call_timeout_s() is None
     monkeypatch.setenv(config.STARTUP_TIMEOUT_ENV, "not-a-number")
-    assert config.startup_timeout_s() == 120.0  # bad value falls back to default
+    with pytest.warns(UserWarning):  # bad value warns, then falls back to default
+        assert config.startup_timeout_s() == 120.0
+
+
+def test_malformed_timeout_warns_but_keeps_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A typo'd timeout must surface a warning (not silently swallow) yet still
+    # fall back to the default rather than raising.
+    monkeypatch.setenv(config.CALL_TIMEOUT_ENV, "30s")
+    with pytest.warns(UserWarning, match=r"CALL_TIMEOUT.*30s.*default 600"):
+        assert config.call_timeout_s() == 600.0
 
 
 def test_all_server_parameters_keyed_by_server() -> None:

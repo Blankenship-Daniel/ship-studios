@@ -7,8 +7,9 @@ np = pytest.importorskip("numpy")
 sf = pytest.importorskip("soundfile")
 pyln = pytest.importorskip("pyloudnorm")
 
-from drum_prep.audition import render_auditions  # noqa: E402
-from drum_prep.kit import Kit  # noqa: E402
+from drum_prep.audition import _kit_sum, render_auditions  # noqa: E402
+from drum_prep.kit import Kit, KitStem  # noqa: E402
+from drum_prep.roles import Role  # noqa: E402
 
 SR = 48000
 
@@ -62,6 +63,41 @@ def test_audition_nonpositive_dur_raises(tmp_path) -> None:
     with pytest.raises(ValueError, match="must be > 0"):
         render_auditions(kit, refp, aligned_dir=aligned, matched_dir=matched,
                          out_dir=str(tmp_path / "auditions"), t0=0.0, dur=0)
+
+
+def test_kit_sum_drops_orphan_stems(tmp_path) -> None:
+    # A renamed/removed stem can leave an ORPHAN file in the aligned dir; summing
+    # the whole dir would double-count it. With a kit declaring its real stems,
+    # _kit_sum must intersect to the kit's files and ignore the orphan.
+    n = SR * 2
+    aligned = tmp_path / "phase-aligned"
+    aligned.mkdir()
+    snare = np.random.default_rng(0).standard_normal(n) * 0.3
+    oh = np.random.default_rng(1).standard_normal(n) * 0.3
+    sf.write(str(aligned / "snare.aif"), snare, SR, subtype="PCM_24", format="AIFF")
+    sf.write(str(aligned / "overheads - stereo.aif"), np.column_stack([oh, oh]), SR,
+             subtype="PCM_24", format="AIFF")
+    # the orphan (a stale rename) — present on disk but NOT in the kit
+    sf.write(str(aligned / "snare OLD.aif"), snare, SR, subtype="PCM_24", format="AIFF")
+
+    kit = Kit(src_dir=str(tmp_path), stems=[
+        KitStem(name="snare.aif", role=Role.SNARE_TOP),
+        KitStem(name="overheads - stereo.aif", role=Role.OVERHEAD),
+    ])
+    from drum_prep.audition import _kit_keep
+    summed, _ = _kit_sum(str(aligned), _kit_keep(kit))
+    # expected coherent sum from the READ-BACK files (the deterministic ground
+    # truth; avoids 24-bit round-trip drift): snare(centred) + OH, WITHOUT the
+    # orphan copy of snare.
+    sn = sf.read(str(aligned / "snare.aif"), always_2d=True, dtype="float64")[0]
+    ohr = sf.read(str(aligned / "overheads - stereo.aif"), always_2d=True, dtype="float64")[0]
+    expect = np.column_stack([sn[:, 0], sn[:, 0]]) + ohr
+    assert np.allclose(summed, expect, atol=1e-9)
+    # summing the whole dir (no keep) double-counts the orphan -> the snare's
+    # contribution is doubled, a clearly different sum.
+    all_summed, _ = _kit_sum(str(aligned), None)
+    assert not np.allclose(all_summed, expect, atol=1e-4)
+    assert np.allclose(all_summed, expect + np.column_stack([sn[:, 0], sn[:, 0]]), atol=1e-9)
 
 
 def test_audition_too_short_excerpt_raises(tmp_path) -> None:

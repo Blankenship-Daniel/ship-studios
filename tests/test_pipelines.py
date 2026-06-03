@@ -496,3 +496,253 @@ async def test_pipeline_propagates_tool_call_error() -> None:
 
     with pytest.raises(ToolCallError):
         await pipelines.master_track(_BoomHub(), "m.wav", "o.wav")
+
+
+# --- FIX 1: top_n forwards to find-loops but never re-caps the returned set -----
+
+
+async def test_loops_to_deliverables_does_not_recap_returned_loops() -> None:
+    # top_n is PER-bar-length on the server; find-loops can return more than top_n
+    # total across bar lengths. The pipeline must process every loop it returned,
+    # not silently slice down to top_n again (the C-unit bug).
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned=_find_loops_canned("out", "a.wav", "b.wav", "c.wav"))
+    result = await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0, top_n=2)
+    assert hub.args_for("find-loops")["top_n"] == 2  # still forwarded to the server
+    # all three returned loops are processed (not capped back to 2).
+    assert [d["loop"] for d in result["loops"]] == ["out/a.wav", "out/b.wav", "out/c.wav"]
+    assert hub.tool_sequence.count("render-mastered") == 3
+
+
+async def test_loops_to_deliverables_max_total_loops_caps_separately() -> None:
+    # The explicit, separate cap DOES slice the total set when set.
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned=_find_loops_canned("out", "a.wav", "b.wav", "c.wav"))
+    result = await pipelines.loops_to_deliverables(
+        hub, "drums.wav", 120.0, top_n=5, max_total_loops=2
+    )
+    assert hub.args_for("find-loops")["top_n"] == 5  # top_n is untouched
+    assert [d["loop"] for d in result["loops"]] == ["out/a.wav", "out/b.wav"]
+    assert hub.tool_sequence.count("render-mastered") == 2
+
+
+# --- FIX 2: master-track surfaces a derived streaming-compliance verdict --------
+
+
+def test_streaming_compliant_all_true() -> None:
+    res = {"platforms": [{"name": "spotify", "fully_compliant": True}]}
+    assert pipelines._streaming_compliant(res) is True
+
+
+def test_streaming_compliant_any_false() -> None:
+    res = {"platforms": [
+        {"name": "spotify", "fully_compliant": True},
+        {"name": "tidal", "fully_compliant": False},
+    ]}
+    assert pipelines._streaming_compliant(res) is False
+
+
+@pytest.mark.parametrize(
+    "res",
+    [
+        "some text result",                       # not a dict
+        {},                                       # no platforms key
+        {"platforms": []},                        # empty list
+        {"platforms": "nope"},                    # wrong type
+        {"platforms": [{"name": "x"}]},           # platform lacks the bool flag
+        {"platforms": [{"fully_compliant": "y"}]},  # flag not a bool
+    ],
+)
+def test_streaming_compliant_none_on_unexpected_shape(res) -> None:
+    # Defensive: never raise, return None when the verdict isn't discoverable.
+    assert pipelines._streaming_compliant(res) is None
+
+
+async def test_master_track_surfaces_streaming_compliant() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={
+        "check-streaming-targets": {"platforms": [
+            {"name": "spotify", "fully_compliant": True}
+        ]}
+    })
+    result = await pipelines.master_track(hub, "m.wav", "o.wav", target_platform="spotify")
+    assert result["streaming_compliant"] is True
+
+
+async def test_master_track_streaming_compliant_false_when_noncompliant() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={
+        "check-streaming-targets": {"platforms": [
+            {"name": "spotify", "fully_compliant": False}
+        ]}
+    })
+    result = await pipelines.master_track(hub, "m.wav", "o.wav", target_platform="spotify")
+    assert result["streaming_compliant"] is False
+
+
+async def test_master_track_streaming_compliant_none_on_text_result(recording_hub) -> None:
+    # The default RecordingHub returns {} (unrecognised) -> verdict is None, no raise.
+    result = await pipelines.master_track(recording_hub, "m.wav", "o.wav")
+    assert result["streaming_compliant"] is None
+
+
+# --- FIX 4: live tool-name contract test (spelling = hyphen vs underscore) ------
+
+#: Every distinct (server, tool) pair any pipeline can emit. Collected by driving
+#: the pipelines (all conditional branches included) against a RecordingHub so the
+#: set tracks the code instead of being hand-maintained — the one place that
+#: enforces the exact tool spelling against the LIVE servers.
+async def _all_emitted_server_tool_pairs() -> set[tuple[str, str]]:
+    from tests.conftest import RecordingHub
+
+    pairs: set[tuple[str, str]] = set()
+
+    def _collect(hub: RecordingHub) -> None:
+        pairs.update(hub.server_tool_sequence)
+
+    # master-track (a streaming-service target exercises check-streaming-targets'
+    # platforms branch).
+    h = RecordingHub()
+    await pipelines.master_track(h, "m.wav", "o.wav", target_platform="spotify")
+    _collect(h)
+
+    # mix-check with BOTH corrective branches (apply-eq + compress-loop).
+    h = RecordingHub()
+    await pipelines.mix_check(
+        h, "m.wav", eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+        compress=True,
+    )
+    _collect(h)
+
+    # reference-match WITH the apply-eq branch.
+    h = RecordingHub()
+    await pipelines.reference_match(
+        h, "m.wav", "r.wav",
+        eq_bands=[{"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}],
+    )
+    _collect(h)
+
+    # loops-to-deliverables with describe (covers find-loops..describe-loops).
+    h = RecordingHub(canned=_find_loops_canned("out", "a.wav"))
+    await pipelines.loops_to_deliverables(h, "d.wav", 120.0, out_dir="out", describe=True)
+    _collect(h)
+
+    # understand-audio with EVERY analysis enabled (every gemini understanding tool).
+    h = RecordingHub()
+    await pipelines.understand_audio(
+        h, "a.wav", transcribe=True, region=(0.0, 1.0, "?"),
+        event_description="kick", labels=["x"], compare_paths=["b.wav"],
+        json_schema={"type": "object"},
+    )
+    _collect(h)
+
+    return pairs
+
+
+def _live_contract_reason() -> str | None:
+    """Why the live contract test should skip, or None if it can run.
+
+    Opt-in by default: launching two real ``uv run`` subprocesses is slow and
+    needs synced sibling repos, so we only do it when SHIP_STUDIOS_LIVE_CONTRACT
+    is truthy. Even then we bail cleanly if the SDK or a sibling repo is absent.
+    """
+    import os
+
+    if not os.environ.get("SHIP_STUDIOS_LIVE_CONTRACT"):
+        return "set SHIP_STUDIOS_LIVE_CONTRACT=1 to launch the real servers"
+    try:
+        import mcp  # noqa: F401
+    except ImportError:
+        return "mcp SDK not installed in this venv"
+    from ship_studios import config
+
+    for label, directory in (
+        ("stemmy-loops", config.loops_dir()),
+        ("stemmy-gemini", config.gemini_dir()),
+    ):
+        if not (directory / "pyproject.toml").is_file():
+            return f"{label} sibling not synced at {directory}"
+    return None
+
+
+async def test_live_tool_names_exist_on_servers() -> None:
+    """Open the REAL hub; assert every tool a pipeline emits exists live.
+
+    This is the ONLY test that enforces the hyphen-vs-underscore tool-name
+    contract against the actual servers; everything else runs against a fake.
+    Fully guarded — it SKIPS (never fails) when launching the real servers isn't
+    feasible, with a reason. Also checks the shadow allow-lists are subsets of the
+    live vocabularies wherever those are discoverable from the tool surface.
+    """
+    reason = _live_contract_reason()
+    if reason is not None:
+        pytest.skip(f"live contract test skipped — {reason}")
+
+    from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER
+    from ship_studios.mcp_client import open_hub
+
+    emitted = await _all_emitted_server_tool_pairs()
+
+    async with open_hub() as hub:
+        live: dict[str, set[str]] = {}
+        for key in (LOOPS_SERVER, GEMINI_SERVER):
+            tools = await hub.list_tools(key)
+            live[key] = {t.name for t in tools}
+
+    # 1) Every (server, tool) a pipeline emits must exist on that server, spelled
+    #    exactly. A hyphen/underscore typo fails right here.
+    missing = sorted(
+        f"{server}:{tool}" for server, tool in emitted if tool not in live[server]
+    )
+    assert not missing, f"pipeline tools absent from the live servers: {missing}"
+
+    # 2) Shadow allow-lists vs the live vocabulary, where discoverable. The export
+    #    presets / feedback moods / severities / streaming services live in each
+    #    tool's input *schema* (an enum), which isn't exposed uniformly across SDK
+    #    versions — so probe defensively and only assert when we actually find the
+    #    enum. (A missing enum degrades to "couldn't verify", not a failure.)
+    schemas = {}
+    async with open_hub() as hub:
+        for key in (LOOPS_SERVER, GEMINI_SERVER):
+            schemas[key] = {
+                t.name: getattr(t, "inputSchema", None) for t in await hub.list_tools(key)
+            }
+
+    def _enum_for(server: str, tool: str, field: str) -> set[str] | None:
+        schema = schemas.get(server, {}).get(tool)
+        if not isinstance(schema, dict):
+            return None
+        props = schema.get("properties")
+        if not isinstance(props, dict):
+            return None
+        spec = props.get(field)
+        if not isinstance(spec, dict):
+            return None
+        # A scalar enum sits at properties.<field>.enum; an array param (e.g.
+        # check-streaming-targets.platforms) carries it under items.enum.
+        enum = spec.get("enum")
+        if enum is None and isinstance(spec.get("items"), dict):
+            enum = spec["items"].get("enum")
+        return set(enum) if isinstance(enum, list) and all(
+            isinstance(v, str) for v in enum
+        ) else None
+
+    checks = [
+        ("export presets", _enum_for(LOOPS_SERVER, "export-deliverables", "presets"),
+         set(pipelines.DEFAULT_PRESETS)),
+        ("feedback moods", _enum_for(GEMINI_SERVER, "mastering-feedback", "target_platform"),
+         pipelines._FEEDBACK_MOODS),
+        ("severities", _enum_for(GEMINI_SERVER, "detect-mix-issues", "severity_threshold"),
+         set(pipelines.SEVERITY_CHOICES)),
+        ("streaming services", _enum_for(GEMINI_SERVER, "check-streaming-targets", "platforms"),
+         set(pipelines._STREAMING_SERVICES.values())),
+    ]
+    for label, live_vocab, ours in checks:
+        if live_vocab is None:
+            continue  # enum not discoverable from this server's schema; skip silently
+        extra = ours - live_vocab
+        assert not extra, f"{label}: {sorted(extra)} not in live vocabulary {sorted(live_vocab)}"

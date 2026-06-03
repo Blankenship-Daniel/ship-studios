@@ -8,7 +8,8 @@ sf = pytest.importorskip("soundfile")
 pytest.importorskip("pyloudnorm")
 
 from drum_prep.kit import resolve_kit  # noqa: E402
-from drum_prep.mix import mix_kit  # noqa: E402
+from drum_prep.mix import _balance_channels, mix_kit  # noqa: E402
+from drum_prep.roles import Role  # noqa: E402
 
 SR = 48000
 CEIL = 10 ** (-1.0 / 20.0)
@@ -99,6 +100,36 @@ def test_lr_pair_overhead_refused_with_guidance(tmp_path) -> None:
     kit = resolve_kit(str(tmp_path), strict=False)
     with pytest.raises(ValueError, match="overhead"):
         mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+
+
+def test_balance_channels_evens_a_real_stereo_pair() -> None:
+    # _balance_channels equalizes the L/R RMS of a GENUINELY asymmetric stereo pair
+    # (it's only meant for a 2-channel room) — the operation the mono-room guard
+    # must keep AWAY from a single mono mic.
+    rng = np.random.default_rng(2)
+    x = np.column_stack([rng.standard_normal(SR), rng.standard_normal(SR) * 0.25])  # R quiet
+    y = _balance_channels(x)
+    rms = np.sqrt(np.mean(y ** 2, axis=0))
+    assert abs(rms[0] - rms[1]) < 1e-9            # channels brought to equal RMS
+
+
+def test_mono_room_passes_through_unchanged(tmp_path) -> None:
+    # A MONO room mic must NOT be channel-balanced (to_stereo duplicates it to two
+    # identical channels; _balance_channels is for a real spaced pair). The mono
+    # room must reach the bus as a centred, identical-L/R contribution.
+    rng = np.random.default_rng(8)
+    n = SR * 4
+    _w(tmp_path / "overhead.wav",
+       np.column_stack([rng.standard_normal(n), rng.standard_normal(n)]).astype(np.float32) * 0.3)
+    _w(tmp_path / "kick in.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "room.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))  # MONO room
+    kit = resolve_kit(str(tmp_path), strict=False)
+    assert any(s.role == Role.ROOM for s in kit.stems)            # detected as room
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), dur=0)
+    room = next(r for r in res["balance"] if r["role"] == "room")
+    assert room["place"].startswith("stereo")                    # placed as a stereo return
+    y, _ = sf.read(res["out"], always_2d=True)
+    assert y.shape[1] == 2 and np.max(np.abs(y)) <= CEIL + 1e-3   # mix is well-formed
 
 
 def test_merged_overhead_drops_redundant_raw_sides(tmp_path) -> None:

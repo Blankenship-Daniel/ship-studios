@@ -65,6 +65,44 @@ def test_zero_phase_eq_preserves_lag() -> None:
     assert abs(d1 - d0) < 0.5
 
 
+def test_zero_phase_eq_sloped_curve_preserves_lag() -> None:
+    # A FLAT gain can't catch a phase-corrupting curve — a non-symmetric (complex)
+    # filter would shift the lag MORE where it boosts than where it cuts. Use a
+    # sloped/notched curve (+6 dB lows, a -6 dB mid notch, -6 dB highs) and assert
+    # the recovered lag survives unchanged: the only way that holds is a real,
+    # zero-phase magnitude curve.
+    n = SR
+    a = np.random.default_rng(11).standard_normal(n)
+    b = dsp.fractional_delay(a, 9.0)
+    d0, _ = dsp.estimate(b, a, 100)
+    centers = dsp.THIRD_OCT
+    g = np.where(centers < 200, 6.0, np.where(centers > 4000, -6.0, 0.0))
+    g[np.argmin(np.abs(centers - 1000))] = -6.0      # add a 1 kHz notch
+    ae = dsp.zero_phase_eq(a, SR, centers, g)[:, 0]
+    be = dsp.zero_phase_eq(b, SR, centers, g)[:, 0]
+    d1, _ = dsp.estimate(be, ae, 100)
+    assert abs(d1 - d0) < 0.5
+
+
+def test_estimate_declines_when_window_outside_search_range() -> None:
+    # halfwidth window wholly outside [-max_lag, max_lag] used to return a bogus
+    # lag (idx 0 == -max_lag) with a misleading peak. The guard must decline with
+    # a clean zero lag / zero peak instead.
+    x = np.random.default_rng(0).standard_normal(SR)
+    y = dsp.fractional_delay(x, 5.0)
+    d, peak = dsp.estimate(y, x, 100, center=10_000, halfwidth=10)   # center >> max_lag
+    assert d == 0.0 and peak == 0.0
+
+
+def test_pick_excerpt_nonpositive_seconds_falls_back() -> None:
+    # seconds<=0 -> win<=0; csum[:-0] is empty (argmax crash) / negative win is a
+    # bogus reversed slice. The guard returns the whole signal instead.
+    ref = np.random.default_rng(0).standard_normal(SR)
+    for sec in (0.0, -1.0):
+        sl = dsp.pick_excerpt(ref, SR, sec)
+        assert sl == slice(0, len(ref))
+
+
 def _measured_tilt(y: np.ndarray) -> float:
     f, p = dsp.psd(y, SR)
     return dsp.tilt(dsp.band_db(f, p, dsp.THIRD_OCT), dsp.THIRD_OCT)

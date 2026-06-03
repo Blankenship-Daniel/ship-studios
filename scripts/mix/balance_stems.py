@@ -23,12 +23,17 @@ spec = {
 Run with the stemmy-loops `mixing` venv (has pyloudnorm + soundfile). Balance levels FIRST, then reach
 for EQ/compression/tone — a balance problem (e.g. too much hi-hat = overhead too loud) is not an EQ problem.
 """
-import sys, json, math, os
-import numpy as np, soundfile as sf
-import pyloudnorm as pyln
+import os, sys
+import soundfile as sf
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import balance_to_bus    # noqa: E402  (pure-DSP core: measured-LUFS balance + sum)
 
 
 def main():
+    import json
+
+    import pyloudnorm as pyln
     arg = sys.argv[1]
     spec = json.load(open(arg)) if os.path.exists(arg) else json.loads(arg)
     out = spec["out"]
@@ -46,34 +51,33 @@ def main():
         if dur:
             a = a[: int(dur * sr)]
         loaded.append((s, a))
-    n = min(len(a) for _, a in loaded)
+    lengths = [len(a) for _, a in loaded]
+    n = min(lengths)
+    if max(lengths) != n:                              # FIX 2: don't silently truncate the bus
+        print(f"warning: stems differ in length ({min(lengths)}..{max(lengths)} samples); "
+              f"summing only the shortest {n/sr0:.1f}s — all stems truncated to it", file=sys.stderr)
 
     meter = pyln.Meter(sr0)
-    bus = np.zeros((n, 2), np.float32)
-    print(f"{'stem':30}{'meas LUFS':>11}{'target':>9}{'gain dB':>9}{'pan':>6}")
-    for s, a in loaded:
-        a = a[:n]
-        meas = meter.integrated_loudness(a)            # 1-D mono or (n,ch) both accepted
-        gain = 10 ** ((s["target_lufs"] - meas) / 20.0)
-        pan = float(s.get("pan", 0.0))
-        if a.ndim == 1:                                # mono -> equal-power pan into stereo
-            th = (pan + 1) * 0.25 * math.pi
-            st = np.stack([a * math.cos(th), a * math.sin(th)], 1)
-        else:
-            st = a if a.shape[1] == 2 else np.repeat(a, 2, 1)
-        bus[: len(st)] += st * gain
-        print(f"  {os.path.basename(s['file'])[:28]:28}{meas:>11.1f}{s['target_lufs']:>9.1f}"
-              f"{20*math.log10(max(gain,1e-9)):>+9.1f}{pan:>6.2f}")
+    stems = [(a, float(s["target_lufs"]), float(s.get("pan", 0.0))) for s, a in loaded]
+    bus, rows = balance_to_bus(meter, stems, headroom_db=headroom)
 
-    peak = float(np.max(np.abs(bus)))
-    if peak > 0:
-        bus *= (10 ** (headroom / 20.0)) / peak
+    print(f"{'stem':30}{'meas LUFS':>11}{'target':>9}{'gain dB':>9}{'pan':>6}")
+    for (s, _a), r in zip(loaded, rows):
+        if r["skipped"]:                              # FIX 2: bad-LUFS stem dropped, warn explicitly
+            print(f"  {os.path.basename(s['file'])[:28]:28}{r['meas']:>11.1f}{r['target']:>9.1f}"
+                  f"{'SKIP':>9}{r['pan']:>6.2f}  (non-finite LUFS — skipped, would NaN the bus)")
+            continue
+        print(f"  {os.path.basename(s['file'])[:28]:28}{r['meas']:>11.1f}{r['target']:>9.1f}"
+              f"{r['gain_db']:>+9.1f}{r['pan']:>6.2f}")
+
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     sf.write(out, bus, sr0, subtype="PCM_24")
 
     final = meter.integrated_loudness(bus)
+    kept = sum(1 for r in rows if not r["skipped"])
     print(f"\nbalanced bus -> {out}")
-    print(f"  {len(loaded)} stems · {n/sr0:.0f}s · bus LUFS {final:.1f} · peak {headroom:+.0f} dBFS (headroom kept for tone)")
+    print(f"  {kept}/{len(loaded)} stems · {n/sr0:.0f}s · bus LUFS {final:.1f} · "
+          f"peak {headroom:+.0f} dBFS (headroom kept for tone)")
 
 
 if __name__ == "__main__":

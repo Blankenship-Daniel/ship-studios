@@ -11,20 +11,12 @@ Only the stages present in the plan run. Mono inputs stay mono. Measures before/
 Run with the stemmy-loops vst venv (pedalboard + the tools). duration_s>0 processes only the
 first N seconds (for a fast audition); 0 = full length.
 """
-import sys, json, tempfile, os
+import json, os, sys, tempfile
+
 import numpy as np, soundfile as sf
-from pedalboard import load_plugin, Pedalboard
-from stemmy.loops_mcp.tools.clean_loop import clean_loop
-from stemmy.loops_mcp.tools.apply_eq import apply_eq
-from stemmy.loops_mcp.tools.suppress_resonances import suppress_resonances
-from stemmy.loops_mcp.tools.apply_dynamic_eq import apply_dynamic_eq
-from stemmy.loops_mcp.tools.shape_bands import shape_bands
-from stemmy.loops_mcp.tools.excite_loop import excite_loop
-from stemmy.loops_mcp.tools.measure_loudness import measure_loudness
-from stemmy.loops_mcp.tools.measure_spectrum import measure_spectrum
-from stemmy.loops_mcp.tools.apply_eq import EqBand
-from stemmy.loops_mcp._dsp.multiband import BandShape
-from stemmy.loops_mcp.tools.apply_dynamic_eq import DynEqBand
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import peak_normalize    # noqa: E402  (pure-DSP core: the always-normalize invariant)
 
 API = "/Library/Audio/Plug-Ins/VST3/uaudio_api_vision_channel_strip.vst3"
 LF = [30,40,50,100,200,300,400]; LMF=[75,150,180,240,500,700,1000]
@@ -32,42 +24,56 @@ HMF=[800,1500,3000,5000,8000,10000,12500]; HF=[2500,5000,7000,10000,12500,15000,
 GAINS=[-12,-9,-6,-4,-2,0,2,4,6,9,12]
 def snap(v, grid): return min(grid, key=lambda g: abs(g-v))
 
-def _tmp(): return tempfile.mktemp(suffix=".wav")
+def _tmp(tmpdir):
+    """A fresh temp wav path inside `tmpdir` (a TemporaryDirectory) — auto-cleaned, never leaked.
 
-def dsp_chain(src, plan):
-    """Run the file->file corrective tools; return path to the corrected wav."""
+    Replaces the old insecure/leaking tempfile.mktemp(): mkstemp creates+returns a real fd we close
+    immediately (the tools reopen the path), and the whole dir is removed on context exit (FIX 1).
+    """
+    fd, path = tempfile.mkstemp(suffix=".wav", dir=tmpdir); os.close(fd); return path
+
+def dsp_chain(src, plan, tmpdir):
+    """Run the file->file corrective tools; return path to the corrected wav (temps under tmpdir)."""
+    from stemmy.loops_mcp._dsp.multiband import BandShape
+    from stemmy.loops_mcp.tools.apply_dynamic_eq import DynEqBand, apply_dynamic_eq
+    from stemmy.loops_mcp.tools.apply_eq import EqBand, apply_eq
+    from stemmy.loops_mcp.tools.clean_loop import clean_loop
+    from stemmy.loops_mcp.tools.excite_loop import excite_loop
+    from stemmy.loops_mcp.tools.shape_bands import shape_bands
+    from stemmy.loops_mcp.tools.suppress_resonances import suppress_resonances
     cur = src
     c = plan.get("clean")
     if c:
-        o=_tmp(); clean_loop(cur, o, hpf_hz=float(c.get("hpf_hz",30)), declick=False,
+        o=_tmp(tmpdir); clean_loop(cur, o, hpf_hz=float(c.get("hpf_hz",30)), declick=False,
             denoise=bool(c.get("denoise",False)), denoise_db=float(c.get("denoise_db",12))); cur=o
     eb = plan.get("eq_bands") or []
     if eb:
         bands=[EqBand(type=b["type"], freq_hz=float(b["freq_hz"]), gain_db=float(b["gain_db"]), q=float(b.get("q",1.0))) for b in eb]
-        o=_tmp(); apply_eq(cur, o, bands=bands, phase="zero"); cur=o
+        o=_tmp(tmpdir); apply_eq(cur, o, bands=bands, phase="zero"); cur=o
     dh = plan.get("de_harsh")
     if dh:
         fb=None
         if dh.get("focus_lo_hz") and dh.get("focus_hi_hz"): fb=(float(dh["focus_lo_hz"]),float(dh["focus_hi_hz"]))
-        o=_tmp(); suppress_resonances(cur, o, depth=float(dh.get("depth",0.5)),
+        o=_tmp(tmpdir); suppress_resonances(cur, o, depth=float(dh.get("depth",0.5)),
             max_reduction_db=float(dh.get("max_reduction_db",6.0)), focus_band=fb); cur=o
     de = plan.get("dynamic_eq")
     if de:
         bands=[DynEqBand(freq_hz=float(b["freq_hz"]), q=float(b.get("q",1.0)),
             threshold_dbfs=float(b.get("threshold_dbfs",-24)), ratio=float(b.get("ratio",4)),
             range_db=float(b.get("range_db",6)), mode=b.get("mode","cut")) for b in de]
-        o=_tmp(); apply_dynamic_eq(cur, o, bands=bands); cur=o
+        o=_tmp(tmpdir); apply_dynamic_eq(cur, o, bands=bands); cur=o
     tr = plan.get("transient")
     if tr and tr.get("bands"):
         bands=[BandShape(transient=float(b["transient"]), gain_db=float(b.get("gain_db",0))) for b in tr["bands"]]
-        o=_tmp(); shape_bands(cur, o, crossovers_hz=[float(x) for x in tr["crossovers_hz"]], bands=bands); cur=o
+        o=_tmp(tmpdir); shape_bands(cur, o, crossovers_hz=[float(x) for x in tr["crossovers_hz"]], bands=bands); cur=o
     ex = plan.get("excite")
     if ex:
-        o=_tmp(); excite_loop(cur, o, band=ex.get("band","air"), drive_db=float(ex.get("drive_db",10)),
+        o=_tmp(tmpdir); excite_loop(cur, o, band=ex.get("band","air"), drive_db=float(ex.get("drive_db",10)),
             mix=float(ex.get("mix",0.25))); cur=o
     return cur
 
 def color(src, plan, out, mono):
+    from pedalboard import Pedalboard, load_plugin
     ca = plan.get("color_api") or {}
     p = load_plugin(API); fails=[]
     params = {"input_select":"Line", "line_gain": float(ca.get("line_gain_db",0.0)),
@@ -95,14 +101,16 @@ def color(src, plan, out, mono):
     if x.shape[0]==1: x=np.repeat(x,2,0)
     for k,v in params.items():
         try: setattr(p,k,v)
-        except Exception as e: fails.append(f"{k}={v!r}")
+        except Exception:  fails.append(f"{k}={v!r}")
     y=Pedalboard([p])(x,sr)
-    pk=float(np.max(np.abs(y))); y=y*((10**(float(ca.get('output_peak_dbfs',-1.0))/20))/pk) if pk>0 else y
+    y=peak_normalize(y, float(ca.get('output_peak_dbfs',-1.0)))   # the always-normalize invariant
     if mono: y=y[:1]   # collapse dual-mono back to mono
     sf.write(out, y.T, sr, subtype="PCM_24")
     return params, fails
 
 def m(path):
+    from stemmy.loops_mcp.tools.measure_loudness import measure_loudness
+    from stemmy.loops_mcp.tools.measure_spectrum import measure_spectrum
     L=measure_loudness(path).model_dump(); S=measure_spectrum(path).model_dump()
     return dict(lufs=L["integrated_lufs"], peak=L["sample_peak_dbfs"], crest=L["crest_factor_db"],
                cen=S["spectral_centroid_hz"], tilt=S["spectral_tilt_db_per_octave"])
@@ -112,21 +120,22 @@ def main():
     dur=float(sys.argv[4]) if len(sys.argv)>4 else 0.0
     os.makedirs(out_dir, exist_ok=True)
     print(f"{'stem':<16}{'LUFS b>a':>14}{'crest b>a':>13}{'centroid b>a':>16}{'tilt b>a':>14}  notes")
-    for plan in plans:
-        name=os.path.basename(plan["stem"]); src=os.path.join(src_dir,name)
-        if not os.path.exists(src): src=plan["stem"]
-        info=sf.info(src); mono=(info.channels==1)
-        work=src
-        if dur>0:
-            a,sr=sf.read(src,dtype="float32",always_2d=True); work=_tmp(); sf.write(work,a[:int(dur*sr)],sr,subtype="PCM_24")
-        before=m(work)
-        corrected=dsp_chain(work, plan)
-        out=os.path.join(out_dir,name)
-        params,fails=color(corrected, plan, out, mono)
-        after=m(out)
-        note = ("" if not fails else "FAIL:"+",".join(fails))
-        print(f"{name:<16}{before['lufs']:>6.1f}>{after['lufs']:<6.1f}{before['crest']:>6.1f}>{after['crest']:<5.1f}"
-              f"{before['cen']:>7.0f}>{after['cen']:<7.0f}{before['tilt']:>6.2f}>{after['tilt']:<6.2f}  {note}")
+    with tempfile.TemporaryDirectory(prefix="process_stems_") as tmpdir:   # FIX 1: auto-clean every intermediate
+        for plan in plans:
+            name=os.path.basename(plan["stem"]); src=os.path.join(src_dir,name)
+            if not os.path.exists(src): src=plan["stem"]
+            info=sf.info(src); mono=(info.channels==1)
+            work=src
+            if dur>0:
+                a,sr=sf.read(src,dtype="float32",always_2d=True); work=_tmp(tmpdir); sf.write(work,a[:int(dur*sr)],sr,subtype="PCM_24")
+            before=m(work)
+            corrected=dsp_chain(work, plan, tmpdir)
+            out=os.path.join(out_dir,name)
+            params,fails=color(corrected, plan, out, mono)
+            after=m(out)
+            note = ("" if not fails else "FAIL:"+",".join(fails))
+            print(f"{name:<16}{before['lufs']:>6.1f}>{after['lufs']:<6.1f}{before['crest']:>6.1f}>{after['crest']:<5.1f}"
+                  f"{before['cen']:>7.0f}>{after['cen']:<7.0f}{before['tilt']:>6.2f}>{after['tilt']:<6.2f}  {note}")
     print(f"\nwrote processed stems -> {out_dir}")
 
 if __name__=="__main__":

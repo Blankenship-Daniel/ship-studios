@@ -366,7 +366,10 @@ def loops(
 
 @main.command()
 @click.argument("path", type=click.Path())
-@click.option("--transcribe/--no-transcribe", default=True, show_default=True)
+@click.option("--transcribe/--no-transcribe", default=True, show_default=True,
+              help="Transcribe speech (the default). Auto-skips when you request a "
+                   "more specific analysis (region/event/labels/compare/json) without "
+                   "explicitly asking to transcribe — pass --transcribe to force it.")
 @click.option("--diarize", is_flag=True, default=False)
 @click.option("--region", nargs=3, type=(float, float, str), default=None,
               help="START_S END_S PROMPT — Q&A a time window.")
@@ -407,6 +410,21 @@ def understand(
     compares = list(compare_paths) or None
     compare_schema = _load_json_obj(compare_schema_path, "--compare-schema")
     json_schema = _load_json_obj(json_schema_path, "--json-schema")
+
+    # Don't fire a paid transcribe-audio call by default when the user asked for a
+    # more specific analysis (region/event/labels/compare/json) but never
+    # explicitly opted into transcription. An explicit --transcribe/--no-transcribe
+    # always wins; --transcribe alone (no other request) still transcribes.
+    ctx = click.get_current_context()
+    transcribe_explicit = (
+        ctx.get_parameter_source("transcribe") != click.core.ParameterSource.DEFAULT
+    )
+    wants_specific = any(
+        x is not None for x in (region, event_description, label_list, compares,
+                                json_schema)
+    )
+    if transcribe and not transcribe_explicit and wants_specific:
+        transcribe = False
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:

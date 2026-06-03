@@ -70,6 +70,30 @@ def _streaming_service(target_platform: str) -> str | None:
     return _STREAMING_SERVICES.get(target_platform.lower())
 
 
+def _streaming_compliant(result: Any) -> bool | None:
+    """Best-effort overall pass/fail from a ``check-streaming-targets`` result.
+
+    The real tool returns ``{"platforms": [{"fully_compliant": bool, ...}, ...]}``.
+    Returns ``True`` only when *every* reported platform is fully compliant,
+    ``False`` when any is not, and ``None`` when the shape is unrecognised (a
+    dict without a usable platform list, or plain text) — so a caller can see
+    the verdict without auto-re-rendering. Never raises on an unexpected shape.
+    """
+    if not isinstance(result, dict):
+        return None
+    platforms = result.get("platforms")
+    if not isinstance(platforms, list) or not platforms:
+        return None
+    flags = [
+        p["fully_compliant"]
+        for p in platforms
+        if isinstance(p, dict) and isinstance(p.get("fully_compliant"), bool)
+    ]
+    if not flags:
+        return None
+    return all(flags)
+
+
 class SupportsCallTool(Protocol):
     """Structural type for whatever the pipelines drive (real Hub or fake)."""
 
@@ -153,7 +177,8 @@ async def master_track(
         # Limit the compliance report to the actual release service; without a
         # service (a critique-mood target like "club") check every default.
         streaming_args["platforms"] = [service]
-    await rec.run(GEMINI_SERVER, "check-streaming-targets", streaming_args)
+    streaming = await rec.run(GEMINI_SERVER, "check-streaming-targets", streaming_args)
+    compliant = _streaming_compliant(streaming)
 
     export_args: dict[str, Any] = {
         "path": out_path,
@@ -163,7 +188,12 @@ async def master_track(
     }
     await rec.run(LOOPS_SERVER, "export-deliverables", export_args)
 
-    return {"pipeline": "master-track", "input": mix_path, "steps": rec.steps}
+    return {
+        "pipeline": "master-track",
+        "input": mix_path,
+        "streaming_compliant": compliant,  # True/False/None — see _streaming_compliant
+        "steps": rec.steps,
+    }
 
 
 #: Valid ``detect-mix-issues`` severity floors (the server's Literal). "minor"
@@ -300,6 +330,7 @@ async def loops_to_deliverables(
     deliverables_dir: str | None = None,
     bars: list[int] | None = None,
     top_n: int | None = None,
+    max_total_loops: int | None = None,
     separate: bool = False,
     target_lufs: float = -10.0,
     ceiling_dbtp: float = -1.0,
@@ -311,12 +342,18 @@ async def loops_to_deliverables(
 ) -> dict[str, Any]:
     """Pipeline 4 — extract loops, then clean/seam/master/tag/export EACH loop.
 
-    Order (verified tools): find-loops (loops) -> for every loop in the manifest
-    (capped at top_n): clean-loop -> optimize-seam -> render-mastered ->
-    tag-deliverable -> export-deliverables. Optional describe-loops
-    (gemini-backed via the loops server) annotates the whole set once at the end.
-    If the manifest can't be parsed (e.g. a shape change) or is empty, the chain
-    falls back to running once on ``input_path``.
+    Order (verified tools): find-loops (loops) -> for EVERY loop find-loops
+    returned: clean-loop -> optimize-seam -> render-mastered -> tag-deliverable
+    -> export-deliverables. Optional describe-loops (gemini-backed via the loops
+    server) annotates the whole set once at the end. If the manifest can't be
+    parsed (e.g. a shape change) or is empty, the chain falls back to running
+    once on ``input_path``.
+
+    ``top_n`` is forwarded to find-loops, where the server applies it PER bar
+    length (so a 3-bar-length request can return up to 3*top_n diverse loops);
+    the pipeline then processes exactly that set. ``max_total_loops`` is a
+    SEPARATE optional cap on the *total* number of loops the per-loop chain
+    runs over — only sliced when set, so the two never share a meaning.
     """
     rec = _Recorder(hub)
 
@@ -329,9 +366,12 @@ async def loops_to_deliverables(
         find_args["out_dir"] = out_dir
     manifest = await rec.run(LOOPS_SERVER, "find-loops", find_args)
 
+    # find-loops already applied top_n (per bar length); don't re-cap by it here
+    # — that would silently discard the diverse loops selected across other bar
+    # lengths. Slice only by the explicit, separate max_total_loops when set.
     loop_paths = _loop_paths(manifest)
-    if top_n is not None:
-        loop_paths = loop_paths[:top_n]
+    if max_total_loops is not None:
+        loop_paths = loop_paths[:max_total_loops]
     if not loop_paths:
         loop_paths = [input_path]
     manifest_out = manifest.get("out_dir") if isinstance(manifest, dict) else None

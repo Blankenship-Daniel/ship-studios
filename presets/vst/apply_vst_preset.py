@@ -10,12 +10,24 @@ adds the gain-stage + narrowing that live outside the plugins.
 
 UADx note: plugin `file`s are the **uaudio_*.vst3** build (the UADx native build that renders headless);
 the `UAD ….component`/`.vst3` twins pass audio through unprocessed offline — do not use those.
+
+Output gain rule (recipe "output_peak_dbfs"):
+    * a real NUMBER (e.g. -1.0)  -> renormalize the plugin output so its sample peak == that dBFS
+      (the historical default; every shipped preset sets one, so they behave exactly as before).
+    * JSON ``null``              -> FAITHFUL: write the plugin output UNCHANGED (no gain touched).
+      Use this for a true-peak limiter or any plugin that already OWNS its ceiling — renormalizing by
+      *sample* peak would re-scale the limiter and push the true-peak back over the ceiling, and would
+      even AMPLIFY a quiet render up to the target. Faithful never touches gain.
+    * absent                     -> the historical default (-1.0). Pass ``null`` to opt into faithful.
+
+pedalboard is imported lazily inside ``main()`` so ``set_param`` stays importable (and unit-testable)
+with only numpy/soundfile present — handy for the harness tests, which don't load any plugin.
 """
 import sys, json
 import numpy as np, soundfile as sf
-from pedalboard import load_plugin, Pedalboard
 
 PLUGIN_DIR = "/Library/Audio/Plug-Ins/VST3/"
+_FAITHFUL = object()  # sentinel: recipe omitted output_peak_dbfs's null vs the -1.0 default
 
 
 def set_param(p, name, value):
@@ -35,12 +47,22 @@ def set_param(p, name, value):
             return f"{name}={value!r}: {str(ex)[:100]}"
 
         def num(x):
+            # Parse a numeric target out of a value/valid-value. Plain numbers parse directly;
+            # labeled ratio enums (' 4.0:1', '10.0:1', 'Inf:1') keep only the LEADING token before
+            # the ':' so the nearest-valid snap can pick a ratio (a near-miss ratio used to fall to
+            # default because float('4.0:1') raised). '∞' -> inf.
+            s = str(x).replace("∞", "inf").strip()
+            if ":" in s:
+                s = s.split(":", 1)[0].strip()
             try:
-                return float(str(x).replace("∞", "inf"))
+                return float(s)
             except Exception:
                 return None
         tn = num(value)
-        cand = [(abs(num(v) - tn), v) for v in vv if num(v) is not None]
+
+        def dist(nv):  # 0 for an exact match (incl. inf==inf, where abs(inf-inf) would be nan)
+            return 0.0 if nv == tn else abs(nv - tn)
+        cand = [(dist(num(v)), v) for v in vv if num(v) is not None]
         if tn is not None and cand:
             best = min(cand, key=lambda t: t[0])[1]
             setattr(p, name, best)
@@ -48,8 +70,27 @@ def set_param(p, name, value):
         return f"{name}={value!r}: {str(ex)[:100]}"
 
 
+def output_gain(peak, target_dbfs):
+    """Pure: the linear gain to apply to a buffer whose current sample peak is ``peak``.
+
+    ``target_dbfs`` is the recipe's ``output_peak_dbfs`` — a real number to renormalize to that
+    sample-peak dBFS, or ``None`` (JSON null) / the ``_FAITHFUL`` sentinel to leave gain untouched
+    (returns 1.0). Also returns 1.0 for a silent buffer (peak <= 0). Extracted so the faithful-vs-
+    renormalize decision is testable with no plugin/pedalboard."""
+    if target_dbfs is None or target_dbfs is _FAITHFUL or peak <= 0:
+        return 1.0
+    return (10 ** (target_dbfs / 20.0)) / peak
+
+
 def main():
-    preset = json.load(open(sys.argv[1]))
+    if len(sys.argv) < 4:
+        print(__doc__)
+        print("usage: python apply_vst_preset.py <preset.json> <in.wav> <out.wav>", file=sys.stderr)
+        return 2
+    from pedalboard import load_plugin, Pedalboard  # lazy: keeps set_param importable w/o pedalboard
+
+    with open(sys.argv[1]) as fh:
+        preset = json.load(fh)
     inp, outp = sys.argv[2], sys.argv[3]
     R = preset.get("recipe", preset)
 
@@ -76,14 +117,16 @@ def main():
         side = (y[0] - y[1]) * 0.5 * w
         y = np.stack([mid + side, mid - side], 0)
 
+    # absent -> -1.0 (historical default); explicit JSON null -> faithful (gain untouched).
+    target = R.get("output_peak_dbfs", -1.0)
     peak = float(np.max(np.abs(y)))
-    if peak > 0:
-        y *= (10 ** (R.get("output_peak_dbfs", -1.0) / 20.0)) / peak
+    y *= output_gain(peak, target)
 
     sf.write(outp, y.T, sr, subtype="PCM_24")
+    peak_note = "faithful (as-is)" if target is None else f"{target} dBFS"
     print(f"applied '{preset.get('name','preset')}' -> {outp}  "
           f"({R.get('input_gain_db',0):+g} dB in · {len(plugins)} plugins · width {w} · "
-          f"peak {R.get('output_peak_dbfs',-1)} dBFS)")
+          f"peak {peak_note})")
 
 if __name__ == "__main__":
     raise SystemExit(main())

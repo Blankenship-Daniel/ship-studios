@@ -1,11 +1,13 @@
-"""Flow -1 — consolidate L/R spaced pairs into stereo files (format-preserving).
+"""Flow -1 — consolidate L/R spaced pairs into stereo files (subtype-preserving).
 
 Generalizes :mod:`drum_prep.overheads` (which only did the overhead role and
 wrote 24-bit AIFF) to *any* ``<name> - left`` / ``<name> - right`` pair —
 overhead, room, a stereo snare-plate return, etc. The merge is a straight
 L->left / R->right interleave (no time-alignment) so a spaced pair keeps its
 natural inter-channel image; pass ``align=True`` only for a coincident pair you
-want phase-locked. Source bit/format is preserved (Float32 stays Float32).
+want phase-locked. The source bit-depth/subtype is preserved (Float32 stays
+Float32); the output container follows the output extension (the merged file is
+written under ``<stem><ext>`` where ``ext`` is the left file's extension).
 
 The value here is the **review** baked into every merge: inter-channel
 correlation, best-lag delay, polarity, mono-sum loss, and a reverb-vs-mic flag —
@@ -123,7 +125,8 @@ def review_pair(left: np.ndarray, right: np.ndarray, sr: int) -> dict:
 
 def merge_pair(left_path: str, right_path: str, out_path: str,
                align: bool = False, max_lag: int = 600) -> dict:
-    """Interleave L/R -> stereo at the source format; returns the review + verify."""
+    """Interleave L/R -> stereo at the source subtype (container = out extension);
+    returns the review + verify."""
     L, srL = io.read(left_path, mono_sum=True)
     R, srR = io.read(right_path, mono_sum=True)
     if srL != srR:

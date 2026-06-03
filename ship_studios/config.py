@@ -21,6 +21,7 @@ parameters — stays side-effect free and works before the servers exist.
 from __future__ import annotations
 
 import os
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -72,10 +73,19 @@ GEMINI_OVERRIDE_ENV: tuple[str, ...] = (
     "STEMMY_MCP_THINKING_BUDGET",
     "STEMMY_MCP_ALLOWED_ROOTS",
 )
-#: Loops-server overrides ([L]): LLM model choices for its LLM-backed tools.
+#: Loops-server overrides ([L]): LLM model choices for its LLM-backed tools,
+#: plus the *separate* Gemini model var its describe-loops tool reads
+#: (``STEMMY_LISTEN_MODEL`` — distinct from the gemini server's
+#: ``STEMMY_MCP_MODEL``; the loops server reads its own, so it must be forwarded
+#: here or describe-loops stays on the default — the footgun in CLAUDE.md), plus
+#: the disk-cache controls its separate/embed/classify tools read
+#: (``STEMMY_CACHE_DIR``/``STEMMY_NO_CACHE`` — ``stemmy/_diskcache.py``).
 LOOPS_OVERRIDE_ENV: tuple[str, ...] = (
     "STEMMY_LLM_MODEL",
     "STEMMY_LLM_CAPTION_MODEL",
+    "STEMMY_LISTEN_MODEL",
+    "STEMMY_CACHE_DIR",
+    "STEMMY_NO_CACHE",
 )
 
 #: Which env vars each server actually consumes (secrets + documented overrides).
@@ -107,6 +117,12 @@ def _timeout(env: str, default: float) -> float | None:
     try:
         val = float(raw)
     except ValueError:
+        # A typo'd timeout would otherwise silently fall back — make it visible
+        # (still return the default; never raise on a bad env value).
+        warnings.warn(
+            f"{env}={raw!r} is not a number; using default {default}s",
+            stacklevel=2,
+        )
         return default
     return None if val <= 0 else val
 

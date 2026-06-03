@@ -100,6 +100,12 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     mag = np.abs(cc)
     if halfwidth is not None:
         win = (lags < center - halfwidth) | (lags > center + halfwidth)
+        # Degenerate: the center +/- halfwidth window lies wholly outside the
+        # searched [-max_lag, max_lag] range, so every bin would be masked and
+        # argmax would return a bogus lag (idx 0 == -max_lag) with a misleading
+        # peak. Decline cleanly with a zero lag and zero peak instead.
+        if win.all():
+            return 0.0, 0.0
         mag = mag.copy()
         mag[win] = -1.0
     idx = int(np.argmax(mag))
@@ -138,6 +144,11 @@ def align_to(target_seg: np.ndarray, ref_seg: np.ndarray, max_lag: int, sr: int,
 def pick_excerpt(ref_m: np.ndarray, sr: int, seconds: float = 40.0) -> slice:
     """Slice of the loudest ``seconds``-long window of ``ref_m`` (by energy)."""
     win = int(seconds * sr)
+    # A non-positive window makes ``csum[:-win]`` (win==0 -> csum[:0]) empty and
+    # crashes argmax, or (win<0) builds a bogus reversed slice — fall back to the
+    # whole signal, consistent with the win>=len early return below.
+    if win <= 0:
+        return slice(0, len(ref_m))
     if win >= len(ref_m):
         return slice(0, len(ref_m))
     csum = np.concatenate([[0.0], np.cumsum(ref_m ** 2)])

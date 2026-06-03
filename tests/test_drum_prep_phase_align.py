@@ -79,6 +79,35 @@ def test_phase_align_shorter_close_mic(tmp_path) -> None:
     assert abs(by["snare top.aif"]["delay_samples"] - 50) < 4
 
 
+def test_phase_align_stem_shorter_than_excerpt_start_skips(tmp_path) -> None:
+    # The excerpt slice is derived from the (full) overheads; a close mic shorter
+    # than sl.start gives sig[sl] an EMPTY array -> a bare np.fft.rfft([]) raises
+    # 'Invalid number of FFT data points (0)'. Shape the OH so the loudest window
+    # starts LATE (quiet first half, loud second half), then truncate a close mic
+    # to before that start: the flow must SKIP it cleanly with a warning, not crash.
+    n = SR * 4
+    rng = np.random.default_rng(0)
+    base = rng.standard_normal(n) * 0.2
+    loud = base.copy()
+    loud[: n // 2] *= 0.02                       # quiet first half -> loudest window is late
+    _w(tmp_path / "overheads - stereo.aif", np.column_stack([loud, loud]))
+    _w(tmp_path / "snare top.aif", dsp.fractional_delay(base, -50))   # full length, aligns
+    _w(tmp_path / "hi-hat.aif", base[: n // 4])  # shorter than the late excerpt start
+
+    kit = resolve_kit(str(tmp_path))
+    res = phase_align(kit, max_lag=300, excerpt_s=1.0)   # 1 s window lands in the loud half
+    by = {r["name"]: r for r in res["results"]}
+    # the short mic is skipped (delay kept 0) with a clear note + warning, no crash
+    assert by["hi-hat.aif"]["delay_samples"] == 0.0
+    assert "too short" in by["hi-hat.aif"]["note"]
+    assert any("hi-hat.aif" in w and "skipped" in w for w in res["warnings"])
+    # the full-length mic still aligns normally
+    assert abs(by["snare top.aif"]["delay_samples"] - 50) < 4
+    # the skipped stem is still written through (timing kept), readable
+    out, _ = sf.read(str(tmp_path / "phase-aligned" / "hi-hat.aif"))
+    assert len(out) == n // 4
+
+
 def test_phase_align_lr_overhead_pair(tmp_path) -> None:
     n = SR * 3
     base = np.random.default_rng(0).standard_normal(n) * 0.2

@@ -10,6 +10,9 @@ to any file and reproduced later.
 |---|---|---|
 | [`vintage-1960s.json`](vintage-1960s.json) | drum bus / mix | warm, dark, tube-glued, tape-saturated, period-mono 1960s drums (UADx Pultec → Fairchild 670 → Ampex ATR-102) |
 | [`tight-70s.json`](tight-70s.json) | drum bus | punchy, dry, present, tape-glued 1970s drums (UADx Neve 1073 → dbx 160 → Studer A800 @15 IPS, driven for peak-control) |
+| [`tight-70s-api.json`](tight-70s-api.json) | drum bus | tight/dry/punchy 1970s drums from the UAD API Vision Channel Strip alone (215 HPF → 225 comp → 550 low+de-box, flat top) — see [[api-vision-channel-strip]] |
+| [`blackbird-a5-drums.json`](blackbird-a5-drums.json) | drum bus | forward/punchy "American console" drums from KIT **BB A5** alone (Mic-mode drive → 55L weight/de-box/air → HPF 40); the KIT/Blackbird-API counterpart to `tight-70s-api`. iLok/PACE — verified-headless here. See [[kit-bb-a5]] |
+| [`bb-n105-warm-drum-bus.json`](bb-n105-warm-drum-bus.json) | drum bus | **warm + tight** Neve drums from KIT **BB N105 V2** alone (Mic-mode transformer drive → 31105 EQ: HPF 47, LF +2 @56, de-box −2 @470, HF off); warmth from the transformer not EQ air (crest 23.6→24.5, low ratio .54→.59). The warm/Neve counterpart to `blackbird-a5-drums`. iLok/PACE — verified-headless here. See [[kit-bb-n105]] |
 
 ## Apply
 

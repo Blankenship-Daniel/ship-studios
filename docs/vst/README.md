@@ -47,15 +47,16 @@ Pick from these first; fall back to the raw list. Names are exact (feed to `list
 
 | Task | Confirmed-safe candidates | Skill |
 |---|---|---|
-| **Channel strip / console** | `British Channel`, `bx_console SSL 4000 E`, `bx_console AMEK 200`, `SSL Native Channel Strip 2`, `UAD API Vision Channel Strip`, `UAD Neve 1073` | `[[vst-channel-strip]]` |
-| **EQ (vintage / surgical)** | `FabFilter Pro-Q 4`, `Maag EQ4`, `UAD Pultec EQP-1A`, `UAD Pultec MEQ-5`, `UAD Neve 1073`, `EQP-1A` | `[[vst-eq]]` |
-| **Compressor / dynamics** | `Black 76`, `Comp FET-76`, `FabFilter Pro-C 2`, `SSL Native Bus Compressor 2`, `UAD Tube-Tech CL 1B`, `UAD API 2500` | `[[vst-compress]]` |
+| **Channel strip / console** | `British Channel`, `bx_console SSL 4000 E`, `bx_console AMEK 200`, `SSL Native Channel Strip 2`, `UAD API Vision Channel Strip`, `UAD Neve 1073`, `KIT BB A5` (Blackbird API Legacy strip — punchy), `KIT BB N105 V2` (Blackbird Neve 8078/31105 — warm) — both KIT render headless & iLok-authorized here, re-verify elsewhere | `[[vst-channel-strip]]` (UAD API: [[api-vision-channel-strip]]; KIT/Blackbird API: [[kit-bb-a5]]; KIT/Blackbird Neve: [[kit-bb-n105]]) |
+| **EQ (vintage / surgical)** | `FabFilter Pro-Q 4`, `Maag EQ4`, `UAD Pultec EQP-1A`, `UAD Pultec MEQ-5`, `UAD Neve 1073`, `KIT BB N105 V2` (4-band Neve 31105), `EQP-1A` | `[[vst-eq]]` |
+| **Compressor / dynamics** | `Black 76`, `Comp FET-76`, `FabFilter Pro-C 2`, `SSL Native Bus Compressor 2` (SSL G-series VCA bus glue → measured deep-dive [[ssl-bus-compressor-2]]; renders headless, iLok-authorized here — re-verify elsewhere), `UAD Tube-Tech CL 1B`, `UAD API 2500` | `[[vst-compress]]` |
 | **Tape / saturation / color** | `Tape Machine 80`, `Tape Machine 440`, `FabFilter Saturn 2`, `Airwindows Consolidated` | `[[vst-saturate]]` |
 | **Reverb** | `ValhallaPlate`, `FabFilter Pro-R 2`, `SSL Native FlexVerb` | `[[vst-reverb]]` |
 | **Delay / echo** | `Delay BRIGADE`, `UAD EP-34 Tape Echo`, `FabFilter Timeless 3` | `[[vst-delay]]` |
 | **De-esser** | `FabFilter Pro-DS`, `SSL DeEss`, `Lindell 902 De-esser`, `De Esser` | `[[vst-de-ess]]` |
 | **Limiter (master)** | `FabFilter Pro-L 2`, `Brickwall Limiter`, `TR5 Brickwall Limiter` | `[[vst-master]]` |
 | **Amp / pedal (guitar/bass)** | `TONEX`, `NeuralAmpModeler`, `UAD Softube Bass Amp Room`, `UAD Softube Metal Amp Room` | `[[vst-amp]]` |
+| **Transient shaping** | `Transient Shaper` (Softube — 2-band attack/sustain; renders headless, iLok-authorized here — re-verify elsewhere) | `[[softube-transient-shaper]]` (or native [[drum-punch]], no plugin) |
 
 > Avoid (blocked here): `AIR Studios Reverb`, anything `Slate …`, `Eiosis …`, the clean `Ozone 11 …`
 > VST3 entries (use FabFilter/SSL for mastering instead), and the `UAD ….component` build — load the
@@ -67,7 +68,7 @@ Saved, reusable chains live in [`presets/vst/`](../../presets/vst/README.md) —
 (gain-stage → chain → narrow → trim) + byte-exact `.state` blobs, re-applicable to any file via
 `presets/vst/apply_vst_preset.py`. Available: **`vintage-1960s`** (UADx Pultec → Fairchild 670 →
 Ampex tape → period-mono; warm/dark/glued 1960s drums) and **`tight-70s`** (UADx Neve 1073 → dbx 160
-→ Studer A800 @15 IPS; punchy/dry/present 1970s drums). Presets use the `uaudio_*.vst3` UADx build.
+→ Studer A800 @15 IPS; punchy/dry/present 1970s drums). Presets use the `uaudio_*.vst3` UADx build. Plus a **`softube-ts-*`** set on the Softube `Transient Shaper.vst3` (tighten-low · kick-click · snare-crack · overhead-shimmer · tame-cymbals · bus-glue — each measure-validated; see [[softube-transient-shaper]]), and **`blackbird-a5-drums`** on `KIT BB A5.vst3` (Mic-mode console drive + 55L EQ; forward/punchy "American console" drum bus — the KIT/Blackbird API counterpart to `tight-70s-api`; see [[kit-bb-a5]]), and **`bb-n105-warm-drum-bus`** on `KIT BB N105 V2.vst3` (Mic-mode Neve transformer drive + 31105 EQ weight/de-box; **warm + tight** drum bus, warmth via the transformer not EQ air; see [[kit-bb-n105]]), and a **`ssl-bc2-*`** set on `SSL Native Bus Compressor 2.vst3` (drum-glue · mix-glue · parallel-smash — VCA bus "glue"; ratio/release/SC-HPF are string enums so they MUST go through the harness, not `apply-vst-chain`; see [[ssl-bus-compressor-2]]).
 
 ## Refresh
 

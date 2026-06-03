@@ -1,0 +1,37 @@
+{
+  "name": "bb-n105-warm-drum-bus",
+  "description": "Warm, tight Neve drum-bus tone from the KIT BB N105 V2 (Blackbird Neve channel). Warmth comes from the MIC-mode transformer drive (pre_amp_mode='Mic' + saturation, sensitivity -42 = gentle transformer color, trims sub + adds upper-harmonic sheen) — NOT from an EQ air boost (the user's preference: warm via the transformer, not bright EQ). EQ only tightens: 47 Hz HPF + 56 Hz low shelf +2 for weight + 470 Hz -2 to de-box. HF EQ left OFF so the only top lift is the transformer's own harmonics. Output -13 dB compensates the Mic drive (Auto-gain is GUI-only, unavailable headless). For a brighter/airier 'Neve air' variant, add high_frequency='15 kHz', high_mode='Shelf', high_gain=2.0 (measured +845 Hz centroid, +3 dB shelf above 5 kHz). Built & verified 2026-06-03 on the watercolors drum bus.",
+  "intended_for": "a stereo drum bus, roughly -18 LUFS balanced. The Mic-drive saturation is level-dependent — on a hotter/quieter bus, re-tune pre_amp_sensitivity (toward -70 = more gain/drive) and output_gain to compensate.",
+  "plugin_build": "KIT BB N105 V2.vst3 — KIT Plugins, iLok/machine-authorized on this Mac; RENDERS headless via Pedalboard (verified, not just loads). Distinct from KIT BB N73 (=Neve 1073).",
+  "target_signature": {
+    "comment": "measured dry->processed on projects/watercolors/mix/bus_warm_pre_dry.wav (full bus, stemmy measure-loudness/spectrum). Dry: crest 23.6, centroid 3128, tilt -2.26, low 0.542, low_mid 0.378, high 0.0115. Sanity-check a re-apply.",
+    "lufs_i": -21.3, "true_peak_dbtp": -0.96, "crest_db": 24.5, "centroid_hz": 3539,
+    "tilt_db_per_oct": -1.90, "band_ratio_low": 0.588, "band_ratio_low_mid": 0.327, "band_ratio_high": 0.0155
+  },
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 1.0,
+    "chain": [
+      {"file": "KIT BB N105 V2.vst3", "params": {
+        "eq": "EQ On",
+        "pre_amp_mode": "Mic",
+        "pre_amp_saturation": true,
+        "pre_amp_sensitivity": -42.0,
+        "hpf_frequency": "47 Hz",
+        "low_frequency": "56 Hz", "low_mode": "Shelf", "low_gain": 2.0,
+        "lo_mid_frequency": "470 Hz", "lo_mid_gain": -2.0,
+        "high_frequency": "OFF", "high_gain": 0.0,
+        "output_gain": -13.0,
+        "analog": false
+      }}
+    ]
+  },
+  "notes": [
+    "ALL params are enum-valued in Pedalboard. Numeric gains (low_gain/high_gain/output_gain/pre_amp_sensitivity) accept a float (coerced to the nearest 0.1 step). But frequencies ('56 Hz','15 kHz'), modes ('Shelf'/'Peak'/'Mic'/'Line'), Hi-Q, phase, eq, saturation are STRING/bool enums — apply-vst-chain's float-only dict cannot set them, so use this preset harness.",
+    "The Neve preamp COLOR is MIC-MODE ONLY. In Line mode, pre_amp_sensitivity and pre_amp_saturation are inert (measured byte-identical). Mic mode adds real gain (sens -70 = max, ~+16 dB over -15) and a gentle transformer saturation that grows with drive.",
+    "There is NO host Auto-gain param (the GUI 'Auto-gain' button is not exposed). Driving Mic sensitivity raises level a lot — compensate with output_gain (measured exactly linear) and/or the harness peak-trim.",
+    "HF EQ band tops out at 15 kHz (steps OFF/15/10/6.8/4.7/3.3 kHz). 12 kHz exists only on the LPF, not the HF EQ.",
+    "analog (hum) is negligible offline and left off here. Apply: ../stemmy-loops-mcp/.venv/bin/python presets/vst/apply_vst_preset.py presets/vst/bb-n105-warm-drum-bus.json <in.wav> <out.wav>"
+  ]
+}

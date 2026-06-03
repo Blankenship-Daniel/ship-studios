@@ -351,6 +351,52 @@ async def test_stem_master_requires_two_stems(recording_hub) -> None:
         await pipelines.stem_master(recording_hub, {"only": "only.wav"})
 
 
+async def test_unmask_stems_sequence(recording_hub) -> None:
+    await pipelines.unmask_stems(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}
+    )
+    # masking-only: NO per-stem measure baseline (that's stem-master's step 1).
+    assert recording_hub.server_tool_sequence == [
+        (GEMINI_SERVER, "analyze-stem-masking"),
+        (GEMINI_SERVER, "analyze-stem-masking"),
+    ]
+
+
+async def test_unmask_stems_has_no_measure_baseline(recording_hub) -> None:
+    await pipelines.unmask_stems(recording_hub, {"kick": "kick.wav", "bass": "bass.wav"})
+    assert "measure-loudness" not in recording_hub.tool_sequence
+    assert "measure-spectrum" not in recording_hub.tool_sequence
+
+
+async def test_unmask_stems_cuts_losing_stem_and_rescores() -> None:
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.unmask_stems(
+        hub,
+        {"kick": "kick.wav", "bass": "bass.wav"},
+        corrections={"bass": {
+            "eq_bands": [{"type": "bell", "freq_hz": 60.0, "gain_db": -3.0, "q": 1.0}],
+        }},
+    )
+    assert hub.args_for("apply-eq")["path"] == "bass.wav"
+    assert result["corrected"] == {"kick": "kick.wav", "bass": "bass.eq.wav"}
+    rescore = [c.args for c in hub.calls if c.tool == "analyze-stem-masking"][-1]
+    assert rescore["stems"] == {"kick": "kick.wav", "bass": "bass.eq.wav"}
+
+
+async def test_unmask_stems_cross_check_runs_detect_masking(recording_hub) -> None:
+    await pipelines.unmask_stems(
+        recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}, cross_check=True
+    )
+    assert recording_hub.args_for("detect-masking")["paths"] == ["kick.wav", "bass.wav"]
+
+
+async def test_unmask_stems_requires_two_stems(recording_hub) -> None:
+    with pytest.raises(ValueError):
+        await pipelines.unmask_stems(recording_hub, {"only": "only.wav"})
+
+
 async def test_mix_check_default_severity_is_server_valid(recording_hub) -> None:
     # Bare mix-check must send a floor the real detect-mix-issues accepts.
     await pipelines.mix_check(recording_hub, "mix.wav")

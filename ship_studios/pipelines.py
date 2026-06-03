@@ -685,6 +685,58 @@ async def stem_master(
     }
 
 
+async def unmask_stems(
+    hub: SupportsCallTool,
+    stems: dict[str, str],
+    *,
+    corrections: dict[str, dict[str, Any]] | None = None,
+    cross_check: bool = False,
+    max_conflicts: int = 8,
+) -> dict[str, Any]:
+    """Pipeline — the masking-only subset of stem-master.
+
+    analyze-stem-masking (the map) [+ optional detect-masking cross-check] ->
+    complementary EQ cuts on the LOSING stem of each collision (apply-eq /
+    apply-dynamic-eq via ``corrections``) -> re-run analyze-stem-masking to prove
+    the overlap shrank. No per-stem measure baseline, no tone/dynamics shaping,
+    no summing, no mastering — the focused ([[unmask-stems]]) subset of
+    [[stem-master]]. ``stems`` is a NAME->path dict; ``corrections`` maps a stem
+    NAME to its cuts (typically ``eq_bands`` / ``dynamic_eq_bands`` — cut the
+    loser, don't boost the winner). Returns the ``corrected`` paths.
+    """
+    if len(stems) < 2:
+        raise ValueError("unmask_stems needs at least two stems")
+    rec = _Recorder(hub)
+    corrections = corrections or {}
+
+    await rec.run(
+        GEMINI_SERVER,
+        "analyze-stem-masking",
+        {"stems": dict(stems), "max_conflicts": max_conflicts},
+    )
+    if cross_check:
+        await rec.run(LOOPS_SERVER, "detect-masking", {"paths": list(stems.values())})
+
+    corrected: dict[str, str] = dict(stems)
+    for name, path in stems.items():
+        spec = corrections.get(name)
+        if spec:
+            corrected[name] = await _apply_stem_corrections(rec, path, spec)
+
+    await rec.run(
+        GEMINI_SERVER,
+        "analyze-stem-masking",
+        {"stems": corrected, "max_conflicts": max_conflicts},
+    )
+
+    return {
+        "pipeline": "unmask-stems",
+        "stems": dict(stems),
+        "corrected": corrected,
+        "steps": rec.steps,
+    }
+
+
 async def loops_to_deliverables(
     hub: SupportsCallTool,
     input_path: str,

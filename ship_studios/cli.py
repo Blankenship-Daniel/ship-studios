@@ -351,6 +351,52 @@ def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
     _run(_go())
 
 
+@main.command(name="unmask-stems")
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+              help="JSON object mapping a stem NAME (filename without extension) to "
+                   "its complementary EQ cuts (eq_bands / dynamic_eq_bands).")
+@click.option("--cross-check", is_flag=True, default=False,
+              help="Also run the loops detect-masking cross-check.")
+@click.option("--max-conflicts", type=int, default=8, show_default=True,
+              help="Max masking conflicts analyze-stem-masking reports.")
+def unmask_stems_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
+                     cross_check: bool, max_conflicts: int) -> None:
+    """Score cross-stem masking, cut the losing stems, and re-score to prove it.
+
+    The masking-only subset of stem-master — no tone/dynamics shaping, no sum,
+    no master. Pass two or more stem files.
+    """
+    from pathlib import Path
+
+    from ship_studios.mcp_client import open_hub
+    from ship_studios.pipelines import unmask_stems
+
+    if len(stem_paths) < 2:
+        raise click.BadParameter(
+            "pass at least two stem files", param_hint="STEM_PATHS"
+        )
+    stems: dict[str, str] = {}
+    for p in stem_paths:
+        name = Path(p).stem
+        if name in stems:
+            raise click.BadParameter(
+                f"duplicate stem name {name!r} (rename so the names are unique)",
+                param_hint="STEM_PATHS",
+            )
+        stems[name] = p
+    corrections = _load_json_obj(corrections_json, "--corrections-json")
+
+    async def _go() -> dict[str, Any]:
+        async with open_hub() as hub:
+            return await unmask_stems(
+                hub, stems, corrections=corrections,
+                cross_check=cross_check, max_conflicts=max_conflicts,
+            )
+
+    _run(_go())
+
+
 @main.command(name="stem-master")
 @click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
 @click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,

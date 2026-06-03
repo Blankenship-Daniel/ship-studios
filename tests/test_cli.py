@@ -45,6 +45,7 @@ def patched_pipelines(monkeypatch: pytest.MonkeyPatch):
         "house_curve",
         "batch_master",
         "stem_master",
+        "unmask_stems",
         "loops_to_deliverables",
         "understand_audio",
     ):
@@ -248,6 +249,22 @@ def test_stem_master_rejects_duplicate_names(runner: CliRunner, patched_pipeline
     result = runner.invoke(cli.main, ["stem-master", "a/kick.wav", "b/kick.wav"])
     assert result.exit_code == 2
     assert "duplicate stem name" in result.output
+
+
+def test_unmask_stems_dispatch(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(
+        cli.main, ["unmask-stems", "kick.wav", "bass.wav", "--cross-check"]
+    )
+    assert result.exit_code == 0, result.output
+    name, args, kwargs = patched_pipelines[0]
+    assert name == "unmask_stems"
+    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert kwargs["cross_check"] is True
+
+
+def test_unmask_stems_requires_two_stems(runner: CliRunner, patched_pipelines) -> None:
+    result = runner.invoke(cli.main, ["unmask-stems", "only.wav"])
+    assert result.exit_code == 2
 
 
 def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> None:
@@ -464,6 +481,7 @@ def test_main_group_has_all_subcommands() -> None:
         "reference-match",
         "house-curve",
         "stem-master",
+        "unmask-stems",
         "loops",
         "understand",
         "doctor",

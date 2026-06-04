@@ -44,6 +44,11 @@ sibling lives next to the **main** checkout. Resolve it there and pass the **abs
    runs: clean (declick off) → apply_eq (zero-phase) → suppress_resonances (de-harsh) → apply_dynamic_eq →
    shape_bands (transient) → excite (hiss-safe only) → **color** (API Vision Channel Strip, conservative,
    550 top flat). Prints before→after per stem. `duration_s>0` for a fast audition; `0`/omit for full length.
+   **One-call equivalent:** the `[L] process-stems` MCP tool takes the same typed plan list plus
+   `color_plugin_path` (the API Vision plugin) and runs the identical chain server-side — serial + VST-safe,
+   per-stem error-isolated, returning the same before→after table. Prefer it for agent/CLI runs (one call, no
+   per-stem fan-out); use the script when you want the printed table interactively. Either way it's **one
+   serial pass** — do not fan `apply-vst-chain` out per stem.
 4. **Re-sum + A/B** (optional) — balance the raw vs processed stems to **identical** per-role targets
    (`scripts/mix/balance_stems.py`, same targets for both) so the A/B isolates the processing, then
    `render-ab` loudness-matched. Or hand the processed stems straight to [[warm-drum-bus]] / [[drum-mix]].
@@ -79,9 +84,11 @@ brighter than wanted (route to [[warm-drum-bus]] to warm the bus).
 
 The **per-stem diagnosis is the parallel win** (step 2): each stem's measure →
 role-aware plan is independent, so the `stem-process` workflow fans it out one agent
-per stem. The executor (step 3) then runs ONCE, serially — `process_stems.py` loads
-the API Vision `uaudio_*` plugin per stem, and concurrent UADx hosts render
-non-deterministically, so the processing pass is intentionally NOT parallelized.
+per stem. (For just the measure step, `[L] measure-loudness-batch` does N stems in one
+concurrent call.) The executor (step 3) then runs ONCE, serially — `process_stems.py`
+(or the `[L] process-stems` MCP tool, which is the same serial executor in one call and
+holds the server's VST render lock) loads the API Vision plugin per stem, and concurrent
+plugin renders are non-deterministic, so the processing pass is intentionally NOT parallelized.
 
 ## Related
 

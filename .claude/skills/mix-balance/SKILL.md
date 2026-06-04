@@ -35,7 +35,9 @@ per-element volumes by **integrated LUFS** first; only then reach for tone.
 
 1. **(Optional) de-bleed** forward close mics first — `[[bleed-gate]]` (gate a spill-heavy mic; or cancel a
    correlated source like the hi-hat out of the overheads). Turning a mic up turns its bleed up too.
-2. **Measure** each stem's integrated LUFS (the balancer does this and prints the table; or `[L] measure-loudness`).
+2. **Measure** each stem's integrated LUFS (the balancer does this and prints the table; or `[L] measure-loudness`
+   per stem — for a whole folder use `[L] measure-loudness-batch` to measure them all in ONE concurrent call
+   instead of fanning out N `measure-loudness` calls).
 3. **Set deliberate per-role targets** — kick/snare forward, **overhead under them**, room/ambience subtle,
    support mics (snare-bottom, kick-beater) low. With **two kick-family mics** (kick + kick-sub), tuck the
    secondary **~6–8 dB UNDER** the main kick so the correlated LF doesn't double up and bloat the low end

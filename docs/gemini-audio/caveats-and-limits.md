@@ -28,7 +28,11 @@ can be off by several dB/oct (e.g. it read −4.4..−6.2 on a bus `[L] measure-
 −1.0 dB/oct / centroid 4027 Hz). Affects `[G] detect-mix-issues`, `[G] analyze-mix-balance`,
 `[G] mastering-feedback`, and the `audio-shootout` judge panel (all route audio through the same
 mono codec). `gemini-3.1-pro-preview` will also hallucinate around a downmixed read — e.g.
-"a spoken-word vocal is being masked" on a **drums-only** bus.
+"a spoken-word vocal is being masked" on a **drums-only** bus. The misread can drive
+`[G] mastering-feedback`'s `ready_for_release` boolean **false** purely on a phantom "severely
+dark / muffled" tonal note — seen on a warm, intentionally recessed-cymbal drum master whose
+`[L] measure-spectrum` tilt was a moderate −2.5 dB/oct (centroid *rising* after an air shelf).
+Treat that bool as advisory when its only basis is a "dark" call the spectrum refutes.
 
 > **Rule (tilt):** before any brighten/darken EQ driven by a Gemini "dark" / "boomy" note, verify
 > tilt + centroid against `[L] measure-spectrum`. Make **one** correction toward the stated goal,

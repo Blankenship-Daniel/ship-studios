@@ -46,6 +46,12 @@ surface — spelled exactly (hyphen vs underscore).
    *Gentle* downward compression: low ratio, slow-ish attack/release, a few
    dB of gain reduction at most. The goal is cohesion, not control. Read the
    GR stats back and confirm crest dropped only modestly.
+   **Watch the auto-makeup trap:** with `makeup_db` omitted, `compress-loop`
+   RMS-matches output to input, so a *too-low threshold* over-compresses the
+   body and collapses crest even when the reported *avg* GR looks tiny (seen:
+   crest 24.6→17.9 at `threshold_db -30`, avg GR ~1 dB). For gentle glue raise
+   the threshold and add a parallel blend (`mix ~0.65`) so transients pass dry;
+   if crest drops more than a few dB, back off.
 3. **Density / harmonics** — `[L] saturate-loop {path, out_path, ...}`.
    Subtle oversampled tape / soft-clip for harmonic density and a touch of
    warmth. Keep drive low; this is seasoning, not distortion.
@@ -111,6 +117,12 @@ target hit** — and point at [[master-track]] for loudness.
   (e.g. a warm tilt tuned on a bright intro over-darkened the full mix — centroid
   dropped much further over 10 min than on the opening 60 s). Verify on the full
   render or a representative window and re-measure; adjust if the signature drifts.
+- **A Gemini "dark / muffled" read is not a brighten order.** If you sanity-check
+  the warm glue with a `[G]` critique (`detect-mix-issues` / `mastering-feedback`),
+  its lossy mono codec under-reads highs and over-reads lows — a warm or
+  recessed-cymbal bus reads "dark". Verify tilt + centroid against
+  `[L] measure-spectrum` before any brighten; warm ≠ dark if the meter says the
+  tilt is moderate ([[gemini-audio]]).
 
 ## Related
 

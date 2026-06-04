@@ -31,6 +31,17 @@ a tool — every name below is verified.
   → `target_lufs = -14`, `ceiling_dbtp = -1.0`; club → `-9` / `-0.3`. If the
   user names a platform but not numbers, pick the platform's canonical pair
   and say so.
+- **Know the platform-normalization asymmetry before choosing a target.**
+  *Boost-and-attenuate* platforms (Spotify, Apple, EBU) turn a quiet master UP
+  toward their reference; *attenuate-only* platforms (YouTube, Tidal, Amazon,
+  Deezer) only turn loud masters DOWN and **leave a quiet master quiet**. So the
+  "deliver quiet and let it normalize up to −14" move only pays off on Spotify/
+  Apple — and even there the lift is **capped by true-peak headroom** (a quiet
+  master at a −1 dBTP ceiling can't be boosted without overshoot, so it plays
+  below target; a ~−2.5 dBTP ceiling leaves room for the lift). For loudness that
+  is **consistent across all platforms**, deliver a true −14 / −1 master rather
+  than relying on platform boost. `check-streaming-targets` (step 8) projects all
+  of this per platform.
 
 ## Recipe (ordered)
 
@@ -106,6 +117,7 @@ exported file paths. If you re-rendered, say what you changed and why.
   `out_path` from step 7, never the original mix.
 - **Targets are numbers.** `target_lufs: -14`, not `"-14 LUFS"`.
 - **High-crest material trades loudness for headroom + dynamics.** For very transient sources (crest ~25–27 dB, e.g. an unsquashed drum bus), a gentle / headroom-preserving master lands around `target_lufs: -22` at a `-3` dBTP ceiling (~4 dB of peak control, dynamics intact). Chasing the `-14` streaming default would force ~6+ dB of limiting and leave ~1 dB headroom. Read step 1's crest/PLR before locking the target — you can pick two of {loudness, headroom, dynamics}, not all three. Don't loudness-paper a peaky mix.
+- **Don't chase a Gemini "dark / muffled / not-release-ready" call into a brighten.** `mastering-feedback` runs on a lossy ~16 kbps mono downmix that chronically under-reads highs and over-reads lows, so a warm or intentionally recessed-cymbal master (e.g. a drum bus) reads "dark" even when it isn't. Before adding `eq_bands` to brighten, verify tilt + centroid against `[L] measure-spectrum`; if the meter says the tilt is moderate, trust it, make at most ONE move toward the goal, and don't re-run the panel chasing more top ([[gemini-audio]] / `docs/gemini-audio/caveats-and-limits.md`). `ready_for_release: false` driven purely by a tonal "dark" note that the spectrum refutes is not a blocker.
 
 ## Fan-out
 

@@ -27,6 +27,9 @@ covers (their `apply-eq` / `render-ab` operate on a single stereo file).
   `fx` and are **excluded from the phase-align topology** — they're not mics, so
   they never become a stray second `snare_top`. If a name is
   ambiguous, commit a `kit.json` to pin it (see `drum_prep/examples/kit.json`).
+  A **non-standard mic** won't auto-detect — e.g. a "crotch mic" between the
+  knees (low-end weight off kick + snare) should be pinned as `kick_sub` so it
+  low-pass-correlates to the overheads like a kick mic, not a broadband lock.
   **Interface-named dumps** (`A ADAT 1`, `B MIC_LINE_HIZ 1_2`) won't auto-detect —
   run [[multitrack-triage]] first to clean, split songs, and emit a `kit.json`.
 - A reference audio file (loop or track) to match the kit's tone to. Keep it
@@ -81,6 +84,11 @@ at `AB_before-vs-after.wav` to hear the change.
   fails loud. Provide `overhead` (stereo) or `overhead_l` + `overhead_r`.
 - **This does not master or balance.** It's tonal + timing prep on stems; mix
   levels/panning and mastering are downstream ([[master-track]]).
+- **Phase-align BEFORE corrective EQ.** The chain runs align first for a reason:
+  delays are physical and must be estimated full-band. High-passing the overheads
+  first strips the low end the kick needs to lock to (see [[drum-phase-align]]
+  Pitfalls). If stems are already EQ'd, align off the full-band originals — pure
+  delay commutes with zero-phase EQ/gating.
 - **Re-running overwrites the output subdirs.** Use `--out-root` to compare runs.
 - **Output is 24-bit AIFF with a `.wav` extension.** ffmpeg's container sniffing
   misreads these ("Invalid PCM packet"). Read aligned stems with sox/afconvert, or

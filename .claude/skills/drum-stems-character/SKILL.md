@@ -62,7 +62,7 @@ Workflow drum-stems-character { mode:'character', character:"<chosen>",
 
 ## Stage 4 — phase-align the processed stems
 
-`uv run --no-sync drum-prep phase-align <ABS …/stems/character> [--kick-lowpass 180]` → `…/stems/character/phase-aligned/`. Aligning the **processed** stems means drum-prep cross-correlates exactly the audio that will be summed. **Stereo-image gate** (these are usually stereo bounces): drum-prep mono-collapses close mics — lossless only if they're dual-mono (`measure-stereo`: `is_mono`, `max|L−R|=0`); OH/room stay stereo. **AIFF-as-.wav trap:** `phase-aligned/` files are 24-bit AIFF with `.wav` names — soundfile reads them; never feed that dir to ffmpeg ([[drum-phase-align]]).
+`uv run --no-sync drum-prep phase-align <ABS …/stems/character> [--kick-lowpass 180]` → `…/stems/character/phase-aligned/`. Aligning the **processed** stems means drum-prep cross-correlates exactly the audio that will be summed. **HPF'd-overheads gate:** if Stage 2/3 high-passed the overheads, the kick (LP180) has nothing in the OH to lock to → a bogus delay. In that case derive the delays from the **full-band originals** and apply them to the processed stems (a pure time-shift commutes with the zero-phase EQ/gating already applied — all LTI), or keep an un-HPF'd OH for the correlation ([[drum-phase-align]] Pitfalls). **Stereo-image gate** (these are usually stereo bounces): drum-prep mono-collapses close mics — lossless only if they're dual-mono (`measure-stereo`: `is_mono`, `max|L−R|=0`); OH/room stay stereo. **AIFF-as-.wav trap:** `phase-aligned/` files are 24-bit AIFF with `.wav` names — soundfile reads them; never feed that dir to ffmpeg ([[drum-phase-align]]).
 
 ## Stage 5 — balance + character bus color (mix to a bus targeting the character)
 

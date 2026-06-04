@@ -280,6 +280,13 @@ raw multitrack (a Logic session, an interface dump) two **local-DSP skills**
   example uses `.aif`; validated against the files on disk, not forced to `.wav`);
   `adeclip` overshoots 0 dBFS (renormalize); multi-input ffmpeg trims need
   `atrim` in the filtergraph (input `-ss/-t` only affects the first input).
+- **Phase-align BEFORE corrective EQ**, and never HPF the overheads before
+  aligning — it removes the low end the kick correlates against and the lock goes
+  bogus (a 971-sample / 20 ms slip). Already-EQ'd? Align off the full-band
+  originals; delays commute with zero-phase EQ + gating (see Guardrails).
+- **Pin a non-standard mic role in `kit.json`** — a "crotch mic" (between the
+  knees, low-end weight off kick + snare) or a sub-kick won't auto-detect; set
+  role `kick_sub` so it low-pass-correlates to the overheads like a kick mic.
 
 ---
 
@@ -466,4 +473,5 @@ Roles auto-detect from filenames: `overhead` (or `overhead_l`+`overhead_r`), `ro
 - **Zero-phase EQ** (real, symmetric gain) so the phase alignment survives the tonal match.
 - **Envelope-coarse → waveform refine** alignment to avoid half-period slips on resonant snares.
 - **Cuts → all stems, boosts → band owners**; one **global** headroom trim preserves inter-stem balance.
+- **Phase-align on FULL-BAND signals, before corrective EQ.** Delays are physical mic distances; estimate them from the unprocessed stems. HPF'ing the overheads first strips the low end the kick (LP180) needs to lock onto → a bogus delay (seen: 971 samples / 20 ms, post_corr 0.05). If stems are already EQ'd, derive delays from the full-band originals and apply them to the processed stems — a pure time-shift **commutes** with zero-phase EQ + gating (all LTI), so the result is identical in the interior.
 - Regression tests: `uv run pytest -k drum_prep` (needs `--extra drum-prep`).

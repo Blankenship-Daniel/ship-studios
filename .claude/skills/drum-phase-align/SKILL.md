@@ -29,7 +29,10 @@ that anchor because they already contain the kit's natural relative timing.
    roles:
    - snare-top / hi-hat / toms / ride / crash → overheads (broadband)
    - kick mics → overheads via a low-pass correlation (`--kick-lowpass`, default
-     180 Hz) so they lock the fundamental, not cymbal bleed
+     180 Hz) so they lock the fundamental, not cymbal bleed. A **non-standard
+     low-frequency mic** (a "crotch mic" between the knees, a sub-kick pickup)
+     won't auto-detect — pin it in `kit.json` as `kick_sub` so it routes through
+     this same low-pass topology instead of a broadband lock it can't support.
    - snare-bottom → snare-top, kick-beater → kick-in, then composed onto the OH
      timeline (polarity multiplies, delay adds)
    - room → polarity-checked only, **timing kept** (ambience preserved)
@@ -52,6 +55,16 @@ mic whose delay is physically implausible.
 
 ## Pitfalls
 
+- **Align on FULL-BAND signals — phase-align BEFORE corrective EQ.** The delays
+  are physical mic distances; estimate them from the unprocessed stems. In
+  particular, if the overheads have already been **high-passed** (a common
+  corrective move), there's no low end left for the kick (LP180) to correlate
+  against → a bogus lock (seen: a 971-sample / 20 ms "delay", post_corr 0.05).
+  If you've already EQ'd, derive the delays from the **full-band originals** (a
+  temp dir + `kit.json`) and apply them to the processed stems: a pure time-shift
+  **commutes** with zero-phase EQ and gating (all LTI), so aligning the processed
+  stems is identical (in the interior) to aligning first. The clean order is
+  **align → then EQ/HPF/gate the aligned output**.
 - **Resonant snares can half-period-slip** under naive correlation — this flow
   avoids it (envelope-coarse delay, then waveform refine in a tight window). Don't
   "fix" a delay by hand without re-checking the partner-pair correlation.

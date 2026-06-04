@@ -105,6 +105,7 @@ exported file paths. If you re-rendered, say what you changed and why.
 - **Verify on the rendered file, not the source.** Step 8 must point at the
   `out_path` from step 7, never the original mix.
 - **Targets are numbers.** `target_lufs: -14`, not `"-14 LUFS"`.
+- **High-crest material trades loudness for headroom + dynamics.** For very transient sources (crest ~25–27 dB, e.g. an unsquashed drum bus), a gentle / headroom-preserving master lands around `target_lufs: -22` at a `-3` dBTP ceiling (~4 dB of peak control, dynamics intact). Chasing the `-14` streaming default would force ~6+ dB of limiting and leave ~1 dB headroom. Read step 1's crest/PLR before locking the target — you can pick two of {loudness, headroom, dynamics}, not all three. Don't loudness-paper a peaky mix.
 
 ## Fan-out
 

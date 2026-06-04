@@ -135,6 +135,15 @@ Use **[[vst-preset]]**'s `apply_vst_preset.py` (it `setattr`s every param, strin
 `*_threshold` for dynamic, `*_spectral_enabled`/`*_spectral_density` for spectral). Set `dump_state=true` (via
 `apply-vst-chain`) once you like it, then re-render from the opaque `.state` blob for byte-stability.
 
+> **Per-stem KIT pass — render FAITHFULLY (don't use the harness as-is).** `apply_vst_preset.py` does **two
+> things you must avoid for a balanced multi-mic kit**: it **upmixes mono→stereo** (`np.repeat`, so mono close
+> mics come out stereo) and it **peak-normalizes each stem** to the recipe's `output_peak_dbfs` (default −1.0) —
+> independent per-stem renorm **destroys the measured inter-stem LUFS balance** ([[mix-balance]]). Setting
+> `output_peak_dbfs: null` gives faithful gain (no renorm) but **still upmixes** mono→stereo. So for a per-stem
+> kit soothe/EQ use a small **channel-preserving + faithful** render (or **`apply-vst-chain`**, which preserves
+> channel count and doesn't renormalize) instead of the harness. The harness is right for a single stereo bus,
+> not a kit of mono stems.
+
 ### Measured result — the shipped de-harsh preset
 
 `presets/vst/fabfilter-proq4-drum-deharsh.json` (flatten → HPF 35 Hz/24 dB/oct → −3 dB Bell @250 Hz → a
@@ -161,6 +170,15 @@ hit a leftover −4.11 from the screenshot session, which inflated the result an
 and `spectral_density` on the band, all explicitly. This is what `[L] suppress-resonances` / [[de-harsh]] and
 `[L] apply-dynamic-eq` / [[dynamic-eq]] approximate in **pure DSP with no plugin** — reach for those when you
 don't need Pro-Q's exact curve.
+
+### Latency on a multi-mic kit — net 0 samples (measured, multi-mic safe)
+
+Spectral Dynamics forces its band to linear phase (Part B §3/§4 — adds latency by resolution), so the worry on a
+**multi-mic drum kit** is that a soothed close mic drifts out of phase with the rest of the kit. It doesn't:
+**Pedalboard auto-compensates** the spectral band's linear-phase latency. An impulse probe (flattened Pro-Q +
+one 5 kHz Spectral Dynamics band) measured **net delay 0 samples — in == out**. So you can **soothe / per-stem
+EQ each stem before summing** and they stay **sample-aligned** with the kit (no phase smear, the drum-prep
+alignment survives). (Verified on this rig, Pedalboard 0.9.23.)
 
 ### Character knob (the new saturation) — measured
 

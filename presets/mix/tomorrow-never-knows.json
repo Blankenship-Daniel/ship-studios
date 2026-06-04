@@ -1,0 +1,52 @@
+{
+  "name": "tomorrow-never-knows",
+  "description": "FAMOUS DRUM SOUND #2: The Beatles 'Tomorrow Never Knows' (Ringo / Geoff Emerick, Abbey Road 1966). The OPPOSITE axis from the Bonham 'fool-in-the-rain' recipe: heavily COMPRESSED with audible PUMP/breathing (not glue), DARK/lo-fi/saturated (not warm-open), and NARROW/mono (not wide-room), tom-FORWARD. Anchored on the authentic Fairchild 660 (mono tube vari-mu) driven hard, dark Studer 15 IPS tape, dark EQ, and a hard mono-narrow. This is the TONE, not Ringo's tom GROOVE, and it wants TOM mics in the source. Chain-validated 2026-06-03 on the Ship Studios kit (which has NO toms -> a kick+snare-forward fallback balance).",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems WITH toms (rack/floor) + kick + snare + overheads + room. (No toms -> tom-FORWARD is impossible; fall back to kick+snare-forward and you get the TONE but not the tom dominance.)",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/tomorrow-never-knows-stem-process.plans.json (declick OFF; DARK + gentle: HPF, de-box, NO air; damped kick, resonant-but-controlled toms) -> <kit>/processed-tnk/.",
+    "3. TOM-FORWARD balance: scripts/mix/balance_stems.py (toms + kick + snare FORWARD; overheads/room controlled; close & dark, NOT roomy) -> bus_tnk_pre.wav.",
+    "4. TNK BUS: scripts/mix/tomorrow_never_knows_bus.py bus_tnk_pre.wav bus_tnk.wav (Fairchild pump -> Studer 15 IPS dark tape -> dark EQ -> mono narrow; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages."
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem; one global -6 dBFS-peak headroom trim. TOM-FORWARD + close-mic forward; overheads/room pulled back (TNK is close & dark, the heavy comp brings the ambience UP as the pump).",
+    "rack tom": {"target_lufs": -16.0, "pan": -0.1, "_note": "a STAR — the TNK groove"},
+    "floor tom": {"target_lufs": -16.0, "pan": 0.1, "_note": "a STAR"},
+    "kick in": {"target_lufs": -17.0, "pan": 0.0, "_note": "deep, DAMPED thud (sweater-in-the-kick)"},
+    "snare top": {"target_lufs": -18.0, "pan": -0.05, "_note": "thuddy, present under the toms"},
+    "overhead": {"target_lufs": -23.0, "pan": 0.0, "_note": "cymbals back + dark (TNK is not cymbal-forward)"},
+    "drum room": {"target_lufs": -23.0, "pan": 0.0, "_note": "feeds the pump; the Fairchild swells it"},
+    "kick beater": {"target_lufs": -28.0, "pan": 0.0},
+    "snare bottom": {"target_lufs": -32.0, "pan": -0.05},
+    "_no_toms_fallback": "If the kit has no toms (e.g. the Ship Studios / artifacts/drums kits): kick in -16 / snare top -17 / overhead -22 / drum room -22 / kick beater -26 / snare bottom -30 / snare reverb -26. You get the TNK tone (crush/dark/mono) but kick+snare lead instead of toms."
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/tomorrow_never_knows_bus.py — authoritative; a bare invocation reproduces these.",
+    "1_eq_pre_zero_phase": ["high_pass 35 Hz"],
+    "2_fairchild_660": {"plugin": "uaudio_fairchild_660.vst3", "input": -6.0, "thresh": 8.0, "time_const": 2.0, "sc_filt": "Off", "headroom": 8.0, "output": 0.0, "mix": 100.0, "_intent": "the era/Abbey-Road comp, MONO tube vari-mu, driven HARD for the audible PUMP. NOTE: this build COLORS more than it crushes (holds crest), so the pump is GENTLER than the over-limited 1966 original — add the LA-3A stage for more crush. thresh HIGHER = more GR; headroom LOWER = hotter (lore-inverted); sc_filt Off = full-range detection = max pump/dark."},
+    "3_la3a_optional": {"plugin": "uaudio_la3a.vst3", "enabled_by": "--la3a", "comp_limit": "Limit", "hf_emphasis": 0.0, "peak_reduction": 6.0, "gain": 5.0, "mix": 100.0, "_intent": "opto LIMIT, HF-emphasis 0 (full-range, darkest, max GR) = genuine crest reduction + odd-harmonic grit. The real TNK crush."},
+    "4_studer_a800_tape": {"plugin": "uaudio_studer_a800.vst3", "path_select": "Repro", "ips": "15 IPS", "tape_type": "456", "emphasis_eq": "NAB", "cal_level": 6.0, "input_level": 3.0, "repro_hf_eq": 1.5, "_intent": "dark, fat tape glue (the authentic Studer J37 is Arturia DAW-only/passthrough headless, so this A800 is the headless proxy). repro_hf_eq LOW = darker top."},
+    "5_vibe_optional": {"plugin": "uaudio_verve.vst3", "enabled_by": "--vibe", "machine": "VINTAGIZE", "param_1": 45.0, "_intent": "lo-fi tape grit + band-limit (UADx Vibe Analog Machines / Verve). Pushes darker + adds the saturated 1966 grit."},
+    "6_eq_post_zero_phase": ["low_shelf +1.5 @ 100 (weight)", "bell +2.0 @ 200 (low-mid thump / tom+kick body)", "high_shelf -4.0 @ 8000 (DARK — remove air, TNK has no top)"],
+    "7_stereo_narrow": {"tool": "adjust-stereo", "width": 0.35, "mono_below_hz": 0, "_intent": "collapse toward MONO (the 1966 image); also monos via the Fairchild (mono unit)."},
+    "8_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 1498,
+    "tilt_db_per_oct": -3.86,
+    "crest_db": 18.7,
+    "correlation": 0.987,
+    "lufs_i": -18.5,
+    "_measured_on": "the Fairchild-only DEFAULT on a 60 s active window (240-300 s) of the Ship Studios kit (NO toms -> kick+snare-forward fallback balance). Pre-bus was centroid 2271 / tilt -3.18 / crest 20.9 / corr 0.908.",
+    "_what_to_check": "the DIRECTION: centroid DOWN hard (warm/dark, ~-770 here), tilt more negative (dark), crest DOWN (the pump — gentler with Fairchild-only, ~17 with --la3a), correlation UP toward ~0.99 (NARROW/mono — the defining TNK image). Crest/centroid are content-dependent; this section was already dark (tilt -3.18) so it landed very dark (1498). On a brighter/tom kit expect higher."
+  },
+  "notes": [
+    "Needs TOM mics for the tom-FORWARD balance; without them you get the TNK tone (crush/dark/mono) but kick+snare lead.",
+    "This is the TONE, not Ringo's hypnotic tom GROOVE — that lives in the source performance.",
+    "The repo Fairchild COLORS more than it CRUSHES (holds crest), so the Fairchild-only pump is gentler than the 1966 over-limited original. For the heavy crush, use --la3a (opto LIMIT, genuine crest reduction) and/or --vibe (lo-fi grit). The tuning workflow A/Bs them.",
+    "DARK is the point: 15 IPS + repro_hf LOW + high-shelf CUT + NO air anywhere. On an already-dark source it can over-darken (centroid ~1500) — ease --repro-hf up and --dark toward -2 if muddy.",
+    "MONO/narrow is the defining image: width 0.35 + the mono Fairchild. Do not 'widen' it.",
+    "Honest proxy: the authentic Studer J37 (Arturia) is passthrough headless -> Studer A800 stands in; the exact 1966 compressor is debated (Fairchild 660 / Altec) -> Fairchild 660 is the era/Abbey-Road choice here.",
+    "MIX bus (peak -1, NOT mastered) -> hand to master-track; loops via loops-to-deliverables."
+  ]
+}

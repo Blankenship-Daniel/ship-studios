@@ -92,6 +92,16 @@ LOOPS_OVERRIDE_ENV: tuple[str, ...] = (
     "STEMMY_NO_CACHE",
 )
 
+#: Every var the .mcp.json launch forwards (secrets + documented overrides). The
+#: interactive launcher (``scripts/mcp_launch.py``) strips any of these that arrive
+#: empty, so the server reads an unset var as unset — the interactive counterpart
+#: to ``_passthrough_env``'s truthy-only rule. .mcp.json must reference each as
+#: ``${VAR:-}`` (Claude Code refuses to parse a bare ``${VAR}`` when the var is
+#: unset); the ``:-`` empty default is what mcp_launch.py then drops, so an empty
+#: value never reaches a server as a meaningful empty (e.g. an empty
+#: ``STEMMY_MCP_ALLOWED_ROOTS`` that would lock the gemini server's allow-list down).
+FORWARDED_ENV: tuple[str, ...] = (*ENV_VARS, *LOOPS_OVERRIDE_ENV, *GEMINI_OVERRIDE_ENV)
+
 #: Which env vars each server actually consumes (secrets + documented overrides).
 #: The loops server can reach both Anthropic (LLM critique) and Gemini
 #: (describe-loops); the gemini server only ever needs the Gemini key. Every var

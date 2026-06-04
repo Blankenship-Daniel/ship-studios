@@ -10,8 +10,13 @@
         "stemmy-loops"
       ],
       "env": {
-        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY:-}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY:-}",
+        "STEMMY_LLM_MODEL": "${STEMMY_LLM_MODEL:-}",
+        "STEMMY_LLM_CAPTION_MODEL": "${STEMMY_LLM_CAPTION_MODEL:-}",
+        "STEMMY_LISTEN_MODEL": "${STEMMY_LISTEN_MODEL:-}",
+        "STEMMY_CACHE_DIR": "${STEMMY_CACHE_DIR:-}",
+        "STEMMY_NO_CACHE": "${STEMMY_NO_CACHE:-}"
       }
     },
     "stemmy-gemini": {
@@ -24,7 +29,11 @@
         "stemmy-gemini"
       ],
       "env": {
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+        "GEMINI_API_KEY": "${GEMINI_API_KEY:-}",
+        "STEMMY_MCP_MODEL": "${STEMMY_MCP_MODEL:-}",
+        "STEMMY_MCP_THINKING_LEVEL": "${STEMMY_MCP_THINKING_LEVEL:-}",
+        "STEMMY_MCP_THINKING_BUDGET": "${STEMMY_MCP_THINKING_BUDGET:-}",
+        "STEMMY_MCP_ALLOWED_ROOTS": "${STEMMY_MCP_ALLOWED_ROOTS:-}"
       }
     }
   }

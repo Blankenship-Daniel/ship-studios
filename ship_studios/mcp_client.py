@@ -59,6 +59,10 @@ class Hub:
         self._stack: contextlib.AsyncExitStack | None = None
 
     async def __aenter__(self) -> Hub:
+        if self._stack is not None:
+            # Re-entering an open Hub would orphan the first AsyncExitStack (and the
+            # subprocesses it holds). Open one `async with`/open_hub() per instance.
+            raise RuntimeError("Hub is already open; use a fresh Hub per context")
         self._stack = contextlib.AsyncExitStack()
         try:
             for key in self.server_keys:

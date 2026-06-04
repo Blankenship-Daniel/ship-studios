@@ -65,11 +65,12 @@ roadmap's headline finding. Full treatment in [caveats-and-limits.md](caveats-an
 
 ## How this maps to the repo today
 
-`stemmy-gemini-mcp` is an **audio-understanding** server: 11 Gemini perceptual tools
+`stemmy-gemini-mcp` is an **audio-understanding** server: 12 Gemini perceptual tools
 (transcribe, describe-region, compare, classify, extract-events, summarize-long, audio-to-json,
-analyze-mix-balance, detect-mix-issues, compare-to-reference, mastering-feedback) plus a parallel
+analyze-mix-balance, detect-mix-issues, compare-to-reference, mastering-feedback,
+recommend-mastering-chain) plus a parallel
 pure-DSP measurement suite. It is **read-only** — it uploads audio and returns text/JSON, never
-writes audio ([SECURITY.md](https://github.com/) of that repo). That's why areas 2–4 (which
+writes audio ([SECURITY.md] of that repo). That's why areas 2–4 (which
 *emit* audio) are documented here as **reference + wire-up notes**, not as live tools:
 
 - **Speech/TTS & Music/Lyria** would write audio files — a new capability that breaks the

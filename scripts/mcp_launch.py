@@ -53,10 +53,19 @@ def main(argv: list[str]) -> int:
     if check:
         print(" ".join(cmd))
         return 0
-    # Replace this process with the server; it inherits this process's env (the
-    # API keys .mcp.json forwards), so `uv run <console>` passes them through.
-    os.execvp(cmd[0], cmd)
-    return 0  # unreachable (execvp does not return on success)
+    # Replace this process with the server. .mcp.json forwards the API keys + the
+    # documented STEMMY_* overrides as ${VAR:-}, so an UNSET override arrives here as
+    # an empty string (Claude Code refuses to parse a bare ${VAR} when it is unset).
+    # Drop those empties so the server sees an unset var as truly unset — mirroring
+    # the CLI's config._passthrough_env (an empty STEMMY_MCP_ALLOWED_ROOTS would
+    # otherwise read as an empty allow-list and lock the gemini server down). The
+    # server inherits this cleaned env through `uv run <console>`.
+    env = dict(os.environ)
+    for var in config.FORWARDED_ENV:
+        if env.get(var) == "":
+            del env[var]
+    os.execvpe(cmd[0], cmd, env)
+    return 0  # unreachable (execvpe does not return on success)
 
 
 if __name__ == "__main__":

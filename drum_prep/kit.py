@@ -66,9 +66,12 @@ class Kit:
                 {k: v for k, v in {
                     "file": s.name, "role": s.role.value, "label": s.label,
                     "partner": s.partner, "lowpass_hz": s.lowpass_hz,
-                    "ambience": s.ambience or None, "polarity_lock": s.polarity_lock,
+                    "ambience": s.ambience, "polarity_lock": s.polarity_lock,
                     "confidence": round(s.confidence, 2),
-                }.items() if v is not None}
+                # keep bools verbatim: ``ambience: false`` must survive the round-trip
+                # (collapsing False -> None would drop the key and let a ROOM stem's
+                # auto-detected ambience=True clobber the explicit override on reload).
+                }.items() if v is not None or isinstance(v, bool)}
                 for s in self.stems
             ],
         }

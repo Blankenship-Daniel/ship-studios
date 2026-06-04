@@ -45,7 +45,14 @@ meters can't see — harshness, pumping, sibilance *feel*, masking, depth, "too 
 keep **meters as ground truth** for any loudness/peak/stereo *amount*
 (`[L] measure-stereo` / `[G] analyze-phase-mono` for stereo & phase). This matches the
 repo's standing policy of cross-checking any Gemini mastering read against the meters, and the
-roadmap's headline finding. Full treatment in [caveats-and-limits.md](caveats-and-limits.md).
+roadmap's headline finding.
+
+The same mono/~16 kbps degradation also dulls Gemini's **spectral/tonal** read: it chronically
+under-reads highs and over-reads lows, so a Gemini "dark" / "boomy" note can flatly contradict
+`[L] measure-spectrum` (tilt + centroid). Treat brightness/tilt as **meter-owned** too —
+verify against `[L] measure-spectrum` before any brighten/darken move, make ONE correction
+toward the goal, then trust the meter (the panel can't hear the highs you add, so it never
+stops asking). Full treatment in [caveats-and-limits.md](caveats-and-limits.md).
 
 ---
 

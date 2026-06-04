@@ -21,6 +21,20 @@ loudness.
 > stereo **amount**. Measure stereo & phase with `[L] measure-stereo` / `[G] analyze-phase-mono`,
 > loudness/true-peak with `[L] measure-loudness` — always cross-check a Gemini mastering read against the dBTP/LUFS meters.
 
+The lossy mono codec also degrades the **tonal / tilt** read — not just stereo/peak/loudness. It
+chronically **under-reads highs** (calls a bright bus "dark / muffled / no presence") and
+**over-reads lows** (calls a kick-forward bus "boomy, cut the lows"); Gemini's *own* cited tilt
+can be off by several dB/oct (e.g. it read −4.4..−6.2 on a bus `[L] measure-spectrum` put at
+−1.0 dB/oct / centroid 4027 Hz). Affects `[G] detect-mix-issues`, `[G] analyze-mix-balance`,
+`[G] mastering-feedback`, and the `audio-shootout` judge panel (all route audio through the same
+mono codec). `gemini-3.1-pro-preview` will also hallucinate around a downmixed read — e.g.
+"a spoken-word vocal is being masked" on a **drums-only** bus.
+
+> **Rule (tilt):** before any brighten/darken EQ driven by a Gemini "dark" / "boomy" note, verify
+> tilt + centroid against `[L] measure-spectrum`. Make **one** correction toward the stated goal,
+> then trust the meter — **do NOT keep iterating the panel**: it can't hear the highs you add, so
+> it never stops asking "brighter," and you'll brighten into real harshness it can't detect.
+
 ### 2. Timestamps are navigation-grade and the flag is broken
 - Accuracy ≈ a few **seconds**, not frame-accurate. Fine for "boomy around 01:23"; useless for
   edit-point automation.

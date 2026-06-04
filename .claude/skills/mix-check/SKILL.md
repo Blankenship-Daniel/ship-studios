@@ -101,6 +101,20 @@ route to [[master-track]] once the mix is clean.
 - **Believe the measurement over the vibe when they conflict.** "Too bright"
   with a flat/dark `measure-spectrum` tilt usually means a narrow resonance
   (step 6), not a broad shelf — notch, don't tilt.
+- **"Dark / muffled / no presence" or "boomy / cut the lows" from Gemini is a
+  mono-codec artifact until `measure-spectrum` agrees.** Gemini hears ~16 kbps
+  MONO, which degrades the *tonal* read, not just stereo: it chronically
+  UNDER-reads highs (rated a bus at tilt −1.0 dB/oct, centroid 4027 Hz,
+  strong 3–6 kHz as "extremely dark, muffled, no presence, missing snare
+  crack" — citing tilt −4.4..−6.2 vs the true −1.0) and OVER-reads lows (a
+  kick-forward bus reads "boomy"). So before any brighten/darken move from a
+  "dark"/"boomy" note, check tilt + centroid against `measure-spectrum`
+  (step 4); if the meter is fine, don't chase it. If you do correct toward
+  the goal, make ONE move then trust the meters — do NOT re-loop the panel:
+  it can't hear the highs you added (so it never stops asking) and you'll
+  brighten into real harshness it can't detect. (Same caveat hits
+  `detect-mix-issues`, `analyze-mix-balance`, `mastering-feedback` —
+  [[gemini-audio-understanding]].)
 - **De-ess with the emitted settings.** `find-sibilance` returns concrete
   center Hz / Q / threshold / GR; feed those, don't guess.
 - **One move at a time on the chain.** EQ then re-measure conceptually before

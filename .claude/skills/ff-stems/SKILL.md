@@ -120,6 +120,15 @@ by design (no makeup) and get re-leveled at [[mix-balance]]. Flag any pair that 
 - **Bleed floor** — never add makeup or drive Pro-L; outputs are meant to be quiet (balance comes later).
 - **AIFF-as-`.wav`** — drum-prep can emit 24-bit AIFF under a `.wav` name; read real format with `soundfile`
   (the harness does) and don't feed such files to ffmpeg blind (see [[format-fix]]).
+- **Hiss is not hum — Pro-Q can't denoise broadband HF.** For hiss, measure each stem's HF energy
+  **rolloff** and place a **steep High Cut there** (slopes to 96 dB/oct / Brickwall): ambient/room mics
+  often have **no useful content above ~6 kHz**, so a ~7 kHz high-cut deletes their hiss at zero cost (the
+  single biggest hiss win). Gate residual hiss **between hits** with a **Pro-MB HF band in Expansion** mode
+  **on CLOSE mics only** — never on overheads/room (it chops cymbal/reverb decay). De-harsh ringing/sizzle
+  with **dynamic bells** (auto-threshold, cut-only-when-it-rings); Pro-Q's **Spectral Dynamics is demoted to
+  a plain dynamic bell in kit mode**, so use [[de-harsh]] for broadband harshness on a kit. Watch
+  **HF-boost stacking** — a per-stem air shelf + a console/tube HF boost + a bus air shelf all *multiply* the
+  noise floor; the cure is to remove a boost, not add a cut.
 
 ## Fan-out
 

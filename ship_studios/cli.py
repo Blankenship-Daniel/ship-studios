@@ -58,8 +58,12 @@ def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
     an ``OSError`` when ``uv`` is missing, an ``McpError`` when the spawned server
     dies during the handshake, or an ``ExceptionGroup`` raised out of the SDK's
     anyio task groups — becomes a clean one-line stderr message + exit 1 instead of
-    a Python traceback (mirroring ``drum_prep.cli._go``). A ``KeyboardInterrupt``
-    (Ctrl-C) exits 130 quietly. Other ``BaseException``\\ s (e.g. a task-group
+    a Python traceback (mirroring ``drum_prep.cli._go``). anyio can also surface a
+    ``BaseExceptionGroup`` (a ``BaseException``, NOT an ``Exception``, so it slips
+    past ``except Exception``) when a real failure is bundled with a sibling
+    ``CancelledError`` — its real-error leaves are formatted the same way, while a
+    group that is *only* cancellation propagates. A ``KeyboardInterrupt`` (Ctrl-C)
+    exits 130 quietly. Other ``BaseException``\\ s (e.g. a bare task-group
     ``CancelledError``) propagate — the caller asked for them.
     """
     try:
@@ -67,6 +71,15 @@ def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
     except KeyboardInterrupt:
         click.echo("Interrupted.", err=True)
         raise SystemExit(130) from None
+    except BaseExceptionGroup as exc:
+        # A BaseExceptionGroup is a BaseException, not an Exception, so it bypasses
+        # the handler below. Split off the real errors and format them; if the group
+        # is purely cancellation (no Exception leaf), let it propagate per the above.
+        real, _rest = exc.split(Exception)
+        if real is None:
+            raise
+        click.echo(click.style(f"Error: {_format_error(real)}", fg="red"), err=True)
+        raise SystemExit(1) from exc
     except Exception as exc:
         click.echo(click.style(f"Error: {_format_error(exc)}", fg="red"), err=True)
         raise SystemExit(1) from exc
@@ -502,7 +515,8 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
 
 @main.command(name="reference-match")
 @click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
-@click.option("--reference", "ref_path", required=True, type=click.Path(exists=True, dir_okay=False),
+@click.option("--reference", "ref_path", required=True,
+              type=click.Path(exists=True, dir_okay=False),
               help="Reference track to match the mix toward.")
 @click.option("--goal", default="match the reference tonal balance and loudness",
               show_default=True)
@@ -628,7 +642,8 @@ def loops(
 @click.option("--labels", default=None,
               help="Comma-separated labels for zero-shot classification.")
 @click.option("--multi-label", is_flag=True, default=False)
-@click.option("--compare", "compare_paths", multiple=True, type=click.Path(exists=True, dir_okay=False),
+@click.option("--compare", "compare_paths", multiple=True,
+              type=click.Path(exists=True, dir_okay=False),
               help="Additional file(s) to compare against PATH.")
 @click.option("--compare-prompt", "compare_prompt", default=None,
               help="Prompt to focus the comparison (with --compare).")
@@ -726,10 +741,8 @@ def doctor() -> None:
         mark = "ok " if looks_synced else "MISSING"
         click.echo(f"  [{mark}] {label}: {directory}")
         if not present:
-            click.echo(
-                f"        expected the repo here; clone it or set "
-                f"{'SHIP_STUDIOS_LOOPS_DIR' if label == 'stemmy-loops' else 'SHIP_STUDIOS_GEMINI_DIR'}"
-            )
+            env = "SHIP_STUDIOS_LOOPS_DIR" if label == "stemmy-loops" else "SHIP_STUDIOS_GEMINI_DIR"
+            click.echo(f"        expected the repo here; clone it or set {env}")
         elif not looks_synced:
             click.echo(
                 "        directory exists but has no pyproject.toml — not the "

@@ -10,7 +10,7 @@ The plugin-specific, measured version of [[vst-compress]] / [[vst-saturate]] for
 EL8 Distressor** (`/Library/Audio/Plug-Ins/VST3/uaudio_distressor.vst3`) — Dave Derr's "digitally-controlled
 analog **knee**" compressor with **8 ratio curves** (silky leveling → saturated brick-wall) and a built-in
 **harmonic distortion** generator (Dist 2 / Dist 3). It's the **aggressive, forward, do-anything** comp in the
-dynamics family — the FET/opto-flavoured counterpart to the tube COLOR of [[fairchild-660]], the solid-state
+dynamics family — the digitally-controlled-knee + harmonic-distortion counterpart to the tube COLOR of [[fairchild-660]], the solid-state
 opto leveling of [[la-3a]], and the VCA glue of [[ssl-bus-compressor-2]]. Full field guide — param surface, the
 ratio/input/attack/release/detector/distortion/mix maps, the harmonic signature, recipes, pitfalls, sources —
 lives in [`docs/vst/distressor.md`](../../../docs/vst/distressor.md). This skill is the workflow.

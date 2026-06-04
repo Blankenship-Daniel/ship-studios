@@ -278,8 +278,9 @@ blend.
 - **Gang Controls is destructive.** When linked, a parameter edit overwrites **every open A800 instance** at once
   (built for 24-track work) and the old values "cannot be recovered" (red flashing-LED warning). Leave it off
   unless you mean to drive a multi-instance kit in lockstep.
-- **Input/Output ranges:** Input **−12…+24 dB**, Output **−24…+12 dB** — confirmed by the UA manual, our measured
-  param surface, *and* the screenshot. A manual-mirror page listing *both* as −24…+12 is an OCR error; don't trust it.
+- **Input/Output ranges:** Input **−12…+24 dB**, Output **−24…+12 dB** — read off our measured Pedalboard param
+  surface (and consistent with the plugin screenshot + UA's documentation). A manual-mirror page listing *both* as
+  −24…+12 is an OCR error; don't trust it.
 - **Disputed/approximate:** exact head-bump Hz/dB & bias dB range unpublished by UA; Cal nWb/m not lab-verified
   (trust dB-over-185); BASF 900 behavior is bias-dependent. Beginner blogs claiming "even-order warmth" are
   **wrong** — trust the symmetric-tanh physics (odd/3rd).

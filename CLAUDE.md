@@ -380,6 +380,8 @@ uv sync   # no extras — all deps bundled
 | `STEMMY_MCP_THINKING_LEVEL` / `STEMMY_MCP_THINKING_BUDGET` | optional `[G]` per-call thinking-tier override (else a per-tool default tier is used: high for verdict/critique tools, low for cheap tags) |
 | `STEMMY_MCP_ALLOWED_ROOTS` | optional `[G]` filesystem allow-list — an OS-path-separator-delimited (`:` on POSIX, `;` on Windows) list of **absolute** directory roots. The **Gemini server enforces** it (each input path is `Path.resolve()`d and must be a child of an allowed root, else the read is refused); the **hub passes paths through unmodified** (no validation/rewrite on this side). Add your `projects/` / `artifacts/` roots, or leave it unset for unrestricted local use. |
 | `SHIP_STUDIOS_LOOPS_DIR` / `SHIP_STUDIOS_GEMINI_DIR` | optional override for the sibling-repo locations (the hub/CLI auto-resolve `../stemmy-*-mcp` from the **main** checkout, git worktrees included); set these only for a non-standard layout (CI, a vendored checkout) |
+| `SHIP_STUDIOS_STARTUP_TIMEOUT` / `SHIP_STUDIOS_CALL_TIMEOUT` | optional **hub** timeouts in seconds (`ship_studios/config.py`): MCP-handshake budget (default `120`) and per tool-call budget (default `600`); `0` disables either |
+| `SHIP_STUDIOS_ARTIFACTS_DIR` / `SHIP_STUDIOS_PROJECTS_DIR` | optional **hub** path overrides (`ship_studios/config.py`): run-artifacts root (default `<repo>/artifacts`) and per-track workspace root (default `<repo>/projects`) |
 | `STEMMY_CACHE_DIR` / `STEMMY_NO_CACHE` | optional `[L]` disk-cache controls read by the loops server's `separate`/`embed`/`classify` tools (`stemmy/_diskcache.py`): cache root, and `STEMMY_NO_CACHE=1` to disable |
 
 Pure-DSP measurement/render tools on **either** server need **no env vars and no network** — they read and write WAVs directly. Set keys only when reaching for a Gemini/LLM tool.
@@ -440,7 +442,7 @@ Roles auto-detect from filenames: `overhead` (or `overhead_l`+`overhead_r`), `ro
 
 ### Flows (each a `drum-prep` subcommand; many also have a `/drum-*` skill)
 
-1. `drum-prep detect <dir>` — show/confirm roles; `--write-manifest` scaffolds a `kit.json`.
+1. `drum-prep detect <dir>` — show/confirm roles (overlaying `<dir>/kit.json`, or `--manifest`, if present); `--write-manifest` scaffolds a `kit.json`.
 2. `drum-prep stereo-merge <dir>` — merge every `<name> - left`/`right` pair into format-preserving stereo + image review; generalizes `overheads`.
 3. `drum-prep overheads <dir>` — merge an L/R overhead pair into one stereo reference (no-op if already stereo; `--align` to phase-lock a coincident pair).
 4. `drum-prep phase-align <dir>` — align close mics to the overheads (fixed reference): broadband → OH; kick low-passed → OH; snare-bottom→top & kick-beater→in as partner pairs composed onto OH; room polarity-only → `<dir>/phase-aligned/`.
@@ -449,7 +451,7 @@ Roles auto-detect from filenames: `overhead` (or `overhead_l`+`overhead_r`), `ro
 7. `drum-prep reference-match <dir> --reference <ref>` — match the coherent kit sum toward the reference, distributed per stem → `<dir>/ref-matched/`.
 8. `drum-prep mix <dir> --feel <roomy|punchy|natural|dry> --perspective <audience|drummer> [--plate FILE] [--flat]` — mix the prepped kit to a stereo bus by per-role loudness offsets + panning + FX return; the stage between prep and master.
 9. `drum-prep audition <dir> --reference <ref>` — loudness-matched stereo A/B WAVs → `<dir>/auditions/`; also emits loudness-matched halves (`cmp_reference.wav`/`cmp_after.wav`) for stemmy-gemini `compare-to-reference`.
-10. `drum-prep chain <dir> --reference <ref>` — detect → phase-align → reference-match → audition end to end (`--out-root` to redirect).
+10. `drum-prep chain <dir> --reference <ref>` — resolve the kit, then the three reported stages phase-align → reference-match → audition end to end (`--out-root` to redirect).
 11. `drum-prep stem-mix <dir>` — mix arbitrary named stems to a stereo bus by loudness offsets + per-stem spec; the role-agnostic song-mix ([[song-mix]]).
 12. `drum-prep sub-design <kick> --out <f>` — synthesize an envelope-followed sine sub under a kick; low-end EXTENSION EQ can't add ([[sub-design]]).
 13. `drum-prep tune <sample> [--out <f>]` — measure a drum's fundamental; retune a SAMPLE by resampling (samples/oneshots only) ([[drum-tune]]).

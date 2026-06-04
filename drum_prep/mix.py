@@ -76,7 +76,9 @@ def _balance_channels(x: np.ndarray) -> np.ndarray:
     """Even out a spaced stereo pair's L/R level asymmetry to equal RMS."""
     rms = np.sqrt(np.mean(x.astype(np.float64) ** 2, axis=0))
     tgt = float(rms.mean())
-    g = np.where(rms > 0, tgt / np.where(rms > 0, rms, 1.0), 1.0)  # inner where avoids 0-div warning
+    # tgt/rms only where rms>0 (else gain 1.0); np.divide's `where` avoids the
+    # divide-by-zero warning a plain np.where(rms>0, tgt/rms, 1.0) would still emit.
+    g = np.divide(tgt, rms, out=np.ones_like(rms), where=rms > 0)
     return x * g
 
 
@@ -137,7 +139,7 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
     lufs_anchor = meter.integrated_loudness(io.to_stereo(ax))
 
     role_counts: dict[Role, int] = {}
-    role_idx: dict[str, int] = {}
+    role_idx: dict[Role, int] = {}  # keyed by Role (like role_counts), not role.value
     for s in stems:
         role_counts[s.role] = role_counts.get(s.role, 0) + 1
 
@@ -170,8 +172,8 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
                 contrib = ch[:n] * gain
                 place = f"stereo{' (L<->R flipped)' if flip else ''}"
             else:
-                i = role_idx.get(s.role.value, 0)
-                role_idx[s.role.value] = i + 1
+                i = role_idx.get(s.role, 0)
+                role_idx[s.role] = i + 1
                 theta = float(np.clip(
                     _role_pan(s.role, perspective, i, role_counts[s.role]), -1.0, 1.0))
                 contrib = _pan(x[:n, 0], theta) * gain

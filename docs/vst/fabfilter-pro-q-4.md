@@ -25,7 +25,7 @@ The skill [[fabfilter-pro-q-4]] is the measured workflow over this doc.
    the exact curve from the screenshot (band 1 Low Cut @30 Hz, band 2 Bell @202 Hz, band 3 Bell @4085 Hz). So
    any "fresh" render rides a leftover curve. **Flatten first** (disable all 24 bands → verified bit-exact
    bypass, 1.5e-16) then configure only the bands you want, or restore a `dump_state` blob.
-3. **`apply-vst-chain`'s float dict can't really drive Pro-Q.** All 581 params are Pedalboard `valid_values`
+3. **`apply-vst-chain`'s float dict can't really drive Pro-Q.** All 581 params in this build are Pedalboard `valid_values`
    lists; the **string enums** (`band_N_shape`, `band_N_slope`, `band_N_used`, `processing_mode`, `character`)
    can't be set through a float-only dict, and you can't *enable an Unused band* through it. Our `band_8_gain=-12 @500 Hz`
    move via `apply-vst-chain` was a **no-op** (band 8 was Unused; only the restored bands 1–3 rode along). The

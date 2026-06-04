@@ -104,13 +104,16 @@ class Hub:
         else:
             try:
                 await asyncio.wait_for(session.initialize(), timeout)
-            except TimeoutError:
+            except TimeoutError as exc:
+                # Keep the asyncio cause chained (`from exc`): the original
+                # traceback shows the handshake stalled inside wait_for/initialize,
+                # which is exactly what an operator debugging a hang wants to see.
                 raise TimeoutError(
                     f"server {server_key!r} did not complete the MCP handshake within "
                     f"{timeout:g}s — is the sibling repo synced and runnable? "
                     f"(uv --directory {config.server_dir(server_key)} run …). "
                     f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
-                ) from None
+                ) from exc
         return session
 
     def session(self, server_key: str) -> ClientSession:

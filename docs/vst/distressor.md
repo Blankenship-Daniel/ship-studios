@@ -4,8 +4,9 @@ How to drive the **UADx Empirical Labs EL8 Distressor** (`/Library/Audio/Plug-In
 Universal Audio's officially-endorsed model of Dave Derr's **EL8 Distressor**, a 1990s "digitally-controlled
 analog **knee**" compressor whose 8 selectable ratio *curves* range from silky leveling to a saturated
 brick-wall, with a built-in **harmonic distortion** generator (Dist 2 / Dist 3). It's the **aggressive,
-forward, can-do-anything** compressor in the dynamics family — the FET/opto-flavoured counterpart to the tube
-COLOR of [[fairchild-660]], the solid-state opto leveling of [[la-3a]], and the VCA glue of
+forward, can-do-anything** compressor in the dynamics family — a digitally-controlled-analog **knee** comp with
+its own **harmonic-distortion** (Dist 2/3) colour, distinct from the tube COLOR of [[fairchild-660]], the
+solid-state opto leveling of [[la-3a]], and the VCA glue of
 [[ssl-bus-compressor-2]] — the measured deep-dive behind the [[distressor]] skill and a plugin-specific
 specialization of [[vst-compress]] / [[vst-saturate]].
 

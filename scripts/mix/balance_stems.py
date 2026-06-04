@@ -35,7 +35,11 @@ def main():
 
     import pyloudnorm as pyln
     arg = sys.argv[1]
-    spec = json.load(open(arg)) if os.path.exists(arg) else json.loads(arg)
+    if os.path.exists(arg):
+        with open(arg) as _f:
+            spec = json.load(_f)
+    else:
+        spec = json.loads(arg)
     out = spec["out"]
     headroom = spec.get("headroom_db", -6.0)
     dur = spec.get("duration_s")

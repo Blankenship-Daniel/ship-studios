@@ -100,8 +100,11 @@ def color(src, plan, out, mono):
     audio,sr=sf.read(src,dtype="float32",always_2d=True); x=audio.T.copy()
     if x.shape[0]==1: x=np.repeat(x,2,0)
     for k,v in params.items():
+        # Narrow to the exceptions Pedalboard raises for a bad/off-grid param assignment
+        # (AttributeError = no such param, ValueError/TypeError = invalid value); these are
+        # recorded in `fails` (graceful degradation). Truly unexpected errors propagate.
         try: setattr(p,k,v)
-        except Exception:  fails.append(f"{k}={v!r}")
+        except (AttributeError, ValueError, TypeError): fails.append(f"{k}={v!r}")
     y=Pedalboard([p])(x,sr)
     y=peak_normalize(y, float(ca.get('output_peak_dbfs',-1.0)))   # the always-normalize invariant
     if mono: y=y[:1]   # collapse dual-mono back to mono
@@ -116,7 +119,8 @@ def m(path):
                cen=S["spectral_centroid_hz"], tilt=S["spectral_tilt_db_per_octave"])
 
 def main():
-    plans=json.load(open(sys.argv[1])); src_dir=sys.argv[2]; out_dir=sys.argv[3]
+    with open(sys.argv[1]) as _f: plans=json.load(_f)
+    src_dir=sys.argv[2]; out_dir=sys.argv[3]
     dur=float(sys.argv[4]) if len(sys.argv)>4 else 0.0
     os.makedirs(out_dir, exist_ok=True)
     print(f"{'stem':<16}{'LUFS b>a':>14}{'crest b>a':>13}{'centroid b>a':>16}{'tilt b>a':>14}  notes")

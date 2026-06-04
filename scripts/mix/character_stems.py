@@ -19,6 +19,7 @@ Run with the stemmy-loops vst venv (pedalboard + the tools). duration_s>0 proces
 N seconds (fast audition); 0 = full length.
 """
 import json, os, sys, tempfile
+from pathlib import Path
 
 import numpy as np, soundfile as sf
 
@@ -45,9 +46,16 @@ def render(src, recipe, out, mono):
     if x.shape[0] == 1: x = np.repeat(x, 2, 0)
     x *= 10 ** (float(recipe.get("input_gain_db", 0.0)) / 20.0)
     plugins = []
+    plugin_root = Path(PLUGIN_DIR).resolve()
     for e in recipe.get("chain") or []:
-        path = e["file"] if str(e["file"]).startswith("/") else PLUGIN_DIR + e["file"]
-        p = load_plugin(path)
+        # Resolve relative `file` entries under PLUGIN_DIR and refuse any path (absolute or
+        # via `../`) that escapes it — plugin binaries are loaded+executed, so an untrusted
+        # plans.json must not point load_plugin() at arbitrary filesystem locations.
+        cand = Path(e["file"]) if str(e["file"]).startswith("/") else plugin_root / e["file"]
+        cand = cand.resolve()
+        if plugin_root not in cand.parents and cand != plugin_root:
+            raise ValueError(f"plugin path escapes {PLUGIN_DIR!r}: {e['file']!r}")
+        p = load_plugin(str(cand))
         for k, v in (e.get("params") or {}).items():
             note = set_param(p, k, v)               # never crashes the render; returns a note on fail/snap
             if note: warns.append(f"{os.path.basename(str(e['file']))}:{note}")
@@ -71,7 +79,8 @@ def m(path):
                 cen=S["spectral_centroid_hz"], tilt=S["spectral_tilt_db_per_octave"])
 
 def main():
-    plans = json.load(open(sys.argv[1])); src_dir = sys.argv[2]; out_dir = sys.argv[3]
+    with open(sys.argv[1]) as _f: plans = json.load(_f)
+    src_dir = sys.argv[2]; out_dir = sys.argv[3]
     dur = float(sys.argv[4]) if len(sys.argv) > 4 else 0.0
     os.makedirs(out_dir, exist_ok=True)
     print(f"{'stem':<16}{'LUFS b>a':>14}{'crest b>a':>13}{'centroid b>a':>16}{'tilt b>a':>14}  notes")

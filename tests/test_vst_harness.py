@@ -77,7 +77,9 @@ def test_set_param_snaps_numeric_near_miss_to_nearest_valid():
     p = FakePlugin({"hpf": FakeParam(["35.0", "39.8", "40.2", "45.0"])})
     note = harness.set_param(p, "hpf", 40.0)
     assert note is not None and "nearest valid" in note
-    assert p.assigned["hpf"] in ("39.8", "40.2")  # snapped to a real corner, not left at default
+    # On a distance tie (39.8 and 40.2 are both Δ0.2 from 40.0) min() keeps the FIRST
+    # candidate in valid_values order -> deterministically 39.8, not left at default.
+    assert p.assigned["hpf"] == "39.8"
     # 41.0 is unambiguously closer to 40.2.
     p2 = FakePlugin({"hpf": FakeParam(["35.0", "39.8", "40.2", "45.0"])})
     harness.set_param(p2, "hpf", 41.0)

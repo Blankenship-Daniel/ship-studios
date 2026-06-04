@@ -24,6 +24,8 @@ pedalboard is imported lazily inside ``main()`` so ``set_param`` stays importabl
 with only numpy/soundfile present — handy for the harness tests, which don't load any plugin.
 """
 import sys, json
+from pathlib import Path
+
 import numpy as np, soundfile as sf
 
 PLUGIN_DIR = "/Library/Audio/Plug-Ins/VST3/"
@@ -101,8 +103,15 @@ def main():
     x *= 10 ** (R.get("input_gain_db", 0) / 20.0)
 
     plugins = []
+    plugin_root = Path(PLUGIN_DIR).resolve()
     for e in R["chain"]:
-        p = load_plugin(PLUGIN_DIR + e["file"])
+        # Resolve the plugin file under PLUGIN_DIR and refuse a `file` that escapes it
+        # (absolute path or `../` traversal): plugin binaries are loaded+executed, so an
+        # untrusted preset must not point load_plugin() at arbitrary filesystem locations.
+        cand = (plugin_root / e["file"]).resolve()
+        if plugin_root not in cand.parents and cand != plugin_root:
+            raise ValueError(f"plugin path escapes {PLUGIN_DIR!r}: {e['file']!r}")
+        p = load_plugin(str(cand))
         for k, v in e.get("params", {}).items():
             note = set_param(p, k, v)  # exact-first, then nearest-valid snap; never crashes the render
             if note:

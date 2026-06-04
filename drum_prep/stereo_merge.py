@@ -185,6 +185,11 @@ def merge_pair(left_path: str, right_path: str, out_path: str,
     io.write_wav(out_path, np.column_stack([L, R]), sr, subtype=subtype)
     chk, _ = io.read(out_path)
     verified = chk.shape[1] == 2 and chk.shape[0] == n
+    if not verified:  # a write that silently produced the wrong shape is corruption — fail loud
+        raise OSError(
+            f"stereo merge verification failed for {out_path!r}: "
+            f"expected shape ({n}, 2), read back {chk.shape}"
+        )
     return {"out": out_path, "sr": sr, "subtype": subtype, "frames": int(n),
             "subtype_mismatch": subtype_mismatch,
             "right_subtype": right_subtype if subtype_mismatch else None,

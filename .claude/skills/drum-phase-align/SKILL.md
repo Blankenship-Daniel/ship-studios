@@ -25,6 +25,10 @@ that anchor because they already contain the kit's natural relative timing.
 
 1. **Confirm roles** — `drum-prep detect "<stems dir>"`. Verify partner wiring
    (snare-bottom → snare-top, kick-beater → kick-in) and the overhead reference.
+   A non-standard mic *name* (e.g. "Crotch Mic") detects as role **unknown** —
+   identify it by **signal, not name** (a sub mic measures LF-dominant ~70 Hz =
+   `kick_sub`), pin it in a `kit.json`, and pass `--manifest <kit.json>` to both
+   `detect` and `phase-align`.
 2. **Align** — `drum-prep phase-align "<stems dir>"`. Topology, derived from
    roles:
    - snare-top / hi-hat / toms / ride / crash → overheads (broadband)

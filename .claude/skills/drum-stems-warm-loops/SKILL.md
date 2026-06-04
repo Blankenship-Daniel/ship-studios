@@ -19,9 +19,9 @@ balance problem ([[mix-balance]]).
 
 ## Inputs & setup
 
-- **`$1` = stems folder** (e.g. `~/Desktop/<Name> - Drum Stems` or `projects/<slug>/stems`). **`$2` = slug** (optional; else slugify the folder name).
+- **Stems folder** = the path the user gave (e.g. `~/Desktop/<Name> - Drum Stems` or `projects/<slug>/stems`) — **it may contain spaces; treat the whole path as ONE argument and QUOTE it in every command** (don't rely on `$1`/`$2`, which space-split — use `$ARGUMENTS` for the raw string). **slug** = optional second arg; else slugify the folder name.
 - Prereqs: `uv sync --extra drum-prep` (this repo); in `../stemmy-loops-mcp`: `uv sync --extra vst --extra mixing`. `GEMINI_API_KEY` for the Stage-4b A/B. UADx `uaudio_studer_a800.vst3` + `uaudio_api_vision_channel_strip.vst3` installed/authorized.
-- **Run scripts with the stemmy-loops venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python`. `drum-prep` via `uv run --no-sync drum-prep`.
+- **Run scripts with the stemmy-loops venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python` (in a git worktree under `.claude/worktrees/<name>/` the `../` does NOT resolve — scripts take the path literally; resolve the sibling next to the **MAIN** checkout and pass the ABSOLUTE venv path). `drum-prep` via `uv run --extra drum-prep drum-prep`.
 - **MCP/Gemini tools resolve relative paths to the SERVER's cwd → always pass ABSOLUTE paths** to `find-loops` / the `stemmy-gemini` tools.
 
 ## Stage 0 — convert + baseline measure
@@ -31,8 +31,8 @@ balance problem ([[mix-balance]]).
 
 ## Stage 1 — phase-align close mics → overheads (gated)
 
-- `uv run --no-sync drum-prep detect <stems-dir>` → confirm roles. **FX/reverb returns auto-detect as `fx` and are excluded** from align; overheads = stereo anchor; room = polarity-only.
-- `uv run --no-sync drum-prep phase-align <stems-dir>` → `phase-aligned/`. Expect close mics to go from *negatively* correlated with the OH to positive (tighter lows).
+- `uv run --extra drum-prep drum-prep detect <stems-dir>` → confirm roles. **FX/reverb returns auto-detect as `fx` and are excluded** from align; overheads = stereo anchor; room = polarity-only. A **non-standard mic NAME** (e.g. "Crotch Mic") detects as role *unknown* — identify the role by SIGNAL not name (a sub-kick measures ~70 Hz, LF-dominant → `kick_sub`), write a `kit.json` pinning it, and pass `--manifest` to detect/phase-align.
+- `uv run --extra drum-prep drum-prep phase-align <stems-dir>` → `phase-aligned/`. Expect close mics to go from *negatively* correlated with the OH to positive (tighter lows).
 - **Stereo-image gate** (these are usually stereo *bounces*, not mono mics): `measure-stereo` each source. drum-prep **mono-collapses close mics** — that's **lossless if they're dual-mono** (`is_mono=True`, `max|L−R|=0`), which kick/snare bounces usually are; OH/room stay stereo and must be preserved. If a close mic has real width, fall back to a stereo-preserving integer-sample shift, or skip align. Note: `phase-aligned/` files are 24-bit AIFF with `.wav` names — soundfile reads them; don't feed them to ffmpeg.
 
 ## Stage 2 — process the stems (+ per-stem corrective EQ)
@@ -40,12 +40,12 @@ balance problem ([[mix-balance]]).
 Diagnose from the Stage-0 spectra, then author `presets/mix/<slug>-stem-process.plans.json` (schema = `scripts/mix/process_stems.py`). **Measure-driven & conservative** (finished bounces). Warm-philosophy rules: **cuts, never bright boosts**; no exciter; top-taming happens at the bus.
 
 - **HPF every stem** to clear rumble/bleed (kick ~30; snare ~70; **overheads ~110 to kill kick bleed**; room ~120). De-box **only where there's a real peak** (e.g. an OH/room ~400 Hz honk) — don't cut a region that's already 10 dB down (that just brightens it; see the Watercolors snare).
-- `suppress_resonances` (de_harsh) only catches **narrow** resonances — it's a no-op on broadband presence; don't add it as a top-tamer.
+- `suppress-resonances` (the `de_harsh` plan stage) only catches **narrow** resonances — it's a no-op on broadband presence; don't add it as a top-tamer.
 - Run: `$VENV scripts/mix/process_stems.py presets/mix/<slug>-stem-process.plans.json <phase-aligned-dir> <processed-dir>`. **GOTCHA:** `process_stems.py` **always** runs the API Vision strip (near-passthrough at `line_gain 0`) **and peak-normalizes each stem to −1 dBFS** — harmless because Stage 3 re-levels by LUFS. declick stays OFF (percussive). See `[[stem-process]]` — for a big kit, the `stem-process` workflow fans the per-stem diagnosis out one-agent-per-stem (the executor still runs as one serial UADx-safe pass).
 
 ## Stage 3 — warm balance (volume-adjust) + sum
 
-Measured-LUFS warm spread (bright stem **down**, body/room **up**), one global −6 dBFS headroom trim, `pan 0` for all (stereo stems keep their image; `pan` only affects mono inputs). Reuse the approved targets (`presets/mix/warm-tight-drum-bus.json`): **kick −16 · snare −18 · overhead −22 · room −26 · FX return −30**.
+Measured-LUFS warm spread (bright stem **down**, body/room **up**), one global −6 dBFS headroom trim, `pan 0` for all (stereo stems keep their image; `pan` only affects mono inputs). Reuse the approved targets (`presets/mix/warm-tight-drum-bus.json`): **kick −16 · snare −18 · overhead −22 · room −26 · FX return −30**. If the kit has **two kick-family mics** (kick + kick-sub), TUCK the secondary ~6–8 dB UNDER the main kick so the correlated LF doesn't double up and bloat the low end, and phase-align BOTH to the overheads.
 
 - Build **two** specs → `$VENV scripts/mix/balance_stems.py <spec.json>`: one **with** the FX return, one **dry**. The FX return enters here (not Stage 2): light-HPF it and **pad to full kit length** first (balance truncates to the shortest input). See `[[mix-balance]]`.
 
@@ -66,7 +66,7 @@ Loudness-match the two warm buses (peak-safe gain to a common LUFS) and A/B by e
 2. **BPM — detect, then CONFIRM with the user** (the one mandatory checkpoint). Beat-track the steady groove; auto-detect is octave/phase-ambiguous, so present the estimate + ask (the user usually knows the session tempo). Never guess.
 3. `find-loops` (absolute path, confirmed `bpm`, `bars=[1,2,4,8]`, `separate=false`, `out_dir=artifacts/<slug>-loops`).
 4. `$VENV scripts/loops/build_loops.py artifacts/<slug>-loops projects/<slug>/loops projects/<slug>/deliverables --name-prefix <slug>_drums --target-lufs -15` — per loop: seam → **raw** (tagged, no re-master, keeps warm character) and **mastered** (gentle −15, ×3 formats, tagged). It encodes the tagging gotchas (below).
-5. `uv run --no-sync drum-prep verify-tags projects/<slug>/loops` and `…/deliverables` → expect `all_tagged=True` ([[delivery-qc]]).
+5. `uv run --extra drum-prep drum-prep verify-tags projects/<slug>/loops` and `…/deliverables` → expect `all_tagged=True` ([[delivery-qc]]).
 
 **Tagging gotchas (handled in `build_loops.py` — don't undo):** `export-deliverables tag=true` drops the RIFF INFO → export `tag=False` then tag after; and `tag-deliverable` force-writes **PCM_24**, so tagging a 16-bit file upgrades it — 24-bit exports get the full in-WAV tag, **16-bit (distribution) keeps PCM_16 and has the RIFF LIST chunk spliced in from a tagged 24-bit twin** (true 16-bit *with* the in-WAV tag — beats sidecar-only; see [[delivery-qc]]). **Master gently**: drums are high-crest, so a low LUFS target over-limits (−12 collapsed crest 14→9); −15 preserves it.
 

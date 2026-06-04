@@ -1,6 +1,6 @@
 ---
 name: fairchild-660
-description: "Use when running the UADx Fairchild 660 for vintage tube COLOR + glue/leveling on a drum bus, mix bus, vocal, bass, or any source that wants 'larger-than-life' weight — 'Fairchild 660', 'Fairchild compressor', 'vari-mu tube glue', 'put the Fairchild on the drums/vocal/bus', 'that thick tube drum sound', 'parallel-smash the drums with the Fairchild', 'add tube weight/density'. The measured, plugin-specific deep-dive of [[vst-compress]] — a variable-mu tube compressor that COLORS more than it crushes (low-mid thickening, crest held), grounded in the real 12-enum-param Pedalboard surface + input/threshold/time-constant/SC-filter/parallel render numbers in docs/vst/fairchild-660.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UADx Fairchild 660 for vintage tube color + glue/leveling on a drum bus, mix bus, vocal, or bass — 'Fairchild 660', 'vari-mu tube glue', 'that thick tube drum sound', 'parallel-smash the drums with the Fairchild', 'add tube weight/density'. The plugin-specific deep-dive of [[vst-compress]] — variable-mu tube color (vs the VCA glue of [[ssl-bus-compressor-2]]). Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: color|bus-glue|parallel|tight]
 ---
 

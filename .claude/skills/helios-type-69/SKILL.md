@@ -1,6 +1,6 @@
 ---
 name: helios-type-69
-description: "Use when running the UAD/UADx Helios Type 69 Preamp and EQ for warm, characterful British-console tone or colour on drums, bus, bass, guitar, or vocals — 'Helios Type 69', 'Helios EQ', 'that Olympic Studios / Led Zeppelin console sound', 'warm vintage British EQ', 'drive the preamp for colour', 'use the Helios', or when you want its passive-style 3-band EQ + transformer-preamp saturation dialed for warmth/glue. The measured, plugin-specific deep-dive of [[vst-eq]] / [[vst-channel-strip]] (a preamp+EQ, no compressor) — grounded in the real 14-param surface + isolation/drive/EQ numbers in docs/vst/helios-type-69.md. A WARM, rock-leaning British counterpart to [[kit-bb-n105]] (Neve) and the cleaner [[ssl-4k-e]]. Stemmy MCP, the `vst` extra. UADx native (no iLok)."
+description: "Use when running the UAD/UADx Helios Type 69 Preamp and EQ for warm, characterful British-console tone or colour on drums, bus, bass, guitar, or vocals — 'Helios Type 69', 'Helios EQ', 'that Olympic Studios / Led Zeppelin console sound', 'warm vintage British EQ', 'drive the preamp for colour'. The measured deep-dive of [[vst-eq]] / [[vst-channel-strip]] (a preamp+EQ, no compressor); a WARM rock-leaning counterpart to [[kit-bb-n105]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: warm-glue|clean-eq|air|de-box|tighten|colour]
 ---
 

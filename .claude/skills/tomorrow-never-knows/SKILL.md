@@ -1,6 +1,6 @@
 ---
 name: tomorrow-never-knows
-description: "Use when the user wants The Beatles 'Tomorrow Never Knows' / Ringo / Geoff Emerick 1966 drum sound from a FOLDER of multi-mic drum stems — 'Tomorrow Never Knows drums', 'that Beatles/Revolver drum sound', 'Ringo TNK', 'heavily compressed pumping drums', 'lo-fi 60s mono drums', 'Emerick close-mic drum sound', 'crushed tom-forward drums'. The composite end-to-end recipe (#2 in the famous-drum-sound series): phase-align → per-stem process (DARK) → tom-FORWARD balance → Fairchild-pump + Studer-15IPS-dark-tape + mono-narrow bus → loops. The OPPOSITE axis from [[fool-in-the-rain]]: CRUSH/pump (not glue), DARK/lo-fi (not warm-open), MONO/narrow (not wide-room). This is the TONE, not Ringo's tom GROOVE, and it wants TOM mics. Local DSP + the stemmy MCP servers; needs the `vst` extra (Fairchild/Studer/LA-3A/Vibe) + optional GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user wants The Beatles 'Tomorrow Never Knows' / Ringo / Geoff Emerick 1966 drum sound from a FOLDER of multi-mic drum stems — 'Tomorrow Never Knows drums', 'that Beatles/Revolver drum sound', 'Ringo TNK', 'heavily compressed pumping drums', 'lo-fi 60s mono drums', 'crushed tom-forward drums'. CRUSH/pump, DARK/lo-fi, MONO/narrow — the OPPOSITE axis from [[fool-in-the-rain]], and it WANTS tom mics. Local DSP + the stemmy MCP servers; needs the `vst` extra + optional GEMINI_API_KEY."
 argument-hint: <stems-folder> [slug] [bpm]
 ---
 

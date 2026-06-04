@@ -1,6 +1,6 @@
 ---
 name: fabfilter-pro-q-4
-description: "Use when running FabFilter Pro-Q 4 for surgical, dynamic, or spectral EQ on a stem/bus/loop — 'Pro-Q 4', 'FabFilter EQ', 'surgical-EQ this', 'notch out that resonance', 'dynamic EQ the mud', 'spectral de-harsh / de-ess with Pro-Q', 'mid/side EQ the master', 'add Pro-Q Warm character'. The measured, plugin-specific deep-dive of [[vst-eq]] — a 24-band parametric EQ with per-band dynamic EQ, the new Spectral Dynamics (Soothe-style), Character saturation, and Zero-Latency/Natural/Linear phase, grounded in the real 581-param Pedalboard surface + our render results in docs/vst/fabfilter-pro-q-4.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+description: "Use when running FabFilter Pro-Q 4 for surgical, dynamic, or spectral EQ on a stem/bus/loop — 'Pro-Q 4', 'notch out that resonance', 'dynamic EQ the mud', 'spectral de-harsh / de-ess with Pro-Q', 'mid/side EQ the master', 'add Pro-Q Warm character'. The measured, plugin-specific deep-dive of [[vst-eq]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: notch|de-harsh|de-ess|dynamic|mid-side|tilt|character]
 ---
 

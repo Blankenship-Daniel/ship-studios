@@ -1,6 +1,6 @@
 ---
 name: manley-massive-passive
-description: "Use when running the UAD/UADx Manley Massive Passive (the standard EQ or the MST mastering version) for broad/musical tonal EQ on a master, mix bus, drum bus, or stem — 'Massive Passive', 'Manley Massive Passive', 'Massive Passive MST', 'mastering EQ', 'put the Massive Passive on the 2-bus/mix/drums', 'big musical low end', 'air without harshness', 'the everything-sounds-better EQ', 'broad analog mastering tilt'. The measured, plugin-specific deep-dive of [[vst-eq]] / [[vst-master]] — a 4-band-per-channel PARALLEL passive (LC inductor) EQ with a solid-state input buffer + all-tube make-up gain: Boost/Out/Cut + Shelf/Bell + a bandwidth knob per band, where dB = gain x bandwidth (NOT the dial), narrowed shelves grow a resonant corner, and the parallel bands interact (don't sum). Grounded in the real 51-enum-param Pedalboard surface + transfer-function/THD render numbers in docs/vst/manley-massive-passive.md. The BROAD musical counterpart to the surgical [[fabfilter-pro-q-4]] and the fixed-band [[pultec-eqp-1a]]. Renders headless (UADx native, no dongle here). Stemmy MCP, the `vst` extra."
+description: "Use when running the UAD/UADx Manley Massive Passive (standard or MST) for broad/musical EQ on a master, mix bus, drum bus, or stem — 'Massive Passive', 'Massive Passive MST', 'big musical low end', 'air without harshness'. The deep-dive of [[vst-eq]] / [[vst-master]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: drum-bus|low-end|air-deharsh|master-polish|de-mud|tilt]
 ---
 

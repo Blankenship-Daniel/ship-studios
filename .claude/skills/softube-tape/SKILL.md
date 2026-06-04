@@ -1,6 +1,6 @@
 ---
 name: softube-tape
-description: "Use when running the Softube Tape plugin for analog tape color, warmth, glue, or lo-fi on a stem/drum-bus/mix-bus/loop — 'Softube Tape', 'add tape', 'tape glue/warmth on the drums', 'tape on the 2-bus', 'parallel tape on the kick/bass', 'lo-fi tape character', 'Type A/B/C tape', or the three-machine deck with the RC-1 Remote Control (AMOUNT/TYPE/TAPE SPEED). The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real 15-param surface + isolation numbers in docs/vst/softube-tape.md. NOT the Ampex ([[ampex-atr-102]]) or Studer ([[studer-a800]]). Stemmy MCP, the `vst` extra."
+description: "Use when running the Softube Tape plugin for analog tape color, warmth, glue, or lo-fi on a stem/drum-bus/mix-bus/loop — 'Softube Tape', 'add tape', 'tape glue/warmth on the drums', 'tape on the 2-bus', 'parallel tape on the kick/bass', 'lo-fi tape character', 'Type A/B/C tape'. The plugin-specific deep-dive of [[vst-saturate]]. NOT the Ampex ([[ampex-atr-102]]) or Studer ([[studer-a800]]). Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: warm|tight|mix-glue|parallel|lofi]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: la-3a
-description: "Use when running the UADx Teletronix LA-3A for solid-state opto leveling / glue / parallel 'smash' on a drum bus, electric guitar, vocal, bass, room mics, or any source that wants smooth program-dependent leveling with a touch of grit — 'LA-3A', 'Teletronix', 'opto compressor on the guitar/drums', 'audio leveler', 'parallel-compress the drums with the LA-3A', 'level this vocal', 'that aggressive opto sound'. The measured, plugin-specific deep-dive of [[vst-compress]] — a solid-state electro-optical (T4) compressor that LEVELS (reduces crest, unlike the crest-holding tube [[fairchild-660]]) and colors with ODD/3rd-harmonic grit, grounded in the real 8-enum-param Pedalboard surface + peak-reduction / comp-vs-limit / HF-emphasis / parallel render numbers in docs/vst/la-3a.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UADx Teletronix LA-3A for solid-state opto leveling, glue, or parallel 'smash' — 'LA-3A', 'Teletronix', 'opto compressor on the drums/guitar', 'parallel-compress with the LA-3A'. The deep-dive of [[vst-compress]] (opto leveling, reduces crest unlike [[fairchild-660]]). Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: drum-glue|bus-level|parallel|guitar|vocal]
 ---
 

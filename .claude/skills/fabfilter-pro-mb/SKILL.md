@@ -1,6 +1,6 @@
 ---
 name: fabfilter-pro-mb
-description: "Use when running FabFilter Pro-MB for multiband dynamics — band-split compression/expansion, dynamic-EQ-style resonance/mud/boom taming, de-ess, multiband bus glue, parallel multiband, M/S dynamics, or adding dynamic presence/air — 'Pro-MB', 'FabFilter multiband', 'multiband compress this bus', 'tame the harshness only when it spikes', 'dynamic de-ess', 'glue the drum bus per band', 'upward-expand the presence', 'gate the tails dynamically'. The measured, plugin-specific deep-dive of [[vst-compress]] / [[multiband-compress]] — a 6-band dynamics processor (compression AND expansion, up/down) with dynamic crossovers, per-band sidechain + M/S, and Dynamic/Minimum/Linear phase, grounded in the real 156-param Pedalboard surface + our render results in docs/vst/fabfilter-pro-mb.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+description: "Use when running FabFilter Pro-MB for multiband dynamics — band-split compression/expansion, dynamic-EQ-style resonance/mud/boom taming, de-ess, multiband bus glue, M/S dynamics, or upward presence/air — 'Pro-MB', 'multiband compress this bus', 'tame the harshness only when it spikes', 'dynamic de-ess', 'glue the drum bus per band', 'upward-expand the presence'. The plugin-specific deep-dive of [[vst-compress]] / [[multiband-compress]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: de-harsh|de-ess|multiband-glue|tame-mud|tame-boom|add-presence|tighten|m-s|parallel]
 ---
 

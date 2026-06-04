@@ -1,6 +1,6 @@
 ---
 name: tape-j-37
-description: "DAW-ONLY reference (does NOT render headless in the ship-studios pipeline — measured passthrough): the Arturia Tape J-37, the neural-modeled Studer J37 valve tape machine (Abbey Road / Sgt. Pepper). Use when the user asks for it — 'Tape J-37', 'Arturia tape', 'Studer J37', 'that Beatles/Sgt Pepper tape sound', 'add tape with the J-37', 'use the J-37 on my drums' — but because it self-bypasses offline this skill teaches how to dial it IN YOUR DAW, hand the bounce back to the pipeline, and which HEADLESS tape ([[studer-a800]] / [[ampex-atr-102]] / saturate-loop) to use instead. The plugin-specific deep-dive of [[vst-saturate]], grounded in the real param surface + the passthrough proof in docs/vst/tape-j-37.md."
+description: "DAW-ONLY: the Arturia Tape J-37 (neural-modeled Studer J37 valve tape, Abbey Road / Sgt. Pepper) loads but renders PASSTHROUGH headless — it self-bypasses offline, so this plugin-specific deep-dive of [[vst-saturate]] teaches how to dial it in your DAW and which HEADLESS tape ([[studer-a800]]) to use in the pipeline instead. Use when asked: 'Tape J-37', 'Arturia tape', 'Studer J37', 'that Beatles/Sgt Pepper tape sound', 'use the J-37 on my drums'."
 argument-hint: <audio.wav | goal> [goal: warm/glue/vintage/dirty/transparent]
 ---
 

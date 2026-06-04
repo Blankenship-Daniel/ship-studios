@@ -1,6 +1,6 @@
 ---
 name: softube-transient-shaper
-description: "Use when running the Softube Transient Shaper to tighten or punch drums/transients — 'Softube Transient Shaper', 'transient shaper on the drums', 'tighten the transients / tighten the kick tail', 'add snare crack/attack', 'control the cymbal wash', 'less ring/boom on the drum bus', or any attack/sustain shaping with that plugin. The measured, plugin-specific deep-dive of [[drum-punch]] / [[vst-chain]] — a 2-band, level-independent attack(PUNCH)/decay(SUSTAIN) shaper, grounded in the real Pedalboard param surface + the manual recipes + our render results in docs/vst/softube-transient-shaper.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the Softube Transient Shaper to tighten or punch drums/transients — 'Softube Transient Shaper', 'tighten the kick tail', 'add snare crack/attack', 'control the cymbal wash', 'less ring/boom on the drum bus'. The measured deep-dive of [[drum-punch]] / [[vst-chain]]. Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: tighten|kick-click|snare|overheads|bus]
 ---
 

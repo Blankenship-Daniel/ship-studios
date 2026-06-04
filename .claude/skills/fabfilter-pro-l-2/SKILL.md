@@ -1,6 +1,6 @@
 ---
 name: fabfilter-pro-l-2
-description: "Use when running FabFilter Pro-L 2 to limit / maximize loudness / hit a true-peak ceiling on a master or loud bus — 'Pro-L 2', 'FabFilter limiter', 'limit this', 'maximize loudness', 'get it to -14 LUFS', 'true-peak limit to -1 dBTP', 'make it loud / competitive', 'brickwall the master', 'which Pro-L style'. The measured, plugin-specific deep-dive of [[vst-master]] — a true-peak brickwall limiter with 8 styles (Transparent/Punchy/Dynamic/Allround/Aggressive/Modern/Bus/Safe), LUFS+dBTP metering, oversampling and dither, grounded in the real 37-param Pedalboard surface + render results in docs/vst/fabfilter-pro-l-2.md. Renders headless, no-iLok. The VST alternative to render-mastered's limiter. Stemmy MCP, the `vst` extra."
+description: "Use when running FabFilter Pro-L 2 to limit / maximize loudness / hit a true-peak ceiling on a master or loud bus — 'Pro-L 2', 'FabFilter limiter', 'maximize loudness', 'true-peak limit to -1 dBTP', 'brickwall the master', 'which Pro-L style'. The plugin-specific deep-dive of [[vst-master]] — a true-peak brickwall limiter. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [target: -14lufs|-9lufs|loud|clean] [style]
 ---
 

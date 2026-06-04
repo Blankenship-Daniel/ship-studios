@@ -1,6 +1,6 @@
 ---
 name: ssl-bus-compressor-2
-description: "Use when running the SSL Native Bus Compressor 2 for bus glue / drum-bus compression — 'SSL bus comp', 'SSL Native Bus Compressor 2', 'glue the drum bus with the SSL', 'that SSL G-bus glue/quad-comp sound', 'bus compress the mix with the SSL', 'parallel/NY comp on the drums', or any VCA stereo-bus glue with that plugin. The measured, plugin-specific deep-dive of [[vst-compress]] — the SSL G-series quad bus VCA 'glue' comp, grounded in the real Pedalboard param surface + threshold/attack/release/ratio/parallel/SC-HPF render numbers in docs/vst/ssl-bus-compressor-2.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the SSL Native Bus Compressor 2 for bus glue / drum-bus compression — 'SSL bus comp', 'SSL Native Bus Compressor 2', 'glue the drum bus with the SSL', 'that SSL G-bus glue/quad-comp sound', 'parallel/NY comp on the drums'. The measured deep-dive of [[vst-compress]] for the SSL G-series VCA glue comp. Stemmy MCP, `vst` extra."
 argument-hint: <wav-or-bus> [goal: glue|mix-glue|parallel|pump]
 ---
 

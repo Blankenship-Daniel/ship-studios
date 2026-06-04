@@ -34,10 +34,15 @@ BASE = {
 }
 
 STEMS = {
-    # kick: weight + beater click, light leveling, keep lows
+    # kick_in: weight + beater click, light leveling, keep lows
     "kick_in": {"input": 4.0, "comp_thresh": 6.0, "comp_attack": "Med Fast",
                 "lo_peak": 5.0, "lo_peak_freq": 100.0, "mid_dip": -3.0, "mid_dip_freq": 500.0,
                 "hi_peak": 3.0, "hi_peak_freq": 4000.0},
+    # kick_beater (2nd kick mic): click/attack layer; low-cut so it doesn't stack
+    # sub under kick_in (kick_in owns the weight, the beater owns the attack)
+    "kick_beater": {"low_cut": "80 Hz", "input": 4.0, "comp_thresh": 6.0, "comp_attack": "Med Fast",
+                    "lo_peak": 1.0, "lo_peak_freq": 90.0, "mid_dip": -2.0, "mid_dip_freq": 500.0,
+                    "hi_peak": 4.0, "hi_peak_freq": 4000.0},
     # crotch (low-weight mic): weight + de-box, no top
     "crotch_mic": {"input": 4.0, "comp_thresh": 6.0,
                    "lo_peak": 4.0, "lo_peak_freq": 100.0, "mid_dip": -3.0, "mid_dip_freq": 500.0},
@@ -74,7 +79,12 @@ def preset(name: str, ov: dict) -> dict:
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     PRESET_DIR.mkdir(parents=True, exist_ok=True)
+    processed = 0
     for name, ov in STEMS.items():
+        if not (SRC / f"{name}.wav").exists():
+            print(f"\n--- {name}: no {name}.wav in {SRC} — skipped ---")
+            continue  # STEMS is the union over mic-set variants; treat absent keys as N/A
+        processed += 1
         pp = PRESET_DIR / f"{name}.json"
         pp.write_text(json.dumps(preset(name, ov), indent=2))
         print(f"\n=== {name} (Mic in{(ov.get('input', 4.0))} thr{ov.get('comp_thresh')}) ===")
@@ -84,6 +94,10 @@ def main() -> int:
         if r.returncode != 0:
             sys.stderr.write(r.stderr[-1500:])
             raise SystemExit(f"{name} failed")
+    if processed == 0:
+        raise SystemExit(
+            f"no STEMS keys matched a <key>.wav in {SRC} — check filenames match the "
+            f"keys {sorted(STEMS)} (rename your stems to <key>.wav, or add a STEMS entry)")
     return 0
 
 

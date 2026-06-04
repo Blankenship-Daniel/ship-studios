@@ -44,10 +44,11 @@ Run the shipped per-stem driver — it writes one VOXBOX preset per stem and app
 /Users/ship/Documents/code/stemmy-loops-mcp/.venv/bin/python \
   scripts/mix/voxbox_stems.py <de-bled-stems-dir> <voxbox-out-dir>
 ```
-`voxbox_stems.py` processes only its **six hardcoded STEMS keys** (`kick_in`, `snare_top`, `snare_bottom`, `overheads`, `room`, `crotch_mic`), each applied to `<key>.wav` in the source dir — it does **not** auto-detect roles. Rename keys / add entries (and match your filenames to `<key>.wav`) so every stem you want treated is covered; unmatched files are skipped, not auto-handled.
+`voxbox_stems.py` processes its **hardcoded STEMS keys** (`kick_in`, `kick_beater`, `snare_top`, `snare_bottom`, `overheads`, `room`, `crotch_mic`), each applied to `<key>.wav` in the source dir — it does **not** auto-detect roles. STEMS is the **union over mic-set variants**: a key with no matching `<key>.wav` is **skipped with a note (not an error)**, so a kit with `kick_in`+`kick_beater` and no crotch mic — or the reverse — both just work; only a *zero-match* run (all filenames wrong) raises. Rename keys / add entries (and match your filenames to `<key>.wav`) to cover any other stem.
 
 VOXBOX audio path is **fixed: INPUT → opto COMP (first) → tube PREAMP → Pultec EQ → de-ess** — not GUI order. `source_select Mic` for tube drive; `gain 50`; Pultec is **PEAK-DIP-PEAK only** (LOW boost / MID **negative** dip / HIGH boost), dials 0–10 nonlinear; **no make-up gain** (the harness peak-normalizes). The committed `STEMS` settings:
 - **kick_in** — `comp_attack "Med Fast"`, lo **+5@100**, mid **−3@500**, hi **+3@4000**.
+- **kick_beater (2nd kick mic)** — `low_cut "80 Hz"`, `comp_attack "Med Fast"`, lo **+1@90**, mid **−2@500**, hi **+4@4000**. The **click/attack** layer: low-cut so it doesn't stack sub under kick_in (kick_in owns the weight, the beater owns the attack). Sits well *under* kick_in in the balance (~−10 to −15 dB).
 - **snare_top** — `low_cut "80 Hz"`, `thr7`, lo **+3@150**, mid **−3@700**, hi **+5@5000**, de-ess `In 9K thr4`.
 - **snare_bottom** — `low_cut "120 Hz"`, `in3`, mid **−2@500**, hi **+4@8000**, de-ess `In 9K thr5`.
 - **overheads (stereo)** — `low_cut "80 Hz"`, `thr5`, `comp_attack "Med Slow"`, mid **−2@500**, hi **+4@12000**, de-ess `In 12K thr4`.
@@ -62,8 +63,8 @@ VOXBOX audio path is **fixed: INPUT → opto COMP (first) → tube PREAMP → Pu
 
 ### Stage 2 — balance + sum (local DSP)
 
-1. **Balance by measured LUFS, not eyeballed dB** ([[mix-balance]] / [[drum-mix]]) — overheads read hot in LUFS and carry the cymbals → set them *under* the close mics. **A balance problem is not an EQ problem.**
-2. **Sum** the corrected stems to one stereo bus: `drum-prep stem-mix <voxbox-out-dir>` (no MCP tool sums a stem set).
+1. **Balance by measured LUFS, not eyeballed dB** ([[mix-balance]] / [[drum-mix]]) — overheads read hot in LUFS and carry the cymbals → set them *under* the close mics. **A balance problem is not an EQ problem.** This rebalance is **mandatory, not cosmetic:** the harness peak-normalizes every VOXBOX render to −1 dBFS, which **destroys the inter-stem balance** — the kit MUST be re-levelled by measured loudness before summing.
+2. **Sum** the corrected stems to one stereo bus. For a multi-mic kit *with roles* (OH + room + close mics), the one-call path is **`drum-prep mix <voxbox-out-dir> --feel natural --perspective audience --dur 0`** — this IS the role-aware [[drum-mix]] tool: it LUFS-balances by role offset (OH = anchor), pans, and blends the room in a single bounce (writes `drums-mix-<feel>-<persp>.wav`). Use `--feel natural` for the warm/dynamic goal (`roomy` over-washes; `dry` kills the room glue). Only fall back to **`drum-prep stem-mix`** for *role-less* stems (it needs a `--spec` JSON of per-file gains). No MCP tool sums a stem set.
 
 ### Stage 3 — the all-Manley bus (EQ → glue)
 
@@ -107,6 +108,7 @@ Surface before→after for the whole chain:
 - **Variable Mu enum direction.** Threshold is **direct** (lower = more GR) but headroom is **inverted** (lower = hotter/more color) — dial both *to the GR meter*, not by intuition.
 - **No MP M/S.** Massive Passive has **no built-in Mid/Side** (L/R + Link only) — for an M/S bus, Variable Mu does M/S (its `in/out_matrix "M-S"` + unlinked links → L=MID/R=SIDE, the `manley-vari-mu-master-ms-glue.json` preset), but you'd handle MP's M/S externally. **Don't promise Massive Passive M/S.**
 - **Bus order is load-bearing.** Massive Passive (EQ) BEFORE Variable Mu (glue). Glue-then-EQ undoes the tone the compressor was reacting to.
+- **This chain prints a HIGH-crest bus — warn before mastering loud.** All the leveling here is gentle (opto + slow-attack vari-mu *raise* crest), so `bus_manley.wav` lands very dynamic — commonly **crest ~22–25 dB** on raw multi-mic drums. Telling [[master-track]] to hit a loud target means the limiter does *all* the work: at a streaming −14/−16 LUFS it can cost **~5 dB of overall crest**. For a **mix-stem / gain-stage print, master gentle (~−21 LUFS)** — only ~+2–3 dB over the bus, so the limiter barely engages and crest stays within ~2 dB. Useful nuance: even when *overall* crest drops, **per-band block-crest + punch survive** (the true-peak limiter shaves inter-band peak *stacking*, not the drums' attack) — so check `[L] measure-microdynamics` per band, not just the one crest number, before deciding the master "killed the punch."
 
 ## Related
 

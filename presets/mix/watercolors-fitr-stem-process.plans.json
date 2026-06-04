@@ -1,0 +1,88 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/projects/watercolors/stems/phase-aligned/Kick.wav",
+  "role": "kick (dual-mono close) — dompeak 58.6 Hz (good sub), beater click up top. Bonham: keep WEIGHT.",
+  "clean": {"hpf_hz": 30, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 30, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 350, "gain_db": -2, "q": 1.1}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 35,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -4, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 60, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 4000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -2
+  },
+  "rationale": "Keep the 58 Hz sub (do NOT cut it — it's the Bonham weight); only a gentle -2 @350 to ease box. No click boost (dark). New(FF) 3:1 Medium comp for body; 550 EQ fully flat (no low-mid scoop). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/projects/watercolors/stems/phase-aligned/Snare.wav",
+  "role": "snare top (dual-mono) — BRIGHT (centroid 5580, tilt -0.03), body at ~200. Bonham: deep+fat, ghost notes intact, no air, no gate.",
+  "clean": {"hpf_hz": 70, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 70, "gain_db": 0, "q": 0.707}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4500, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 3, "thresh": -10, "release_s": 0.18},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -4
+  },
+  "rationale": "No de-box (250-400 already ~-10 dB → cutting would only brighten this already-bright snare). Keep the body. A gentle 4.5-7k dynamic de-harsh tames the bright edge ONLY when it spikes (the snare is the one bright element). NO air, NO transient snap, NO gate — natural body + ghost notes (Bonham). 550 flat. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/projects/watercolors/stems/phase-aligned/Drum Overheads.wav",
+  "role": "overheads (stereo) — kit image + hats/cymbals (no separate hat mic). Box/kick-bleed at 200. Bonham: warm, just under the room.",
+  "clean": {"hpf_hz": 110, "denoise": false},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 200, "gain_db": -2, "q": 1.1}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 3000, "focus_hi_hz": 6300},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 100,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2.5, "thresh": -8, "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "HPF 110 + a gentle -2 @200 clear the kick-bleed/box (dompeak 199 = bleed, not warmth here). Dynamic 3-6.3k de-harsh tames cymbal/hat edge only when it rings. NO air (dark), NO low-mid cuts in the 550 (keep warmth). Old(FB) 2.5:1 for cohesion. corr 0.66 preserved. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/projects/watercolors/stems/phase-aligned/Drum Room.wav",
+  "role": "room/ambience (stereo) — THE STAR. centroid 2547 (already dark), corr 0.83. Bonham: keep it WARM, ALIVE, BIG; keep the lows.",
+  "clean": {"hpf_hz": 45, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 45, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -1.5, "q": 1.3}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 2500, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 45,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -6, "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 315, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "The room is the Bonham sound — treat lightly and KEEP ITS LOW WEIGHT: HPF only 45 (warm recipe used 120; Bonham keeps the bottom) + one gentle -1.5 @200 to ease box. Light 2.5-6k de-harsh keeps it alive. Old(FB) 2:1 @0.3 s for character/glue without crushing the natural 28.8 crest (the dynamics ARE the vibe). NO air. Pushed FORWARD in the balance. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/projects/watercolors/stems/Snare Reverb.wav",
+  "role": "snare reverb (FX return, stereo, corr -0.12 = wide tail). Bonham: KEEP it as ambience; clean the low-mid wash that loosened the warm low end.",
+  "clean": {"hpf_hz": 150, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": false},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "FX return, not a mic — so just CLEAN it: HPF 150 removes the low-mid wash that loosened the warm bus's low end (the reason the warm pass dropped it), keeping the ambient sheen. Gentle 4-7k de-harsh on the bright reverb edge. NO comp (let the tail breathe), 550 flat. Folded in LOW in the balance as ambience — A/B'd with/without in Stage 4b."
+ }
+]

@@ -188,7 +188,7 @@ def main() -> None:
 
 
 @main.command()
-@click.argument("mix_path", type=click.Path())
+@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--out", "out_path", type=click.Path(), default=None,
               help="Where to write the rendered master WAV "
                    "(default: <project>/masters/<stem>.master.wav).")
@@ -262,9 +262,9 @@ def master(
 
 
 @main.command(name="house-curve")
-@click.argument("mix_path", type=click.Path())
+@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--reference", "reference_paths", multiple=True, required=True,
-              type=click.Path(),
+              type=click.Path(exists=True, dir_okay=False),
               help="Reference track to fold into the house curve (repeatable).")
 @click.option("--profile-json", "profile_json", type=click.Path(), default=None,
               help="Where to write/read the shared profile JSON "
@@ -314,7 +314,7 @@ def _expand_mix_paths(paths: tuple[str, ...]) -> list[str]:
 
 
 @main.command(name="batch-master")
-@click.argument("mix_paths", nargs=-1, required=True, type=click.Path())
+@click.argument("mix_paths", nargs=-1, required=True, type=click.Path(exists=True))
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
 @click.option("--platform", "target_platform", default="spotify", show_default=True,
@@ -352,7 +352,7 @@ def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
 
 
 @main.command(name="unmask-stems")
-@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
               help="JSON object mapping a stem NAME (filename without extension) to "
                    "its complementary EQ cuts (eq_bands / dynamic_eq_bands).")
@@ -398,7 +398,7 @@ def unmask_stems_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
 
 
 @main.command(name="stem-master")
-@click.argument("stem_paths", nargs=-1, required=True, type=click.Path())
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
               help="JSON object mapping a stem NAME (filename without extension) to "
                    "its corrective moves (eq_bands / deess / suppress / "
@@ -446,7 +446,7 @@ def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
 
 
 @main.command(name="mix-check")
-@click.argument("mix_path", type=click.Path())
+@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--severity", "severity_threshold", default="any", show_default=True,
               type=click.Choice(SEVERITY_CHOICES),
               help="Lowest severity floor to report (any reports everything).")
@@ -500,8 +500,8 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
 
 
 @main.command(name="reference-match")
-@click.argument("mix_path", type=click.Path())
-@click.option("--reference", "ref_path", required=True, type=click.Path(),
+@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--reference", "ref_path", required=True, type=click.Path(exists=True, dir_okay=False),
               help="Reference track to match the mix toward.")
 @click.option("--goal", default="match the reference tonal balance and loudness",
               show_default=True)
@@ -545,7 +545,7 @@ def reference_match_cmd(
 
 
 @main.command()
-@click.argument("input_path", type=click.Path())
+@click.argument("input_path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--bpm", required=True, type=click.FloatRange(min=1, max=400),
               help="Known tempo of the source (1-400 BPM).")
 @click.option("--out-dir", type=click.Path(), default=None,
@@ -614,7 +614,7 @@ def loops(
 
 
 @main.command()
-@click.argument("path", type=click.Path())
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--transcribe/--no-transcribe", default=True, show_default=True,
               help="Transcribe speech (the default). Auto-skips when you request a "
                    "more specific analysis (region/event/labels/compare/json) without "
@@ -627,7 +627,7 @@ def loops(
 @click.option("--labels", default=None,
               help="Comma-separated labels for zero-shot classification.")
 @click.option("--multi-label", is_flag=True, default=False)
-@click.option("--compare", "compare_paths", multiple=True, type=click.Path(),
+@click.option("--compare", "compare_paths", multiple=True, type=click.Path(exists=True, dir_okay=False),
               help="Additional file(s) to compare against PATH.")
 @click.option("--compare-prompt", "compare_prompt", default=None,
               help="Prompt to focus the comparison (with --compare).")

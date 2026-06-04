@@ -15,6 +15,9 @@ Mic-drive harmonic map, the 4-band EQ, the licensing/headless caveat, recipes, d
 isolation numbers — lives in [`docs/vst/kit-bb-n105.md`](../../../docs/vst/kit-bb-n105.md). This skill is
 the workflow.
 
+> **iLok/PACE:** verified-headless on THIS rig only — if authorization drifts, re-screen with
+> [[vst-verify]] before trusting a render; never run an unlicensed/trial instance unattended.
+
 ## The governing facts (read first)
 
 1. **The Neve color is MIC-MODE ONLY — measured.** `pre_amp_mode="Mic"` + `pre_amp_saturation=true` is

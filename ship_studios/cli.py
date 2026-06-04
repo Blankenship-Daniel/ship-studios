@@ -1,9 +1,10 @@
 """``ship-studios`` console-script entry point.
 
 A small click group that wires CLI args into the async pipeline functions
-via the MCP Hub. Five pipeline subcommands (master, mix-check,
-reference-match, loops, understand) plus a ``doctor`` that checks env vars
-and sibling-repo presence and prints setup guidance.
+via the MCP Hub. Nine pipeline subcommands (master, house-curve,
+batch-master, unmask-stems, stem-master, mix-check, reference-match, loops,
+understand) plus a ``doctor`` that checks env vars and sibling-repo presence
+and prints setup guidance.
 
 Imports stay lazy: ``doctor`` only touches :mod:`ship_studios.config` (no
 SDK), and the pipeline subcommands import the Hub + pipelines inside their
@@ -151,10 +152,10 @@ def _load_eq_bands(
 
     try:
         data = json.loads(Path(path).read_text())
-    except FileNotFoundError:
-        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from None
+    except FileNotFoundError as exc:
+        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from exc
     except json.JSONDecodeError as exc:
-        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from None
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from exc
     if not (isinstance(data, list) and all(isinstance(b, dict) for b in data)):
         raise click.BadParameter(
             "expected a JSON list of band objects, e.g. "
@@ -172,10 +173,10 @@ def _load_json_obj(path: str | None, hint: str) -> dict[str, Any] | None:
 
     try:
         data = json.loads(Path(path).read_text())
-    except FileNotFoundError:
-        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from None
+    except FileNotFoundError as exc:
+        raise click.BadParameter(f"file not found: {path}", param_hint=hint) from exc
     except json.JSONDecodeError as exc:
-        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from None
+        raise click.BadParameter(f"invalid JSON in {path}: {exc}", param_hint=hint) from exc
     if not isinstance(data, dict):
         raise click.BadParameter("expected a JSON object", param_hint=hint)
     return data

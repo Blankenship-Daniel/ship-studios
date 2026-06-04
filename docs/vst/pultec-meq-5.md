@@ -23,8 +23,9 @@ verified, cited*. The skill [[pultec-meq-5]] is the measured workflow over this 
    account, no dongle — **re-verify on a new machine** ([[vst-verify]]).
 2. **The MEQ-5 0–10 dial is ROUGHLY dB here** — the key distinction from the [[pultec-eqp-1a]] (nonlinear,
    not-dB) and [[hitsville-eq-mastering]] ("8 ≈ +5 dB") knobs. Measured: **LOW PEAK ≈ +1 dB/unit → +10.7 dB max**;
-   **HIGH PEAK ≈ +0.9/unit → +8.8 dB max** (matches the hardware's documented **+8 dB** ceiling, Part B); the
-   **DIP is nonlinear/saturating** (−1.4 @2, −4.9 @4, −8.9 @6, **−11 dB max**, ~flat past 7).
+   **HIGH PEAK ≈ +0.9/unit → +8.84 dB max** (within ±1 dB of the ~+8 dB hardware spec, Part B); the
+   **DIP is nonlinear/saturating** (−1.4 @2, −4.9 @4, −8.9 @6, **−11 dB max**, ~flat past 7) — so **dials 6–10 add
+   little extra cut: set the DIP by ear/meter, not by the number.**
 3. **Three sections, fixed-stepped frequencies, broad overlapping bells (passive).** LOW PEAK **200/300/500/700/
    1000 CPS**; DIP **200/300/500/700 CPS · 1/1.5/2/3/4/5/7 KCS** (11 steps); HIGH PEAK **1.5/2/3/4/5 KCS**. Boost
    bells are ~1.5–2 octaves wide; the DIP ~1 octave (a touch more focused); the **HIGH PEAK narrows at higher

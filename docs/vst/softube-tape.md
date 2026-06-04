@@ -22,14 +22,14 @@ renders); **Part B** is a *web-research synthesis* (cited) of how the plugin act
 
 ## TL;DR (the headline, measured)
 
-1. **Amount is gain-compensated → it barely moves the tone; it moves the *crest*.** Sweeping Amount 2→10
+1. **FOOTGUN — the plugin's DEFAULT state is already hot.** A bare load = Amount **7.8**, Type **C**, fully
+   **WET**, **+6 dB Input**, Crosstalk **50** → crest **−0.9 dB** out of the box. **A no-params `apply-vst-chain`
+   applies a lot.** Always set Amount / dry_wet explicitly for subtle use.
+2. **Amount is gain-compensated → it barely moves the tone; it moves the *crest*.** Sweeping Amount 2→10
    (peak-normalized) shifted spectral centroid only ~2218→2245 Hz, but crest fell **−0.2 dB (a2) → −0.9 dB
    (a8) → −4.9 dB (a10)**. So **read Amount as saturation + tape-compression, not brightness.** The knee is
    steep: ≤8 is gentle glue, **10 crushes** (and "spits" 3rd harmonic). The official guide is "drive until the
    THD meter reads ~1–1.4 %" — headless you can't see that meter, so **use crest drop + your ears (render-ab)**.
-2. **The plugin's DEFAULT state is already hot.** A bare load = Amount **7.8**, Type **C**, fully **WET**,
-   **+6 dB Input**, Crosstalk **50** → crest −0.9 dB out of the box. **A no-params `apply-vst-chain` applies a
-   lot.** Always set Amount / dry_wet explicitly for subtle use.
 3. **The Types differ mostly in low-end weight (on drums).** At equal Amount 5: **A = most transparent**
    (centroid 2212 ≈ dry 2223), **B = darkest & fattest** (2113, most LF), **C = in between** with a touch
    more top. Pick by weight: A clean → C colored → B fattest.

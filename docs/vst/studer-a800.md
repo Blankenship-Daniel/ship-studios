@@ -15,20 +15,20 @@ measured workflow over this doc.
 
 ## TL;DR (the headline, measured)
 
-1. **Lightly-driven tape DARKENS — *usually* a harshness cure, not the cause.** Isolated on our drum bus, the
-   Studer pulled spectral centroid **−341 Hz** (warmer); every lever we swept only ever darkened it further.
-   So when a "tape" chain sounds harsh, **suspect upstream first** — measure each plugin alone (on our 70s drum
-   bus the culprit was the **Neve 1073's +2 dB @ 3.2 kHz mid**, centroid **+808**, not the tape). **But tape can
-   itself be the harsh one:** over-driving the Input or **under-biasing** generates the tape's *own* odd
-   (3rd/5th/7th) saturation + IMD straight into the **2–6 kHz** presence band (§5), and high-headroom GP9/900
-   stay brighter. Rule: isolate & measure *every* stage — and fix a **tape-stage** harshness with **less Input /
-   over-bias / higher-headroom tape**, not by blaming the EQ. *(Verified 2026-06-03: an adversarial web fact-check
-   confirmed the measured darkening; it refuted only the over-absolute "almost always upstream" wording — hence
-   this scope.)*
+1. **Lightly-driven tape DARKENS — but harshness can be upstream OR from tape over-drive.** Isolated on our drum
+   bus, the Studer pulled spectral centroid **−341 Hz** (warmer); every lever we swept only ever darkened it
+   further. **Isolate & measure every stage.** If the tape stage alone adds measured harsh odd-harmonics
+   (`[L] measure-distortion`), reduce **Input** / increase **over-bias** / pick a **higher-headroom tape** (GP9/900);
+   if tape *darkens* the centroid, suspect the stage **before** it — on our 70s drum bus the culprit was the
+   **Neve 1073's +2 dB @ 3.2 kHz mid** (centroid **+808**), not the tape. Over-driving the Input or
+   **under-biasing** generates the tape's *own* odd (3rd/5th/7th) saturation + IMD straight into the **2–6 kHz**
+   presence band (§5).
 2. **Centroid is a *balance* metric — mind the 30-IPS trap.** We measured **30 IPS as *darker* than 15 IPS**
    (−517 vs −341) even though textbooks call 30 IPS "brighter." Both are true: 30 IPS extends the absolute
    top *and* moves its head bump up to ~100–120 Hz, and on bass-heavy drums that upper-bass weight pulls the
-   centroid down. Read the full spectrum, know what the number means.
+   centroid down. **Don't characterize IPS brightness by centroid alone** — a lower centroid here is the
+   upper-bass weight, not a darker top; read the full third-octave spectrum (and the absolute HF band), not the
+   one number.
 3. **For taming top-end specifically**, the direct levers (measured) are **`repro_hf_eq` down** (−1364 at 0),
    **bias up / over-bias** (theory), and **less Input drive** — not IPS alone.
 4. **Default starting point:** `path_select=Repro`, `tape_type=456`, `ips=15 IPS`, `emphasis_eq=NAB`,

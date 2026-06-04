@@ -59,9 +59,13 @@ def detect_role(filename: str) -> tuple[Role, float]:
         conf = 1.0 if has_tok("oh", "ohs") or "overhead" in base else 0.6
         if has_sub("stereo"):
             return Role.OVERHEAD, conf
-        if has_tok("l", "left") or base.endswith(" l"):
+        has_l = has_tok("l", "left") or base.endswith(" l")
+        has_r = has_tok("r", "right") or base.endswith(" r")
+        if has_l and has_r:  # both qualifiers present -> a full stereo OH, not a side
+            return Role.OVERHEAD, conf
+        if has_l:
             return Role.OVERHEAD_L, conf
-        if has_tok("r", "right") or base.endswith(" r"):
+        if has_r:
             return Role.OVERHEAD_R, conf
         return Role.OVERHEAD, conf
 
@@ -74,9 +78,11 @@ def detect_role(filename: str) -> tuple[Role, float]:
             return Role.KICK_BEATER, conf
         if has_tok("out", "outside", "front", "reso") or has_sub("outside", "front"):
             return Role.KICK_OUT, conf
+        if has_tok("in", "inside") or has_sub("inside"):
+            return Role.KICK_IN, conf  # explicit 'in'/'inside' wins over a stray 'sub'
         if has_tok("sub"):
             return Role.KICK_SUB, conf
-        return Role.KICK_IN, conf  # explicit 'in'/'inside' and bare 'kick'
+        return Role.KICK_IN, conf  # bare 'kick'
 
     if has_tok("snare", "sn", "snr") or has_sub("snare"):
         conf = 1.0 if has_tok("snare") or "snare" in base else 0.6

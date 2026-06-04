@@ -21,9 +21,15 @@ with an audio `Part`. Skill: `[[gemini-audio-understanding]]`; pipeline skill: `
 | **Event detection** | Timestamped instances of a described event (kicks, drops, crashes) | `extract-audio-events` |
 | **Long-audio summarization** | Summarize >1 h / >100 MB sources via Files API | `summarize-long-audio` |
 | **Structured extraction** | Fill an arbitrary JSON schema from audio | `audio-to-json` |
-| **Perceptual mix/master critique** | Tonal/stereo*/depth balance, audible issues, A/B vs ref, release-readiness | `analyze-mix-balance`, `detect-mix-issues`, `compare-to-reference`, `mastering-feedback`, `recommend-mastering-chain` |
 
-\* *Stereo/width is a perceptual guess only — Gemini hears mono. See caveats.*
+The six rows above are the **understand-audio** pipeline (`[[understand-audio]]`). The
+mix/master critique tools that *also* run on this same audio-in machinery — `analyze-mix-balance`,
+`detect-mix-issues`, `compare-to-reference`, `mastering-feedback`, `recommend-mastering-chain` —
+are **not** part of the understand pipeline; they belong to the **mix-check**, **master-track**,
+and **reference-match** pipelines (`[[mix-check]]` / `[[master-track]]` / `[[reference-match]]`).
+They're listed under "Related Gemini tools beyond audio understanding" at the bottom of this page.
+
+> *Stereo/width is a perceptual guess only — Gemini hears mono. See caveats.*
 
 **Non-speech understanding is real.** Gemini describes music, ambience, and SFX, not just
 speech — which is exactly what the mix/master critique tools lean on (harshness, pumping,
@@ -114,8 +120,25 @@ See [models-and-pricing.md](models-and-pricing.md) for the full table and prices
 
 ---
 
+## Related Gemini tools beyond audio understanding
+
+These run on the same audio-in machinery but are **perceptual critique**, not understanding —
+they live in other pipelines, so don't reach for them from the understand step:
+
+| Tool | Pipeline / skill |
+|---|---|
+| `analyze-mix-balance` | mix-check (`[[mix-check]]`) |
+| `detect-mix-issues` | mix-check (`[[mix-check]]`) |
+| `compare-to-reference` | reference-match (`[[reference-match]]`) |
+| `mastering-feedback` | master-track (`[[master-track]]`) |
+| `recommend-mastering-chain` | master-track (`[[master-track]]`) |
+
+All five should respect the mono-downsample caveat (Gemini can't judge stereo/true-peak/loudness).
+
+---
+
 ## Related
 
 - `[[understand-audio]]` — the pipeline skill that *uses* these tools (routing table for the ask).
-- `[[mix-check]]` / `[[master-track]]` / `[[reference-match]]` — perceptual critique built on this area; all should respect the mono-downsample caveat.
+- `[[mix-check]]` / `[[master-track]]` / `[[reference-match]]` — the perceptual-critique pipelines built on this area; all should respect the mono-downsample caveat.
 - [caveats-and-limits.md](caveats-and-limits.md) · [sdk-patterns.md](sdk-patterns.md) · [models-and-pricing.md](models-and-pricing.md)

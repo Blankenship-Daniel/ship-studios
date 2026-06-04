@@ -72,10 +72,12 @@ Hz). Provenance: `scripts/mix/massive_passive_sweep.py [mst] [96000]`.
 | **UADx Manley Massive Passive MST** | `…/VST3/uaudio_manley_massive_passive_m.vst3` | ✅ MST mastering (±11 dB, stepped + L/R trim) |
 | UAD Manley Massive Passive[ MST].component | `…/Components/UAD Manley Massive Passive*.component` | ❌ passthrough twin (offline) |
 
-### The real parameter surface (51 enums — authoritative)
+### The real parameter surface (51 enums — authoritative, STANDARD build)
 
 Per channel `ch1` / `ch2`, four bands `lo` / `lomid` / `himid` / `hi`, each five params; plus per-channel filters
-+ trim + engage, plus three globals. **ALL 51 are Pedalboard enums.** Gain/bw/freq are *numeric* enums (an on-grid
++ trim + engage, plus three globals. **ALL 51 are Pedalboard enums.** (The **51 count is for the standard build**;
+the MST build wasn't separately param-counted on this rig — same layout, but its detented gain/bw + the extra ±2.5 dB
+L/R trim mean its surface differs slightly, so dump it directly with `dump_params.py massive_passive` before driving it.) Gain/bw/freq are *numeric* enums (an on-grid
 float via `setattr` works); `*enable` / `*shape` / `*lopass` / `*hipass` / `ctrllink` / `power` are string/bool
 enums → **harness only** (and those switches *are* the instrument).
 

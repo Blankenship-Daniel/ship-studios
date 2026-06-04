@@ -26,8 +26,9 @@ the lows, or only the highs** around one crossover. It's the plugin-specific, me
    (unnatural). Fix: **`sustain_band=LOW`** (with the crossover ~700 Hz) → tighten the kick/snare *body/boom*
    while cymbals/hats keep their natural decay. This is the manual's own logic (Lo-band for toms, Hi-band for
    room/cymbals).
-3. **It renders headless via Pedalboard** (`changed:true`, iLok authorized here). Softube/iLok is usually a
-   render-farm landmine ([[vst]]) — **re-verify load+render on any other machine.**
+3. **It renders headless via Pedalboard** (`changed:true`, iLok authorized here). **Softube uses iLok/PACE**
+   (machine activation or a USB dongle — iLok **Cloud** is not suitable for an offline render farm), so it's the
+   usual render-farm landmine ([[vst]]). **Verified-headless on this rig; verify load+render on each render node.**
 4. **Level-independent (no threshold)** — it reacts to transient *shape*, not gain, so you don't gain-stage
    into it (unlike the API strip). The output `clip` soft-clips at 0 dB; keep input with headroom or it
    engages.

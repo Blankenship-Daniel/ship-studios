@@ -52,7 +52,7 @@ The plugin **renders headless** (UADx native, no iLok — the `vintage-1960s` pr
 the input. Confirm it really processes by pushing a *tonal* param (`repro_hf_eq=0`, or Record drive) and
 re-measuring, **not** by trusting the auto-probe.
 
-### The real parameter surface (Pedalboard-exposed — 30 params)
+### The real parameter surface (Pedalboard-exposed — 30 params: 28 audio/modeling params + the 2 control bools `power`/`master_bypass`)
 
 Every parameter is an **enum** (Pedalboard exposes the ATR's controls as discrete value lists). Gains accept a
 float that snaps to the nearest step; mode/speed/tape/width/EQ are string/bool enums. All of this must go

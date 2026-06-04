@@ -28,10 +28,13 @@ plugin-specific specialization of [[vst-compress]].
 3. **AUTO release = smooth glue; fixed fast releases PUMP.** AUTO gave crest ~18; fixed **0.1–0.6 s gave
    crest ~21** (more breath/pump). AUTO is the safe default; pick a fixed fast release on purpose for pumping.
 4. **Threshold is RELATIVE to input level, not dBFS.** Dial it to the GR, not a number (see the map below).
-5. **Tooling gotcha:** `ratio` / `release_s` / `sidechain_hpf_hz` / `oversampling` are **string enums** and
+5. **The `'X'` ratio is a super-ratio (>20:1, <∞), NOT a limiter.** It's the most aggressive RATIO option (greater
+   than 20:1 but less than infinity per SSL) — reach for it for parallel/NY smash, not as a brickwall (don't limit
+   here; hand to [[master-track]]).
+6. **Tooling gotcha:** `ratio` / `release_s` / `sidechain_hpf_hz` / `oversampling` are **string enums** and
    `comp_bypass`/`external_s_c`/`mix_lock` are **bools** — `apply-vst-chain`'s float dict can't set them.
    Ratio + release are fundamental → use the **[[vst-preset]] harness**.
-6. **Renders headless via Pedalboard** (`changed:true`). SSL Native is **iLok/PACE** machine-activated — the
+7. **Renders headless via Pedalboard** (`changed:true`). SSL Native is **iLok/PACE** machine-activated — the
    iLok render-farm landmine ([[vst]]): re-verify on any new machine; a demo/unactivated
    seat may load yet render demo-noise/silence.
 

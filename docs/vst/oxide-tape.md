@@ -36,9 +36,16 @@ measured workflow over this doc.
    **3027 → 3475 (+448)** and HF energy up — NAB = warmer/fuller, CCIR = brighter/leaner top.
 5. **15 IPS = the warm, full-low setting; 7.5 IPS = the "more colored / frequency-shift" setting** (leaner lows,
    more upper energy). Note this **inverts** the textbook "slower = bigger bass head-bump" — on this model 15 IPS
-   carries the low-end weight.
+   carries the low-end weight. The IPS speeds here are **voiced for practical mixing, not spec accuracy** (UA
+   tuned them as a usable tone pair, not a faithful head-bump model); and **centroid is a *balance* metric, not
+   an absolute warmth indicator** — 7.5 IPS reads "brighter" partly because its leaner low end lifts the number,
+   not because the top genuinely extends (rationale at §3 / "IPS"). Trust the full spectrum + your ears.
 6. **Default starting point:** `path_select=Repro`, `ips=15 IPS`, `emphasis_eq=NAB`, `noise_reduct=true`, then
-   drive `input_level` and pull `output_level` down to gain-match.
+   drive `input_level` and pull `output_level` down to gain-match. `noise_reduct` defaults **on** and is
+   **tonally inert on a hot bus** (it only strips the modeled hiss/hum floor, not tone) — so **leave it on** for
+   any normal-level drum/mix bus, and **disable it only** when the floor is deliberately part of the sound (lo-fi
+   / vibe), when chaining many instances would otherwise stack the modeled noise, or on a very quiet / exposed
+   passage where you *want* the tape-noise character.
 
 ---
 

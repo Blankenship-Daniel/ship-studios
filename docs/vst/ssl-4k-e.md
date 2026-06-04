@@ -251,6 +251,19 @@ is active.
 - **HQ** — intelligent **oversampling** (anti-alias) at higher CPU. **360°** — links the 4K E with Channel
   Strip 2 / 4K B / third-party plugins in the **SSL 360° Plug-in Mixer** (irrelevant to an offline render).
 
+> **Headless settable-via-`apply-vst-chain` (float dict) — the explicit lists** (the full proof is Part A §⚠
+> "The headless gotcha"):
+> - **Float-settable** (the float-valued discretes — these take): `input_trim_db`, `mic_db`, `output_trim_db`,
+>   `high_pass_filter_hz`, `low_pass_filter_khz`, `lf_frequency_hz`, `lmf_frequency_khz`, `hmf_frequency_khz`,
+>   `hf_frequency_khz`, `lf_gain_db`, `lmf_gain_db`, `hmf_gain_db`, `hf_gain_db`, `lmf_q`, `hmf_q`,
+>   `compressor_threshold_db`, `compressor_release_s`, `compressor_mix`, `compressor_auto_make_up_offset_db`,
+>   `gate_range_db`, `gate_threshold_db`, `gate_release_s`, `width`, `width_frequency_hz`.
+> - **String enums (silently ignored by the float dict → use the [[vst-preset]] harness with exact strings):**
+>   `compressor_ratio`, `fader_level_db`, `pan`, `eq_colour`, `lf_type`, `hf_type`, `width_mode`, and **every
+>   `Out`/`In` routing/enable toggle** (`pre`, `polarity`, `analogue_vca`, `filters_in`, `filters_to_input`,
+>   `filters_to_s_c`, `eq_in`, `eq_to_s_c`, `dynamics_in`, `dynamics_pre_eq`, `compressor_fast_attack`,
+>   `compressor_auto_make_up`, `gate_fast_attack`, `gate_expander`, `s_c_listen`, `external_s_c`, `bypass`).
+
 ## 6. Practical technique (starting points)
 
 - **Drum bus (weight + punch — the SSL way):** **Black** EQ, HPF ~40, LF **bell** +3 @ 70–90 (weight),

@@ -14,6 +14,9 @@ sibling of the 4-band Neve [[kit-bb-n105]] (31105) and the warm counterpart to t
 map, the 3-band EQ, the licensing/headless caveat, recipes, and our isolation numbers — lives in
 [`docs/vst/kit-bb-n73.md`](../../../docs/vst/kit-bb-n73.md). This skill is the workflow.
 
+> **iLok/PACE:** verified-headless on THIS rig only — if authorization drifts, re-screen with
+> [[vst-verify]] before trusting a render; never run an unlicensed/trial instance unattended.
+
 ## The governing facts (read first)
 
 1. **It's a 1073 — 3 EQ bands, not the N105's four.** A **FIXED 12 kHz** HF shelf (`high_shelf_gain`, *no*

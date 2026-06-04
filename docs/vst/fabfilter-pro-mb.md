@@ -19,7 +19,8 @@ param surface + our own render results); **Part B** is a *web-research synthesis
 ## TL;DR (the headline, measured)
 
 1. **It renders headless AND it's no-iLok** — uniquely safe here. Pro-MB loads + processes through Pedalboard
-   0.9.23 (probe: pushing `output_level` moved the audio Δ 2.44; **156 params**). FabFilter uses a **simple
+   0.9.23 (probe: pushing `output_level` moved the audio Δ 2.44; **156 params = 6 bands × 21 + 30 globals**).
+   FabFilter uses a **simple
    license key, no iLok/PACE/UAD dongle**, so like [[fabfilter-pro-q-4]] it is a *clean* render-farm candidate
    (unlike the [[vst]] iLok/UAD landmines). Use the **VST3** path (an AU `.component` twin is
    also installed).

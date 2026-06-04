@@ -22,7 +22,7 @@ Gemini audio splits into one **input** area and three **output** areas:
 
 | # | Area | Direction | What it is | In this repo? | Doc |
 |---|---|---|---|---|---|
-| 1 | **Audio understanding** | audio **in** → text/JSON out | Transcribe, describe, classify, Q&A, event-detect, summarize, structured-extract | ✅ **Yes** — all 11 perceptual `stemmy-gemini` tools | [audio-understanding.md](audio-understanding.md) |
+| 1 | **Audio understanding** | audio **in** → text/JSON out | Transcribe, describe, classify, Q&A, event-detect, summarize, structured-extract | ✅ **Yes** — the audio-in `stemmy-gemini` tools (see "How this maps to the repo today") | [audio-understanding.md](audio-understanding.md) |
 | 2 | **Speech generation (TTS)** | text **in** → speech **out** | Controllable narration, 30 voices, multi-speaker | ❌ Not wired (read-only server) | [speech-generation.md](speech-generation.md) |
 | 3 | **Live API (real-time audio)** | audio **in** ↔ audio **out** | Low-latency bidirectional voice, VAD, barge-in | ❌ Not wired (stdio req/resp shape) | [live-api.md](live-api.md) |
 | 4 | **Music generation (Lyria)** | text **in** → music **out** | Instrumental/song generation, real-time steering | ❌ Not wired | [music-generation.md](music-generation.md) |
@@ -65,12 +65,23 @@ roadmap's headline finding. Full treatment in [caveats-and-limits.md](caveats-an
 
 ## How this maps to the repo today
 
-`stemmy-gemini-mcp` is an **audio-understanding** server: 11 Gemini perceptual tools
-(transcribe, describe-region, compare, classify, extract-events, summarize-long, audio-to-json,
-analyze-mix-balance, detect-mix-issues, compare-to-reference, mastering-feedback) plus a parallel
-pure-DSP measurement suite. It is **read-only** — it uploads audio and returns text/JSON, never
-writes audio ([SECURITY.md](https://github.com/) of that repo). That's why areas 2–4 (which
-*emit* audio) are documented here as **reference + wire-up notes**, not as live tools:
+`stemmy-gemini-mcp` is an **audio-understanding** server built on Gemini perceptual tools, all
+audio-in → text/JSON, plus a parallel pure-DSP measurement suite. They split two ways:
+
+- **Audio-understanding** (the `understand-audio` pipeline) — `transcribe-audio`,
+  `describe-audio-region`, `extract-audio-events`, `classify-audio`, `compare-audio-files`,
+  `audio-to-json`, and `summarize-long-audio`.
+- **Perceptual mix/master critique** (the mix-check / master-track / reference-match pipelines)
+  — `analyze-mix-balance`, `detect-mix-issues`, `compare-to-reference`, `mastering-feedback`,
+  `critique-region`, `master-assistant`, and `recommend-mastering-chain`.
+
+Two of these — `summarize-long-audio` and `recommend-mastering-chain` — are **documented
+reference tools, not yet wired into a pipeline** (no canonical pipeline calls them today); the
+rest are wired into the pipelines named above.
+
+The server is **read-only** — it uploads audio and returns text/JSON, never writes audio (see
+the stemmy-gemini-mcp repo's `SECURITY.md`). That's why areas 2–4 (which *emit* audio) are
+documented here as **reference + wire-up notes**, not as live tools:
 
 - **Speech/TTS & Music/Lyria** would write audio files — a new capability that breaks the
   read-only invariant; [speech-generation.md](speech-generation.md) / [music-generation.md](music-generation.md)

@@ -29,17 +29,19 @@ verified). The skill **[[kit-bb-n73]]** is the measured workflow.
    `pre_amp_saturation` are **inert — byte-identical, 0.00 % THD at every setting**. Switch
    `pre_amp_mode="Mic"` for the transformer/preamp drive: sensitivity adds **a lot** of gain
    (**−80 = max, ~+23 dB over −20**).
-4. **`pre_amp_saturation=TRUE` is mandatory in Mic mode.** With saturation **ON** the Mic stage is the
-   controlled soft-transformer path (**~0.2–0.3 % THD**, level-managed). With saturation **OFF** the Mic
-   preamp is a raw high-gain amp that **digitally CLIPS when driven** (**23 % THD @ sens −50, 46 % @ −80**) —
-   only reach for sat-off as a deliberate overdrive effect. *(This is the opposite emphasis from the N105,
-   where Mic was always gentle.)*
+4. **`pre_amp_saturation=TRUE` is strongly recommended / required for transparent operation in Mic mode.**
+   With saturation **ON** the Mic stage is the controlled soft-transformer path (**~0.2–0.3 % THD**,
+   level-managed). With saturation **OFF** the Mic preamp is a raw high-gain amp that **digitally CLIPS when
+   driven** — **sat-OFF is a raw clipping overdrive (23–46 % THD: 23 % @ sens −50, 46 % @ −80) — use only
+   for intentional distortion FX.** *(This is the opposite emphasis from the N105, where Mic was always
+   gentle.)*
 5. **On a real drum bus, Mic drive = WEIGHT + warmth, not sheen.** It added low-end weight **beyond the EQ
    alone** (low ratio 0.542 → **0.671**, vs 0.605 from the same EQ in clean Line mode), stayed **dark**
    (centroid +81 Hz, vs +571 for clean Line), and **kept crest** (23.6 → 23.1). Warmth from the transformer,
    **not from an EQ air boost** — exactly the house **warm + tight** preference.
-6. **`master_bus_toggle` IS host-exposed here** (it wasn't on the N105): `MST On` = a subtle 8058/8078
-   master-buss **glue** (~1.9 % THD on a sine, faint density, crest −0.2). **No host Auto-Gain.**
+6. **`master_bus_toggle` IS host-exposed here** (unlike the N105, whose Master-Buss control is GUI-only /
+   not host-automatable): `MST On` = a subtle 8058/8078 master-buss **glue** (~1.9 % THD on a sine, faint
+   density, crest −0.2). **No host Auto-Gain.**
 7. **Every param is an enum.** Numeric controls accept a **float** (rounded to 0.1) — gains reach via
    `apply-vst-chain`. **Frequencies / modes / switches are string/bool enums** the float dict can't set →
    use the **[[vst-preset]]** harness.

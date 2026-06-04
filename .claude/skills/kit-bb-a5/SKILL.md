@@ -14,6 +14,9 @@ param surface, the drive/harmonic map, the 3 EQ modules, the MSTR-BUSS gotcha, r
 and our own isolation numbers — lives in [`docs/vst/kit-bb-a5.md`](../../../docs/vst/kit-bb-a5.md).
 This skill is the workflow.
 
+> **iLok/PACE:** verified-headless on THIS rig only — if authorization drifts, re-screen with
+> [[vst-verify]] before trusting a render; never run an unlicensed/trial instance unattended.
+
 ## The governing facts (read first)
 
 1. **MIC is the colored/driven path; LINE is cleaner — measured + maker-confirmed.** `pre_amp_source="Mic

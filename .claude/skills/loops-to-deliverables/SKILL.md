@@ -73,10 +73,13 @@ no direct gemini-server call is required for the standard flow.
    ask for `key`/`root_note` if not known.
 6. **Per loop — export the matrix** — `stemmy-loops:export-deliverables
    {path: <tagged loop>, out_dir: projects/<track>/deliverables/, presets:
-   ["distribution_44k_16", "production_48k_24", "master_96k_24"], tag: true}` —
-   the 44.1/16 + 48/24 + 96/24 formats. TPDF dither + metadata carry-forward
-   across all three. (Preset names are an exact allow-list; omit `presets` to
-   get the `distribution_44k_16` + `production_48k_24` default pair.)
+   ["distribution_44k_16", "production_48k_24", "master_96k_24"], tag: false}` —
+   the 44.1/16 + 48/24 + 96/24 formats. TPDF dither across all three. Export
+   with **`tag: false`** then re-tag each exported WAV with `tag-deliverable`
+   afterward — `tag: true` silently drops the RIFF `LIST`/`INFO` chunk + the
+   `.tags.json` sidecar (see the Pitfalls). (Preset names are an exact
+   allow-list; omit `presets` to get the `distribution_44k_16` +
+   `production_48k_24` default pair.)
 7. **Optional — audible descriptions** — `stemmy-loops:describe-loops
    {out_dir}`. Gemini-backed groove / feel / kit-emphasis notes attached to
    the set, for pack metadata or for the user to pick favorites.
@@ -121,10 +124,13 @@ diagnosis options.
 - **`tag-deliverable` in-place (`out_path == path`) fails.** It writes through
   a `<path>.rewrite.tmp` temp file, and libsndfile can't infer a format from
   the `.tmp` extension, so the call errors. **Fix:** tag with `out_path != path`
-  — stage to a *sibling* dir using the **same basename** (so the emitted
-  `<basename>.tags.json` sidecar name matches the loop), then move the tagged
-  WAV back over the export. Then **verify the WAV actually contains a `LIST`
-  chunk** (e.g. grep the header for `LIST`) — don't trust the success return.
+  — keep it in the **same dir** and insert a suffix before the extension (the
+  pattern the `loops` pipeline uses: `a.wav` → `a.master.wav` → `a.tagged.wav`),
+  e.g. `{path: kick.master.wav, out_path: kick.tagged.wav}` → sidecar
+  `kick.tagged.tags.json`. Then move the tagged WAV back over the export. Pairs
+  with the export pitfall above (`tag: false`, then re-tag): **verify the WAV
+  actually contains a `LIST` chunk** (e.g. grep the header for `LIST`) — don't
+  trust the success return.
 
 ## Related
 

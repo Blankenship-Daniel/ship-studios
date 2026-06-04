@@ -59,7 +59,9 @@ the screenshot).
 
 ### The real parameter surface (Pedalboard-exposed — authoritative)
 
-**956 automatable parameters.** Every parameter — even drive/gain/frequency — is exposed as a `valid_values` list
+**956 automatable parameters** — the bulk is the modulation system: **6 bands × 17 = 102** per-band + the global
+controls below, with the rest the deep modulation matrix (a 50-slot matrix, 6 XLFOs at 432 params, 6 EGs, 4 envelope
+followers, 6 XY, 10 MIDI — see the Modulation row). Every parameter — even drive/gain/frequency — is exposed as a `valid_values` list
 (a quantized grid), not a free float. Numeric params accept a `setattr` float and **snap to the grid**; string/bool
 params take the exact enum value. The map:
 

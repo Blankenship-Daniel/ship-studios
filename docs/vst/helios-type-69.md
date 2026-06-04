@@ -28,11 +28,11 @@ history). The skill [[helios-type-69]] is the measured workflow over this doc.
    tone control with a **sweet spot** — moderate fattens, too much "sounds nasty."
 3. **The −20 dB pad makes the drive musical** on line-level signal. The pad attenuates *before* the gain stage, so
    **Mic g40 + pad** lands at a gentle **1.9 % THD**, crest 14.6 → 13.1 (moderate glue) instead of the nuclear 53 %.
-4. **The bass BOOST is unreachable headless — only the CUT renders.** The `bass` boost positions (60/120/250/400 Hz)
-   produce **exactly 0.00 dB** change via Pedalboard, because the boost *amount* is a **separate Bass-Gain control
-   that the surface exposes hard-locked to `'Off'`** (the real hardware is a switch **+** a Bass-Gain knob — Part B).
-   The negative `bass` values (−3…−15) **do** render — a broad low-shelf **cut/tighten**. For low-end **weight**,
-   use the Mic drive (it fills lows) or `[L] apply-eq`.
+4. **The bass BOOST is unreachable headless — only the CUT renders, so for low-end WEIGHT drive the Mic preamp (it
+   fills lows) or boost with `[L] apply-eq`.** The `bass` boost positions (60/120/250/400 Hz) produce **exactly
+   0.00 dB** change via Pedalboard, because the boost *amount* is a **separate Bass-Gain control that the surface
+   exposes hard-locked to `'Off'`** (the real hardware is a switch **+** a Bass-Gain knob — Part B). The negative
+   `bass` values (−3…−15) **do** render — a broad low-shelf **cut/tighten**.
 5. **Peak/Trough is nonlinear (footgun).** Peak honours `mid_gain` 1:1 (8 → +8.2 dB); **Trough remaps far smaller**
    (8 → a true −2.1 ≈ −1.3 dB cut) — push toward **12–15** for a real cut. Set `mid_type` **first**, read back.
 6. **All 14 params are enums → drive it with the [[vst-preset]] harness, not `apply-vst-chain`'s float dict.** The

@@ -145,8 +145,13 @@ ship-studios --help
 
 ## Pipelines
 
-Six pipelines, each available as a Claude Code skill/command and (where it
-processes audio) as a CLI subcommand.
+Five audio pipelines, each available as a Claude Code skill/command **and** as a
+CLI subcommand (these are the five in `ship_studios/pipelines.py` driven by the
+CLI). A sixth, `new-track`, is filesystem-only scaffolding — a skill/command with
+**no CLI subcommand** (it calls no MCP tools). *(`pipelines.py` also carries four
+async helpers — `batch_master`, `house_curve`, `stem_master`, `unmask_stems` —
+used by their own skills/commands; they're not counted among the five core CLI
+pipelines.)*
 
 ### `master-track` — mix → platform-ready master
 
@@ -214,7 +219,7 @@ Pure filesystem. Creates `projects/<slug>/` with `stems/`, `mix/`, `masters/`,
 
 ## drum-prep — multi-mic drum stem prep (local DSP)
 
-Unlike the six pipelines above, **`drum-prep` is local DSP, not the MCP servers.**
+Unlike the pipelines above, **`drum-prep` is local DSP, not the MCP servers.**
 It lives in a separate `drum_prep/` package (numpy/scipy/soundfile/pyloudnorm)
 behind an optional extra, and covers a job neither stemmy server does: taking a
 folder of *individual drum mics* (overheads, snare top/bottom, kick in/beater,

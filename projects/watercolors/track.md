@@ -138,3 +138,14 @@ KEPT as ambience (vs dropped on the warm bus).
   + **21 mastered** (−15/−16 LUFS, crest 13-15, ×3 formats in `deliverables/`). All tagged — sidecars + in-WAV
   RIFF LIST/INFO on every file, 16-bit distribution stays PCM_16 with the embedded tag. find-loops scratch in
   `artifacts/watercolors-fitr-loops/`. (8-bar skipped — the 58 s performance is too short.)
+- **Spotify master** (`masters/watercolors_drums_bonham_master.wav`, via [[master-track]], meter-driven —
+  Gemini is mono-deaf to loudness/TP so it was not consulted): target shootout −14/−15/−16. The source is so
+  peaky (crest 24.7) that −14 and −15 land identically (plays −14.7, crest 16.3); −16 keeps crest 18.0 but
+  plays 1.6 LU quieter. **Picked −14 / −1.0 dBTP** = `render-mastered` (HPF 30, no added transient, 48k/24).
+  Result: **−14.7 LUFS-I · −1.02 dBTP · crest 16.3** (from 24.7 — still more dynamic than the warm master's
+  13.9). `check-streaming-targets`: **Spotify ✓ (plays −14.6) · YouTube ✓ · Tidal ✓**; Apple plays it −1.3 dB
+  down (its −16 target — like the warm master, not a defect). Dynamics-first alt kept at
+  `masters/shootout/bonham_m16.wav` (−16, crest 18, Apple-optimal). **Deliverables:** `deliverables/masters/`
+  — `watercolors_drums_bonham_master.{distribution_44k_16, production_48k_24, master_96k_24}.wav`, all tagged
+  (BPM 104; export-deliverables tag=true wrote NO tags here, so re-tagged via the build_loops _tag_16/_tag_24
+  splice — 16-bit stays PCM_16 with the in-WAV LIST chunk).

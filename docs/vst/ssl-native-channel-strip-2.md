@@ -32,7 +32,11 @@ The skill [[ssl-native-channel-strip-2]] is the measured workflow over this doc.
 4. **E vs G EQ is real but SUBTLE.** Same +5 dB HF shelf @ 10 k: **G centroid 5224 Hz vs E 5098 Hz** (MCP) — **G a
    touch brighter / airier, E a touch warmer / fuller** in the upper-mids. Use **G** for broad bus tone, **E** for
    drums + surgical mid cuts (constant-Q at low gain).
-5. **Meters own this** (Gemini hears mono): crest = punch/glue, correlation = tight, centroid/tilt = bright-vs-warm.
+5. **`lf_gain_db` is ±16.5 dB on this build, NOT the published ±20.** The measured Pedalboard surface caps the LF
+   band at **−16.5 … +16.5** (the other three bands are ±20); a `lf_gain_db=20.0` is **off-grid** → `setattr`
+   throws / the harness warns and leaves LF at default. Stay within ±16.5 (or reach for the GUI if you truly need
+   ±20) — see Part A's LF-gain note.
+6. **Meters own this** (Gemini hears mono): crest = punch/glue, correlation = tight, centroid/tilt = bright-vs-warm.
 
 ---
 

@@ -211,6 +211,24 @@ async def test_house_curve_requires_references(recording_hub) -> None:
         await pipelines.house_curve(recording_hub, "mix.wav", [])
 
 
+@pytest.mark.parametrize(
+    "result",
+    [
+        "not a dict",                                        # non-dict result
+        {"profile_path": "p.json"},                          # missing 'bands'
+        {"bands": []},                                       # empty 'bands'
+        {"bands": [{"delta_db": 2.0}]},                      # band missing 'freq_hz'
+        {"bands": [{"freq_hz": 100.0, "delta_db": "loud"}]},  # delta_db not numeric
+        {"bands": "nope"},                                   # 'bands' wrong type
+        {"bands": [{"freq_hz": "low", "delta_db": 2.0}]},     # freq_hz wrong type
+    ],
+)
+def test_profile_delta_curve_none_on_unexpected_shape(result) -> None:
+    # Defensive: a malformed match-to-profile payload yields None (caller skips
+    # the match-eq render) and never raises.
+    assert pipelines._profile_delta_curve(result) is None
+
+
 async def test_batch_master_per_track_then_album_pass() -> None:
     from tests.conftest import RecordingHub
 
@@ -252,6 +270,26 @@ async def test_batch_master_masters_dir_override() -> None:
         "out/masters/a.master.wav",
         "out/masters/b.master.wav",
     ]
+
+
+async def test_batch_master_default_layout_non_mix_path() -> None:
+    # No masters_dir override + a parent dir that ISN'T "mix" -> _master_out's
+    # third branch: masters/ sits beside the source file (parent / "masters"),
+    # not project-root/masters (that's the parent.name == "mix" branch).
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()
+    result = await pipelines.batch_master(
+        hub, ["subdir/mix.wav", "subdir/mix2.wav"]
+    )
+    masters = [
+        "subdir/masters/mix.master.wav",
+        "subdir/masters/mix2.master.wav",
+    ]
+    assert result["masters"] == masters
+    # every render targets that sibling masters/ dir.
+    renders = [c.args for c in hub.calls if c.tool == "render-mastered"]
+    assert [r["out_path"] for r in renders] == masters
 
 
 async def test_batch_master_requires_paths(recording_hub) -> None:

@@ -34,6 +34,17 @@ def test_fx_returns_detected() -> None:
     assert detect_role("snare top.aif")[0] == Role.SNARE_TOP  # a real mic stays a mic
 
 
+def test_kick_in_wins_over_sub() -> None:
+    # explicit 'in'/'inside' beats a stray 'sub' token (was misdetected as kick_sub).
+    cases = {
+        "kick in - sub bass.aif": Role.KICK_IN,
+        "kick inside sub.aif": Role.KICK_IN,
+        "kick sub.aif": Role.KICK_SUB,  # bare sub still wins when no in/inside
+    }
+    for filename, role in cases.items():
+        assert detect_role(filename)[0] == role, filename
+
+
 def test_confidence_ordering() -> None:
     assert detect_role("snare top.aif")[1] == 1.0       # exact keyword
     assert detect_role("weird mic.aif")[1] == 0.0       # no match

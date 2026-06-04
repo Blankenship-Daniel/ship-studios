@@ -238,7 +238,9 @@ to 9.1.6 in Dec 2021); MIDI Learn.
 - **Spectral Dynamics** *(new)*: enable the spectral icon on a dynamic Bell/Shelf and the band stops moving its
   whole gain — instead it **compresses/expands only the individual frequencies inside the band that exceed the
   threshold**, leaving neighbours flat. **Spectral Density** = selectivity (*low = wide range, high = narrow/
-  surgical*). **Spectral Tilt** (3 dB/oct, default on in 4.02) biases triggering toward highs. **Enabling
+  surgical*). **Spectral Tilt** (3 dB/oct, default on in 4.02) biases triggering toward highs. *(⚠️ As the Part A
+  note at line 92 records, `spectral_tilt` is **not in the Pedalboard surface on this rig** — so this is a GUI-only
+  feature here, not scriptable headless; describe it, don't try to drive it.)* **Enabling
   spectral forces that band to linear phase** (adds latency by resolution — even when the global mode is
   Natural/Zero-Latency; other bands keep the global mode). Uses: de-harsh, de-ess, resonance taming — a built-in
   Soothe.

@@ -2,9 +2,10 @@
 
 How to drive the **UADx Manley VOXBOX Channel Strip** (`/Library/Audio/Plug-Ins/VST3/uaudio_manley_voxbox.vst3`)
 — UA's component-level model of the **Manley Laboratories VOXBOX** (1998), a mono **all-tube** "reference channel
-strip" and the most celebrated **vocal channel** ever built (NAMM TECnology Hall of Fame 2016). Four blocks in one
-box: a **tube mic/line preamp**, a **passive electro-optical compressor**, a **passive Pultec-style (MEQ-5-derived)
-3-band EQ**, and a **de-esser / opto limiter** — plus an output transformer. It's the **smooth, open, "hi-fi" tube**
+strip" and the most celebrated **vocal channel** ever built (NAMM TECnology Hall of Fame 2016). **Four functional
+blocks** in one box: a **tube mic/line preamp**, a **passive electro-optical compressor**, a **passive Pultec-style
+(MEQ-5-derived) 3-band EQ**, and a **de-esser / opto limiter** — plus an output transformer (so the *signal-flow*
+counts six elements incl. input + transformer: `INPUT → COMPRESSOR → PREAMP → EQ → DE-ESS/LIMITER → OUTPUT`; see §2 TL;DR). It's the **smooth, open, "hi-fi" tube**
 member of [[vst-channel-strip]] (and the only one of our deep-dives with a built-in compressor *and* EQ *and*
 de-esser): warmer/cleaner/more-flexible than an Avalon 737, the tube opposite of the clean [[ssl-native-channel-strip-2]]
 and the punchy [[api-vision-channel-strip]] / [[kit-bb-a5]]. **Part A** is *measured on this rig* (the real Pedalboard

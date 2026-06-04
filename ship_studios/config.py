@@ -75,6 +75,11 @@ GEMINI_OVERRIDE_ENV: tuple[str, ...] = (
     "STEMMY_MCP_MODEL",
     "STEMMY_MCP_THINKING_LEVEL",
     "STEMMY_MCP_THINKING_BUDGET",
+    # STEMMY_MCP_ALLOWED_ROOTS is a filesystem allow-list ENFORCED by the Gemini
+    # subprocess itself (it Path.resolve()-normalizes incoming paths and checks
+    # each resolved path against its resolved allowed parents). The hub only
+    # forwards the raw value through unmodified — it does not parse, normalize, or
+    # validate paths against this list (path validation lives in the server).
     "STEMMY_MCP_ALLOWED_ROOTS",
 )
 #: Loops-server overrides ([L]): LLM model choices for its LLM-backed tools,

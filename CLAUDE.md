@@ -209,8 +209,9 @@ stem-master adds the per-stem baseline, tone/dynamics shaping, the `drum-prep st
 1. `[G] match-reference-numeric` — per-third-octave delta-dB curve + LUFS/TP/RMS/crest/tilt deltas.
 2. `[G] compare-to-reference` — perceptual A/B deltas + actionable moves (`goal`).
 3. `[L] compare-tonality` — second numeric per-band delta + confidence (cross-check).
-4. `[L] apply-eq` — collapse the reconciled delta into a few shelves/bells (+ `tilt_db_per_octave`) and render the corrected mix (runs only when reconciled `eq_bands` are supplied). For a faithful render of the *whole* delta curve rather than a few bands, drive `[L] match-eq` instead (reconciled delta → a min/linear-phase corrective FIR; pass `source_path`+`reference_path`, or the `delta_db_curve` from step 1/3; `match_strength` ~0.5, `phase` min/linear) and follow with `[L] apply-eq` only for surgical residuals.
-5. `[L] render-ab` — `processed`=corrected mix, `reference`=ref → single A/B WAV in `projects/<track>/mix/`. Report residual deltas (`[L] compare-tonality` again; `match-eq` also returns `residual_delta_db`).
+4. `[L] match-eq` — **always runs** (the primary corrective): render the reconciled source-minus-reference delta as a min/linear-phase corrective FIR toward the reference (pass `source_path`+`reference_path`, or the `delta_db_curve` from step 1/3; `match_strength` ~0.5, `phase` min/linear) → the matched mix.
+5. `[L] apply-eq` — **optional residual** (runs only when reconciled `eq_bands` are supplied): layer a few surgical shelves/bells (+ `tilt_db_per_octave`) on the matched output from step 4.
+6. `[L] render-ab` — `processed`=corrected mix (the match-eq output, or the apply-eq output if step 5 ran), `reference`=ref → single A/B WAV in `projects/<track>/mix/`. Report residual deltas (`[L] compare-tonality` again; `match-eq` also returns `residual_delta_db`).
 
 For a whole EP/album, capture **one shared house curve** with `[L] build-target-profile` over the references, then match each mix to it with `[L] match-to-profile` → `[L] match-eq` — a single consistent target across the set ([[house-curve]]).
 
@@ -377,7 +378,7 @@ uv sync   # no extras — all deps bundled
 | `STEMMY_MCP_MODEL` | optional `[G]` Gemini model override (default `gemini-3.1-pro-preview`) |
 | `STEMMY_LISTEN_MODEL` | optional `[L] describe-loops` Gemini model override (default `gemini-3.1-pro-preview`). **Separate from `STEMMY_MCP_MODEL`** — the loops server's listen tool reads its own var, so to move *every* Gemini read off the default you must set this **alongside** `STEMMY_MCP_MODEL` (changing only `STEMMY_MCP_MODEL` leaves `describe-loops` on the old model — the footgun) |
 | `STEMMY_MCP_THINKING_LEVEL` / `STEMMY_MCP_THINKING_BUDGET` | optional `[G]` per-call thinking-tier override (else a per-tool default tier is used: high for verdict/critique tools, low for cheap tags) |
-| `STEMMY_MCP_ALLOWED_ROOTS` | optional `[G]` filesystem allow-list |
+| `STEMMY_MCP_ALLOWED_ROOTS` | optional `[G]` filesystem allow-list — an OS-path-separator-delimited (`:` on POSIX, `;` on Windows) list of **absolute** directory roots. The **Gemini server enforces** it (each input path is `Path.resolve()`d and must be a child of an allowed root, else the read is refused); the **hub passes paths through unmodified** (no validation/rewrite on this side). Add your `projects/` / `artifacts/` roots, or leave it unset for unrestricted local use. |
 | `SHIP_STUDIOS_LOOPS_DIR` / `SHIP_STUDIOS_GEMINI_DIR` | optional override for the sibling-repo locations (the hub/CLI auto-resolve `../stemmy-*-mcp` from the **main** checkout, git worktrees included); set these only for a non-standard layout (CI, a vendored checkout) |
 | `STEMMY_CACHE_DIR` / `STEMMY_NO_CACHE` | optional `[L]` disk-cache controls read by the loops server's `separate`/`embed`/`classify` tools (`stemmy/_diskcache.py`): cache root, and `STEMMY_NO_CACHE=1` to disable |
 

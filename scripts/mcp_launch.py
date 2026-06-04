@@ -33,11 +33,12 @@ from ship_studios import config  # noqa: E402
 
 
 def _console_for(key: str) -> str:
-    return (
-        config.LOOPS_CONSOLE_SCRIPT
-        if key == config.LOOPS_SERVER
-        else config.GEMINI_CONSOLE_SCRIPT
-    )
+    # Explicit per-key lookup: an unknown key raises KeyError rather than
+    # silently falling back to the gemini console script.
+    return {
+        config.LOOPS_SERVER: config.LOOPS_CONSOLE_SCRIPT,
+        config.GEMINI_SERVER: config.GEMINI_CONSOLE_SCRIPT,
+    }[key]
 
 
 def main(argv: list[str]) -> int:

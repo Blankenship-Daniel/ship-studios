@@ -47,7 +47,7 @@ lineage (like [[ampex-atr-102]] / Pultec) — but re-verify `changed:true` on a 
 `uaudio_*.vst3` build, not the `/Components/UAD Fairchild 660.component` twin** (passthrough offline →
 [[vst-verify]] / [[vst]]).
 
-**Param surface (Pedalboard snake_case — what you set in code/the harness). All 12 are ENUMs:**
+**Param surface (Pedalboard snake_case — what you set in code/the harness). 12 parameters, all enums — but only some need the harness:** the **numeric** enums (`input`, `thresh`, `time_const`, `bal`, `dc_thr`, `output`, `mix`, `headroom`) ARE float-settable via `apply-vst-chain` (they snap to the nearest valid step); the **string** enums (`meter`, `sc_filt`) and the **bools** (`power`, `master_bypass`) are NOT — those need the [[vst-preset]] harness:
 
 | Param | Type | Range / values (measured) | GUI control |
 |---|---|---|---|

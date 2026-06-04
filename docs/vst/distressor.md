@@ -59,7 +59,7 @@ the iLok-**account** (no-dongle) build — re-verify `changed:true` on a new mac
 `uaudio_distressor.vst3` build, not the `/Components/UAD Empirical Labs Distressor.component` twin**
 (passthrough offline → [[vst-verify]] / [[vst]]).
 
-**Param surface (Pedalboard snake_case — what you set in code/the harness). All 12 are ENUMs:**
+**Param surface (Pedalboard snake_case — what you set in code/the harness). 12 parameters: 4 string enums + 6 numeric enums + 2 bools** (only the string enums — `ratio`/`detector`/`audio` (+ `bypass`) — are the `apply-vst-chain` settability problem; the numeric enums are float-settable):
 
 | Param | Type | Range / values (measured) | GUI control |
 |---|---|---|---|

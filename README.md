@@ -316,7 +316,7 @@ ship-studios/
 ├── ship_studios/              headless CLI package
 │   ├── config.py              sibling paths, server keys, stdio params
 │   ├── mcp_client.py          async hub over both ClientSessions
-│   ├── pipelines.py           the five pipelines as async functions
+│   ├── pipelines.py           the nine pipeline async functions
 │   └── cli.py                 `ship-studios` console script
 ├── drum_prep/                 local drum-stem DSP (opt-in `drum-prep` extra)
 │   ├── dsp.py io.py roles.py kit.py qc.py     shared DSP + role/kit model + QC

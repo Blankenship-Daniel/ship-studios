@@ -34,9 +34,10 @@ measured deep-dive behind the [[manley-variable-mu]] skill and a plugin-specific
    rms −33.8, in6 → −19.6, in10 → +4.0 dBFS (clips). Crest held ~17. **Drive it to hit the tubes for color.**
 5. **ATTACK: 0 = SLOW (punch, crest 17.4) … 10 = FAST (clamp, crest 16.4).** Flat until ~7 then it grabs.
    **RECOVERY (5-pos): `Med` = most open (crest 17.38); `Fast` = densest/pumps (16.40).**
-6. **HEADROOM is the inverted DRIVE lever (4–28 dB, default 16):** LOWER value = hotter into the tubes (more
-   saturation, *less* GR for a fixed input); HIGHER = cleaner with MORE GR. Measured: **HR4 ≈ no GR + most
-   color (crest 16.90); HR28 = −5.8 dB GR, crest collapses to 15.96.** Dial to the meter.
+6. **HEADROOM is the inverted DRIVE lever (4–28 dB, default 16):** LOWER dB value = hotter into the tubes (most
+   saturation) + *least* GR at a fixed input; HIGHER dB value = cleaner per-sample but compressing hardest (most
+   GR). Measured: **HR4 ≈ no net GR + most color (crest 16.90); HR28 = −5.8 dB GR, crest collapses to 15.96.**
+   Dial to the meter.
 7. **Tube color is EVEN-harmonic (2nd) and LEVEL-dependent.** A 1 kHz sine is clean at −18 dBFS (0.03–0.05 %
    THD) and only colors when driven hot: **−6 dBFS → 0.21 % THD with H2 ~10 dB above H3.** So you add color
    by driving the *level* in (`dual_input` ↑ / `headroom` ↓), not by lowering the threshold.

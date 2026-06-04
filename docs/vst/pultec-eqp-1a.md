@@ -68,9 +68,10 @@ reproducibility. Measurement rig: `scripts/mix/pultec_sweep.py` (Welch cross-spe
 
 ### The real parameter surface (Pedalboard-exposed — authoritative for this build)
 
-**12 parameters, all enums.** The frequency selectors + `enable`/`output` are **string** enums; the Boost/Atten/
-Bandwidth knobs are **fine-grained numeric** enums (`0.00–10.00` in 0.01 steps — effectively continuous *knob
-positions*, NOT dB).
+**12 parameters, all enums — all 12 are functional** (no reserved/cosmetic/cruft params on this surface; the count
+is 10 audio controls — the EQ + `output` trim — plus the 2 control bools `power`/`master_bypass`). The frequency
+selectors + `enable`/`output` are **string** enums; the Boost/Atten/Bandwidth knobs are **fine-grained numeric**
+enums (`0.00–10.00` in 0.01 steps — effectively continuous *knob positions*, NOT dB).
 
 | Param | Type | Values | Control / measured behaviour |
 |---|---|---|---|

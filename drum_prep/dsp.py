@@ -32,7 +32,9 @@ GROUPS: dict[str, tuple[float, float]] = {
 # time-domain alignment helpers
 # --------------------------------------------------------------------------- #
 def mono(x: np.ndarray) -> np.ndarray:
-    """Collapse a (N, ch) array to a mono (N,) signal by channel mean."""
+    """Collapse a (N, ch) array to a mono (N,) signal by channel mean.
+
+    A 1-D ``(N,)`` input is already mono and is returned unchanged."""
     a = np.asarray(x, dtype=float)
     return a.mean(axis=1) if a.ndim == 2 else a
 
@@ -48,6 +50,8 @@ def normcorr(a: np.ndarray, b: np.ndarray) -> float:
         return 0.0  # empty overlap -> 0 correlation (avoids a NaN from mean([]))
     a = a[:n] - a[:n].mean()
     b = b[:n] - b[:n].mean()
+    if not (np.all(np.isfinite(a)) and np.all(np.isfinite(b))):
+        return 0.0  # NaN/Inf input -> 0 correlation (avoids a NaN dot product)
     na, nb = np.linalg.norm(a), np.linalg.norm(b)
     return 0.0 if na == 0 or nb == 0 else float(np.dot(a, b) / (na * nb))
 
@@ -115,7 +119,7 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     if 0 < idx < len(cc) - 1:
         y0, y1, y2 = abs(cc[idx - 1]), abs(cc[idx]), abs(cc[idx + 1])
         den = y0 - 2 * y1 + y2
-        delta = 0.5 * (y0 - y2) / den if den != 0 else 0.0
+        delta = 0.5 * (y0 - y2) / den if abs(den) > 1e-12 else 0.0
     else:
         delta = 0.0
     return lags[idx] + delta, peak
@@ -201,7 +205,14 @@ def tilt(db: np.ndarray, centers: np.ndarray) -> float:
 
 
 def interp_gain_db(freqs: np.ndarray, centers: np.ndarray, gains_db: np.ndarray) -> np.ndarray:
-    """Log-frequency interpolation of band gains onto FFT bins (DC forced flat)."""
+    """Log-frequency interpolation of band gains onto FFT bins (DC forced flat).
+
+    ``centers`` MUST be ascending (np.interp requires sorted ``xp``); the
+    internal callers pass the ascending ``THIRD_OCT`` / ``OCT`` constants, so
+    this is a guard only for external/direct callers.
+    """
+    if np.any(np.diff(centers) < 0):
+        raise ValueError("centers must be ascending")
     lf = np.log10(np.clip(freqs, 1e-6, None))
     g = np.interp(lf, np.log10(centers), gains_db, left=gains_db[0], right=gains_db[-1])
     g[freqs <= 0] = 0.0

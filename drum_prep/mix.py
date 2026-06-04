@@ -134,7 +134,7 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
 
     anchor = next((s for s in stems if s.role == Role.OVERHEAD), None) or stems[0]
     ax, _ = io.read(os.path.join(stems_dir, anchor.name))
-    lufs_anchor = meter.integrated_loudness(io.to_stereo(ax) if not flat else ax)
+    lufs_anchor = meter.integrated_loudness(io.to_stereo(ax))
 
     role_counts: dict[Role, int] = {}
     role_idx: dict[str, int] = {}
@@ -172,7 +172,8 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
             else:
                 i = role_idx.get(s.role.value, 0)
                 role_idx[s.role.value] = i + 1
-                theta = _role_pan(s.role, perspective, i, role_counts[s.role])
+                theta = float(np.clip(
+                    _role_pan(s.role, perspective, i, role_counts[s.role]), -1.0, 1.0))
                 contrib = _pan(x[:n, 0], theta) * gain
                 place = "center" if theta == 0 else f"pan {round(theta * 100)}%"
         mix[:len(contrib)] += contrib[:n]

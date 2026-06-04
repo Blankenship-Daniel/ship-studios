@@ -9,10 +9,13 @@ problems to warnings and aligns unknowns broadband to the overheads.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
 
 from drum_prep.roles import Role, _norm, detect_role
+
+logger = logging.getLogger(__name__)
 
 AUDIO_EXTS = (".wav", ".aif", ".aiff", ".flac")
 _KICK_ANCHOR_ROLES = (Role.KICK_IN, Role.KICK_OUT, Role.KICK_SUB)
@@ -95,7 +98,9 @@ def _try_samplerate(src_dir: str, stems: list[KitStem]) -> int | None:
     for s in stems:
         try:
             return io.info(os.path.join(src_dir, s.name))[1]
-        except Exception:
+        except Exception as exc:
+            logger.warning("failed to read %s sample rate: %s",
+                           os.path.join(src_dir, s.name), exc)
             continue  # try the next stem rather than giving up on the first failure
     return None
 

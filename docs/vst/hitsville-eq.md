@@ -20,7 +20,8 @@ our own renders); **Part B** is a *web-research synthesis* (cited, adversarially
 1. **It RENDERS headless here — proven, not assumed.** `uaudio_hitsville_eq.vst3` (UADx native) loads via
    Pedalboard and **responds to its params** (push band 6 / 5 kHz +8 → +7.5 dB at 5 kHz vs bypass — not
    passthrough). Use the **`uaudio_*.vst3`** build, never the `UAD Hitsville EQ.component` twin (passthrough
-   offline). No-dongle, machine-activated UA/iLok auth (see §B7).
+   offline). No-dongle, machine-activated UA/iLok auth (see §B7). Per the [[vst]] doctrine, **loads ≠ renders** —
+   re-verify a fresh install/version with [[vst-verify]] (measure detail, not just `changed:true`) before trusting it.
 2. **All 11 params are stepped enums — but the musical ones are NUMERIC.** The seven band knobs
    (`1_50`…`7_12500`) and `gain` are **−8…+8 dB in 1 dB steps**; a float reaches them, so — unlike the
    SSL/Neve/API console strips — **this EQ is fully drivable from `apply-vst-chain`'s float dict**. Only

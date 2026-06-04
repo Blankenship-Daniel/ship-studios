@@ -171,8 +171,10 @@ combined **HPF/LPF** filter → **Output** fader; plus **Analog Hum** (on/off + 
 adds **Auto-Gain**, **Continuous**, oversampling, resize/Options.
 
 > **Part A correction:** in this build the **Auto-Gain, Continuous, Master-Buss and Oversampling are GUI-only
-> — not host-automatable.** The marketing **"Master Buss" control is API-derived** (an API master-buss amp
-> from Blackbird's API Legacy console), *not* Neve — and it isn't exposed to Pedalboard here anyway.
+> — not host-automatable.** In particular the marketing **"Master Buss" control is API-derived** (an API
+> master-buss amp from Blackbird's API Legacy console — the [[kit-bb-a5]] plugin), *not* Neve, and it is
+> **GUI-only / not host-automatable** here (unlike the N73's host-exposed `master_bus_toggle`) — so it
+> isn't reachable from Pedalboard / `apply-vst-chain` anyway.
 
 ## 3. The EQ surface (matches Part A's probe exactly)
 

@@ -12,6 +12,9 @@ the net effect. The per-stem stage between [[drum-prep]] (align) and [[warm-drum
 
 **Local DSP + VST** — drives the stemmy-loops corrective tools + (for color) the API Vision Channel Strip /
 Studer via the stemmy-loops **`vst` venv**. Executor: [`scripts/mix/process_stems.py`](../../../scripts/mix/process_stems.py).
+Run it with the loops vst venv (`../stemmy-loops-mcp/.venv/bin/python scripts/mix/process_stems.py ...`).
+**Worktree caveat:** that `../` is wrong from a git worktree under `.claude/worktrees/<name>/` — the
+sibling lives next to the **main** checkout. Resolve it there and pass the **absolute** venv path.
 
 ## The governing facts (obey)
 
@@ -62,6 +65,11 @@ brighter than wanted (route to [[warm-drum-bus]] to warm the bus).
   values cheaply (full-length per-stem + UAD color is ~minutes). But **don't tune tone on a 60 s excerpt and
   trust it globally** — a non-representative window mis-calibrates the full track; re-measure full-length.
 - **declick off; tops flat; warmth via tape** (above) — the three ways this goes wrong.
+- **Per-stem tape + bus tape over-darkens.** Studer color here STACKS with the bus tape in
+  [[warm-drum-bus]] — cumulative high-cut (centroid drops, tilt steepens). A warm bus tilt can only
+  CUT highs, so you can't recover the top at the bus: restore presence/air at the finalize stage with a
+  zero-phase high-shelf lift (e.g. bell +1.5 @ 4 k below the 5–7 k harsh zone + high-shelf +3 @ 8 k) and
+  verify centroid/tilt; if still dark, also back off the per-stem tape.
 - **Per-stem cleanup ≠ a mix.** It corrects/colors stems; balance + bus tone are [[mix-balance]] /
   [[warm-drum-bus]] / [[drum-mix]]. Don't bake bus-level decisions into individual stems.
 - **`apply-dynamic-eq` / `suppress-resonances` are newer/less-aged** — use conservatively and verify the

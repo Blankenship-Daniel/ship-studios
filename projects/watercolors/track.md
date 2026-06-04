@@ -94,4 +94,7 @@ KEPT as ambience (vs dropped on the warm bus).
   Warm/dark, room-forward, breathing — exactly the Bonham brief. MIX bus (peak −1, not mastered).
 - **Files:** `mix/bus_fitr.wav` (FINAL) · `mix/bus_fitr_pre.wav` (room-forward balance) · `mix/bus_fitr_dry.wav`
   (no-reverb alt) · `mix/fitr_shootout/` (9 tuning variants) · `presets/mix/watercolors-fitr-stem-process.plans.json`.
-  Loops not yet cut (104 BPM ready).
+- **Loops:** 104 BPM, bars [1,2,4] → **7 raw** (`watercolors_bonham_drums_*`, ~−26 LUFS, crest 20-23, in `loops/`)
+  + **21 mastered** (−15/−16 LUFS, crest 13-15, ×3 formats in `deliverables/`). All tagged — sidecars + in-WAV
+  RIFF LIST/INFO on every file, 16-bit distribution stays PCM_16 with the embedded tag. find-loops scratch in
+  `artifacts/watercolors-fitr-loops/`. (8-bar skipped — the 58 s performance is too short.)

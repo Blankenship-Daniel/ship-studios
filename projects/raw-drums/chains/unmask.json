@@ -1,0 +1,8 @@
+{
+  "Overhead Mono": [
+    {"shape": "Low Shelf", "frequency": 350, "gain": -1.5, "q": 0.7}
+  ],
+  "Stereo Drum Room": [
+    {"shape": "Low Shelf", "frequency": 180, "gain": -2.0, "q": 0.7}
+  ]
+}

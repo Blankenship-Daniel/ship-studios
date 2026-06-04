@@ -1,0 +1,111 @@
+[
+ {
+  "_template_note": "TNK ideal tom-kit per-stem plans (DARK + gentle; no air; the bus does the crush/color). process_stems matches by BASENAME against your src_dir, so RENAME these entries to your kit's filenames and DELETE roles you don't have (e.g. toms). Adapt freqs to each stem's measured spectrum. declick is forced OFF.",
+  "stem": "rack tom.wav",
+  "role": "rack tom — a TNK STAR. Resonant but controlled, dark. Keep the fundamental + a little stick, tame ring.",
+  "clean": {"hpf_hz": 70, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 70, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.2},
+   {"type": "bell", "freq_hz": 4000, "gain_db": 1.5, "q": 1.2}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 60, "comp": {"on": true, "type": "Old (FB)", "ratio": 2, "thresh": -8, "attack": "Medium", "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 400, "lmf_gain": 0, "hmf_freq": 4000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -2},
+  "rationale": "Keep the tom full and dark: HPF 70, gentle -2.5 @400 to tame box/ring, a small +1.5 @4k for stick definition (NOT air). NO high shelf. The toms lead the TNK groove."
+ },
+ {
+  "stem": "floor tom.wav",
+  "role": "floor tom — a TNK STAR. Deep, resonant, dark.",
+  "clean": {"hpf_hz": 50, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 50, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 350, "gain_db": -2.5, "q": 1.2}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 45, "comp": {"on": true, "type": "Old (FB)", "ratio": 2, "thresh": -8, "attack": "Medium", "release_s": 0.3},
+   "eq": {"lf_freq": 80, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -2},
+  "rationale": "Deep floor tom: HPF only 50 (keep the boom), -2.5 @350 to ease ring. Dark, no air."
+ },
+ {
+  "stem": "kick in.wav",
+  "role": "kick — deep, DAMPED thud (the sweater-in-the-kick sound). Keep sub, kill ring, no click.",
+  "clean": {"hpf_hz": 30, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 30, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3, "q": 1.1}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 35, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -4, "attack": "Medium", "release_s": 0.2},
+   "eq": {"lf_freq": 60, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 4000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -2},
+  "rationale": "Damped thud: keep the 50-70 sub, -3 @350 to de-box/de-ring, NO beater-click boost (TNK kick is dull/damped). 550 flat."
+ },
+ {
+  "stem": "snare top.wav",
+  "role": "snare — thuddy, dark, present under the toms. No crack/air.",
+  "clean": {"hpf_hz": 80, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 80, "gain_db": 0, "q": 0.707}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4500, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -10, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -4},
+  "rationale": "Keep the body, tame the bright edge with a gentle 4.5-7k dynamic de-harsh (TNK snare is dark/thuddy). NO air, NO transient snap, NO de-box (keep weight). 550 flat."
+ },
+ {
+  "stem": "snare bottom.wav",
+  "role": "snare bottom (wires) — a touch, dark.",
+  "clean": {"hpf_hz": 150, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4500, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 400, "lmf_gain": 0, "hmf_freq": 7000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -6},
+  "rationale": "Just a hint of wires under the top: HPF 150, dynamic de-harsh on the buzz, NO air. Far down in the balance."
+ },
+ {
+  "stem": "kick beater.wav",
+  "role": "kick beater/click — minimal (TNK kick is damped, not clicky).",
+  "clean": {"hpf_hz": 60, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 60, "gain_db": 0, "q": 0.707}, {"type": "bell", "freq_hz": 350, "gain_db": -2.5, "q": 1.2}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.12},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 3000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -3},
+  "rationale": "De-box + de-harsh, no click boost. Way down in the balance (TNK kick is the damped 'in' thud, not the beater)."
+ },
+ {
+  "stem": "overhead.wav",
+  "role": "overheads (stereo) — DARK, cymbals back (TNK is not cymbal-forward).",
+  "clean": {"hpf_hz": 120, "denoise": false},
+  "eq_bands": [{"type": "bell", "freq_hz": 200, "gain_db": -2, "q": 1.1}],
+  "de_harsh": {"depth": 0.5, "max_reduction_db": 5, "focus_lo_hz": 3000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 100, "comp": {"on": true, "type": "Old (FB)", "ratio": 2.5, "thresh": -8, "attack": "Medium", "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -1},
+  "rationale": "HPF 120 + -2 @200 de-mud; a firmer 3-7k de-harsh keeps the cymbals dark/back. NO air. Pulled down in the balance."
+ },
+ {
+  "stem": "drum room.wav",
+  "role": "room (stereo) — feeds the PUMP; keep low weight, dark.",
+  "clean": {"hpf_hz": 60, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 60, "gain_db": 0, "q": 0.707}, {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.2}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 3000, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 60, "comp": {"on": true, "type": "Old (FB)", "ratio": 2, "thresh": -6, "attack": "Medium", "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -1},
+  "rationale": "Keep the room's low weight (HPF only 60) for the Fairchild to swell into the pump; dark, no air. Unlike Bonham, the room is NOT the loudest layer here — it's the pump fuel."
+ },
+ {
+  "stem": "snare reverb.wav",
+  "role": "snare reverb (FX) — optional ambience for the pump; clean the low wash.",
+  "clean": {"hpf_hz": 200, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 200, "gain_db": 0, "q": 0.707}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 0, "comp": {"on": false},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -1},
+  "rationale": "FX return: HPF 200 to clean the low wash, gentle de-harsh, no comp. Folded low; the heavy bus comp swells it into the TNK ambience."
+ }
+]

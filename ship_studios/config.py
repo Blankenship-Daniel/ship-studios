@@ -13,10 +13,11 @@ Path resolution order for each sibling repo:
 2. The default sibling location next to *this* repo
    (``../stemmy-loops-mcp`` / ``../stemmy-gemini-mcp``).
 
-Building the launch parameters never touches the filesystem beyond
-``Path.resolve()`` so that importing this module — and constructing the
-parameters — stays side-effect free and works before the servers exist.
-``doctor`` (in cli.py) is the place that actually probes for existence.
+Building the launch parameters does no filesystem work beyond ``Path.resolve()``
+and a small read of the ``.git`` worktree pointer (so the sibling lookup resolves
+from the *main* checkout when this is a linked git worktree). Importing the module
+stays side-effect free and works before the servers exist; ``doctor`` (in cli.py)
+is the place that actually probes for existence.
 """
 from __future__ import annotations
 
@@ -141,20 +142,73 @@ def call_timeout_s() -> float | None:
 
 
 def repo_root() -> Path:
-    """Absolute path to this ship-studios repository root.
+    """Absolute path to this ship-studios checkout's root (worktree or main).
 
-    ``config.py`` lives at ``<root>/ship_studios/config.py``, so the root is
-    two parents up. Resolved so downstream ``--directory`` args are absolute.
+    ``config.py`` lives at ``<root>/ship_studios/config.py``, so the root is two
+    parents up. Resolved so downstream ``--directory`` args are absolute. In a git
+    worktree this is the *worktree* dir — use :func:`main_repo_root` for the
+    canonical checkout the sibling repos sit next to.
     """
     return Path(__file__).resolve().parent.parent
 
 
+def _resolve_main_root(root: Path) -> Path:
+    """Map a checkout root to the MAIN working-tree root (pure helper, for testing).
+
+    A linked git worktree has a ``.git`` *pointer file*
+    (``gitdir: <canonical>/.git/worktrees/<name>``) rather than a ``.git``
+    directory. The canonical checkout — where the ``../stemmy-*-mcp`` siblings live
+    — is the parent of the shared ``.git`` dir, found via the worktree's
+    ``commondir``. A normal checkout (or any IO/parse problem) returns ``root``
+    unchanged, so resolution degrades safely.
+    """
+    git = root / ".git"
+    try:
+        if not git.is_file():  # normal checkout (.git is a dir) or no .git at all
+            return root
+        text = git.read_text(encoding="utf-8")
+    except OSError:
+        return root
+    gitdir: Path | None = None
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("gitdir:"):
+            p = Path(s[len("gitdir:") :].strip())
+            gitdir = p if p.is_absolute() else (root / p).resolve()
+            break
+    if gitdir is None:
+        return root
+    try:
+        commondir = gitdir / "commondir"
+        if commondir.is_file():
+            rel = commondir.read_text(encoding="utf-8").strip()
+            common_git = Path(rel) if Path(rel).is_absolute() else (gitdir / rel)
+        else:  # fall back to the standard .git/worktrees/<name> layout
+            common_git = gitdir.parent.parent
+        return common_git.resolve().parent  # parent of the canonical .git dir
+    except OSError:
+        return root
+
+
+def main_repo_root() -> Path:
+    """Root of the MAIN checkout (== :func:`repo_root` unless this is a worktree).
+
+    The sibling MCP repos are looked up next to *this* root, so resolving it to the
+    canonical checkout is what lets the hub/CLI find them from a git worktree.
+    """
+    return _resolve_main_root(repo_root())
+
+
 def _sibling_dir(name: str, override_env: str) -> Path:
-    """Resolve a sibling repo dir, honoring its override env var first."""
+    """Resolve a sibling repo dir, honoring its override env var first.
+
+    Without an override the sibling is looked up next to the **main** checkout
+    (:func:`main_repo_root`), so resolution works from a git worktree too.
+    """
     override = os.environ.get(override_env)
     if override:
         return Path(override).expanduser().resolve()
-    return (repo_root().parent / name).resolve()
+    return (main_repo_root().parent / name).resolve()
 
 
 def loops_dir() -> Path:

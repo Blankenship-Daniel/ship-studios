@@ -1,0 +1,60 @@
+{
+  "name": "watercolors-drumbus-mastereq",
+  "description": "Light master EQ on the punchy drum bus: HPF 28 subsonic + 1.5 dB air shelf @12k, Natural Phase, faithful (-2 dB trim for headroom into the limiter).",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": null,
+    "width": 1.0,
+    "chain": [
+      {
+        "file": "FabFilter Pro-Q 4.vst3",
+        "params": {
+          "band_1_enabled": true,
+          "band_2_enabled": true,
+          "band_3_enabled": false,
+          "band_4_enabled": false,
+          "band_5_enabled": false,
+          "band_6_enabled": false,
+          "band_7_enabled": false,
+          "band_8_enabled": false,
+          "band_9_enabled": false,
+          "band_10_enabled": false,
+          "band_11_enabled": false,
+          "band_12_enabled": false,
+          "band_13_enabled": false,
+          "band_14_enabled": false,
+          "band_15_enabled": false,
+          "band_16_enabled": false,
+          "band_17_enabled": false,
+          "band_18_enabled": false,
+          "band_19_enabled": false,
+          "band_20_enabled": false,
+          "band_21_enabled": false,
+          "band_22_enabled": false,
+          "band_23_enabled": false,
+          "band_24_enabled": false,
+          "band_1_used": "Used",
+          "band_1_shape": "Low Cut",
+          "band_1_frequency": 28.0,
+          "band_1_slope": "24 dB/oct",
+          "band_1_dynamics_enabled": "Dynamics Disabled",
+          "band_1_dynamic_range": 0.0,
+          "band_1_spectral_enabled": false,
+          "band_2_used": "Used",
+          "band_2_shape": "High Shelf",
+          "band_2_frequency": 12000.0,
+          "band_2_gain": 1.5,
+          "band_2_q": 0.7,
+          "band_2_dynamics_enabled": "Dynamics Disabled",
+          "band_2_dynamic_range": 0.0,
+          "band_2_spectral_enabled": false,
+          "processing_mode": "Natural Phase",
+          "character": "Clean",
+          "gain_scale": 100.0,
+          "output_level": -2.0,
+          "auto_gain": false
+        }
+      }
+    ]
+  }
+}

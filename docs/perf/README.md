@@ -1,8 +1,8 @@
 # Performance & efficiency measurement — tooling reference
 
-**Status:** reference + roadmap (what to use to measure ship-studios; not yet wired in) · **Date:** 2026-06-03 · **Last verified:** 2026-06-03 against the live repo (mcp SDK **1.27.2**) and each tool's official docs · **Scope:** the best tools to measure **efficiency & performance** across every ship-studios surface — MCP servers, DSP renders, the Gemini API, skills, workflows, the hub, and the Claude Code agent loop.
+**Status:** reference + roadmap; **Stages 0–2 + hub `run_id` now wired in** (see [Status](#status--whats-wired-in)) · **Date:** 2026-06-03 · **Last verified:** 2026-06-03 against the live repo (mcp SDK **1.27.2**) and each tool's official docs · **Scope:** the best tools to measure **efficiency & performance** across every ship-studios surface — MCP servers, DSP renders, the Gemini API, skills, workflows, the hub, and the Claude Code agent loop.
 
-This folder answers *"what should we use to measure how fast / how expensive / how reliable ship-studios is?"* It is a **research report** (ranked tool picks per surface, with trade-offs) plus a **[staged instrumentation roadmap](roadmap.md)**. No instrumentation is wired into the code yet — this is the map, not the territory.
+This folder answers *"what should we use to measure how fast / how expensive / how reliable ship-studios is?"* It is a **research report** (ranked tool picks per surface, with trade-offs) plus a **[staged instrumentation roadmap](roadmap.md)**. The high-leverage core is now **wired in** — see [Status](#status--whats-wired-in); the rest stays a documented map.
 
 > **How this was built.** A 7-agent research workflow surveyed five categories (MCP-native, LLM observability, eval frameworks, Python profiling, infra/Claude-native telemetry), then an adversarial completeness-critic re-checked the synthesis. Every load-bearing fact here was re-verified against the repo at the versions installed today. Re-verify a number before betting a build on it; the landscape moves fast and several tools changed ownership in early 2026.
 
@@ -13,6 +13,30 @@ This folder answers *"what should we use to measure how fast / how expensive / h
 > ship-studios is a **local, single-developer, `uv`-managed macOS** tool — short-lived CLI/agent runs on one laptop, **not** a hosted multi-tenant service.
 
 That single fact decides almost every pick below. It means: **lean on what's already in the box** (Claude Code's native telemetry, the existing `_Recorder`, the existing pytest stack), prefer **OSS / self-hostable / zero-service** tools, and **skip the hosted observability stacks** (Datadog-style SaaS, Prometheus+Grafana, gateways) that assume a long-lived scrapeable server and a team. A pull-based metrics server or a 5-container LGTM stack is *more* operational burden than the thing it measures.
+
+---
+
+## Status — what's wired in
+
+Implemented in the hub (Stages 0–2 of the [roadmap](roadmap.md), plus the hub `run_id`):
+
+- **Opt-in JSONL perf trace** — set `SHIP_STUDIOS_PERF_LOG=<file>` and every MCP tool call **and** the handshake append one line `{run_id, server, tool, elapsed_s, ok, kind?, rss_self?, rss_children?, at}` (`ship_studios/perf.py`, emitted from `Hub.call_tool` / `Hub._open_session`). Off by default → the offline suite and normal runs are unaffected. Best-effort: a sink error never breaks a pipeline.
+- **Always-on per-step timing** — `_Recorder.run` now stamps every pipeline step with `elapsed_s` + `ok` (additive; the step stays a superset of `{server,tool,args,result}`), recorded on success **and** failure.
+- **Error-cause split** — `ToolCallError.kind` distinguishes `"timeout"` from `"tool_error"` (keyword-only, defaulted → the 3-arg form is unchanged), surfaced in the trace.
+- **Hub `run_id`** — a per-`Hub` correlation id on every traced event. *Not* injected into tool-call `args` (the sibling servers validate strict input schemas and would reject an unknown property) — correlation is hub-side.
+- **Per-subprocess RSS** — `metrics` extra (`psutil`): `perf.sample_rss()` sums the hub process + its children via an OS process-tree scan (the child PID is never exposed by `stdio_client`). Omitted when `psutil` isn't installed.
+- **DSP regression + determinism** — `pytest-benchmark` suite under `benchmarks/` (opt-in `bench` extra, outside `testpaths`) + a golden-signature determinism test (`tests/test_drum_prep_determinism.py`): bit-exact reproducibility **and** a tolerance-pinned numeric fingerprint (no committed WAV — `*.wav` is gitignored).
+- **Extras** — `uv sync --extra metrics` (psutil) · `--extra bench` (pytest-benchmark) · `--extra profiling` (scalene/py-spy/memray, on-demand CLI profilers).
+
+**Enable the trace + a quick read:**
+```bash
+SHIP_STUDIOS_PERF_LOG=artifacts/perf.jsonl ship-studios master projects/<t>/mix/x.wav
+jq -s 'group_by(.tool)[] | {tool: .[0].tool, n: length, p50: (sort_by(.elapsed_s)[length/2|floor].elapsed_s)}' artifacts/perf.jsonl
+```
+
+**Stage 3 (Gemini sibling) — already done upstream, intentionally untouched here.** `../stemmy-gemini-mcp` already implements the Stage-3 intent: native `genai.Client(retry_options=HttpRetryOptions())` retry/backoff (408/429/5xx + jitter), a concurrency semaphore, and `usage_metadata` logging (`prompt/candidates/thoughts/total` + cache details). It also has active uncommitted work on a feature branch, so this change does **not** modify it. The hub-side half (the `run_id` correlation key) is wired in here.
+
+What remains optional (Stage 4): a self-hosted Phoenix backend + an `evals` extra (MLflow skill-trigger + DSP-meter graders) + the skill-collision embedding audit. See [roadmap.md](roadmap.md).
 
 ---
 
@@ -72,7 +96,7 @@ This is the **largest measurement gap**: Gemini is the network-bound, paid, rate
 
 - **Instrument inside `stemmy-gemini-mcp`** (out of this hub's DSP-free remit, but where the calls live): log the **google-genai SDK's `response.usage_metadata`** — it already returns exact `prompt` / `candidates` / **`thoughts`** token counts per call, so per-call **cost + thinking-tier** is a direct read, lower-friction and more accurate than wrapping. Time each call there too. Or drop in **Traceloop OpenLLMetry**'s `google-genai` instrumentor for OTLP spans (Apache-2.0).
 - **Prerequisite — add `tenacity` / `stamina` retry/backoff.** Without retries you cannot separate a transient **429/503** from a hard error, so "quota-exhaustion rate" is literally unmeasurable. Retry is an *instrumentation prerequisite* here, not just resilience.
-- **Hub side:** split the single `ToolCallError` into **timeout vs server-error vs handshake** causes, and inject a **run-id arg** the servers log so a skill invocation can be stitched to its server-side calls across the process boundary (since `OTEL_*` doesn't cross into the subprocess).
+- **Hub side (done):** `ToolCallError.kind` splits **timeout vs tool_error**, and a per-`Hub` **`run_id`** tags every traced call. Injecting the `run_id` into tool-call `args` for true cross-process stitching was deliberately **rejected** — the sibling servers validate strict input schemas and reject unknown properties — so hub correlation is within one session/trace; cross-process stitch to the sibling's `usage_metadata` stays open (see [Status](#status--whats-wired-in)).
 
 ### (d)/(g) Skills + agent loop — triggering, cost, quality
 
@@ -105,7 +129,7 @@ This is the **largest measurement gap**: Gemini is the network-bound, paid, rate
 
 The research synthesis contained several factual errors; these are corrected here and were re-confirmed on 2026-06-03:
 
-1. **The seam is `_Recorder.run`** (`ship_studios/pipelines.py` **140–147**, the `call_tool` await at **143**) — there is no `__call__` method.
+1. **The seam is `_Recorder.run`** (`ship_studios/pipelines.py:141`) — there is no `__call__` method.
 2. **Counts:** **102** skills (`ls -1d .claude/skills/*/ | wc -l`); **≈240–330** test functions depending on count method (`grep -rE '^\s*def test_' tests/` → 239) — the **"~190 tests" / "~97 skills"** figures in CLAUDE.md prose are **stale**.
 3. **No real workflow budget surface:** only `repo-review.js` references `budget`, and only `.remaining()` / `.total` — **never `.spent()`**. Workflow token/cost must come from Claude Code OTel `query_source=subagent`, not from the workflows.
 4. **`psutil` on subprocesses needs a process-tree scan:** mcp **1.27.2** `stdio_client` is an `@asynccontextmanager` that `yield`s only the read/write streams — the child process handle is held *inside* the CM and never exposed. There is no supported PID to read in `Hub._open_session`.
@@ -120,9 +144,9 @@ The research synthesis contained several factual errors; these are corrected her
 
 | File | Seam | Use for |
 |---|---|---|
-| `ship_studios/mcp_client.py` | `Hub.call_tool` (133–162) — the single chokepoint every MCP call flows through | per-call latency, error/timeout split |
-| `ship_studios/mcp_client.py` | `Hub._open_session` (85–121); `initialize()` at 110 | handshake / cold-start time |
-| `ship_studios/pipelines.py` | `_Recorder.run` (140–147) | per-step pipeline timing (additive) |
+| `ship_studios/mcp_client.py` | `Hub.call_tool` (`def` @156) — the single chokepoint every MCP call flows through | per-call latency, error/timeout split |
+| `ship_studios/mcp_client.py` | `Hub._open_session` (`def` @89); `initialize()` timed | handshake / cold-start time + RSS |
+| `ship_studios/pipelines.py` | `_Recorder.run` (`def` @141) | per-step pipeline timing (additive) |
 | `ship_studios/config.py` | `startup_timeout_s()` / `call_timeout_s()` (can be `None`) | the latency budgets to alarm against |
 | `ship_studios/cli.py` | `_run` (54–86) | per-run summary in the emitted JSON |
 | `tests/conftest.py` | `FakeSession` / `RecordingHub` | offline-test the additive timing; `tests/test_pipelines.py` ordered-call asserts must stay green |

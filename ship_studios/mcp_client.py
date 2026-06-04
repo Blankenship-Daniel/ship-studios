@@ -30,7 +30,7 @@ import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
-from ship_studios import config
+from ship_studios import config, perf
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from mcp import ClientSession
@@ -57,6 +57,10 @@ class Hub:
         self.server_keys: list[str] = keys
         self._sessions: dict[str, ClientSession] = {}
         self._stack: contextlib.AsyncExitStack | None = None
+        # Correlates every call/handshake made through this Hub in the perf trace
+        # (see ship_studios.perf). Cheap to generate; only surfaced when
+        # SHIP_STUDIOS_PERF_LOG is set.
+        self.run_id: str = perf.new_run_id()
 
     async def __aenter__(self) -> Hub:
         if self._stack is not None:
@@ -103,21 +107,40 @@ class Hub:
         # Guard ONLY the wait_for branch (see call_tool): the no-timeout path must
         # let a bubbling TimeoutError through unrelabelled, and `f"{timeout:g}"`
         # would crash with timeout=None.
-        if timeout is None:
-            await session.initialize()
-        else:
-            try:
-                await asyncio.wait_for(session.initialize(), timeout)
-            except TimeoutError as exc:
-                # Keep the asyncio cause chained (`from exc`): the original
-                # traceback shows the handshake stalled inside wait_for/initialize,
-                # which is exactly what an operator debugging a hang wants to see.
-                raise TimeoutError(
-                    f"server {server_key!r} did not complete the MCP handshake within "
-                    f"{timeout:g}s — is the sibling repo synced and runnable? "
-                    f"(uv --directory {config.server_dir(server_key)} run …). "
-                    f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
-                ) from exc
+        start = perf.now()
+        handshake_ok = False
+        try:
+            if timeout is None:
+                await session.initialize()
+            else:
+                try:
+                    await asyncio.wait_for(session.initialize(), timeout)
+                except TimeoutError as exc:
+                    # Keep the asyncio cause chained (`from exc`): the original
+                    # traceback shows the handshake stalled inside wait_for/initialize,
+                    # which is exactly what an operator debugging a hang wants to see.
+                    raise TimeoutError(
+                        f"server {server_key!r} did not complete the MCP handshake "
+                        f"within {timeout:g}s — is the sibling repo synced and runnable? "
+                        f"(uv --directory {config.server_dir(server_key)} run …). "
+                        f"Set {config.STARTUP_TIMEOUT_ENV}=0 to wait indefinitely."
+                    ) from exc
+            handshake_ok = True
+        finally:
+            if perf.perf_enabled():
+                # Cold-start is the most informative subprocess-RSS moment — the uv-run
+                # child has just spawned — so sample it here too (not only mid-pipeline).
+                event: dict[str, Any] = {
+                    "run_id": self.run_id,
+                    "server": server_key,
+                    "tool": "<handshake>",
+                    "elapsed_s": round(perf.now() - start, 6),
+                    "ok": handshake_ok,
+                }
+                rss = perf.sample_rss()
+                if rss is not None:
+                    event.update(rss)
+                perf.record(event)
         return session
 
     def session(self, server_key: str) -> ClientSession:
@@ -143,23 +166,60 @@ class Hub:
         """
         session = self.session(server_key)
         timeout = config.call_timeout_s()
-        # Guard ONLY the wait_for branch: a TimeoutError bubbling out of the tool
-        # itself on the no-timeout path must not be relabelled (and would crash
-        # `f"{timeout:g}"` with timeout=None).
-        if timeout is None:
-            result = await session.call_tool(name, args or {})
-        else:
-            try:
-                result = await asyncio.wait_for(session.call_tool(name, args or {}), timeout)
-            except TimeoutError:
-                raise ToolCallError(
-                    server_key, name,
-                    f"no response within {timeout:g}s "
-                    f"(set {config.CALL_TIMEOUT_ENV}=0 to disable the call timeout)",
-                ) from None
-        if getattr(result, "isError", False):
-            raise ToolCallError(server_key, name, _result_text(result))
-        return _parse_result(result)
+        # Always stamp the call with a duration; only write the JSONL sink + sample
+        # RSS when SHIP_STUDIOS_PERF_LOG is set (the finally guards on perf_enabled).
+        start = perf.now()
+        ok = False
+        kind: str | None = None
+        try:
+            # Guard ONLY the wait_for branch: a TimeoutError bubbling out of the tool
+            # itself on the no-timeout path must not be relabelled (and would crash
+            # `f"{timeout:g}"` with timeout=None).
+            if timeout is None:
+                result = await session.call_tool(name, args or {})
+            else:
+                try:
+                    result = await asyncio.wait_for(session.call_tool(name, args or {}), timeout)
+                except TimeoutError:
+                    raise ToolCallError(
+                        server_key, name,
+                        f"no response within {timeout:g}s "
+                        f"(set {config.CALL_TIMEOUT_ENV}=0 to disable the call timeout)",
+                        kind="timeout",
+                    ) from None
+            if getattr(result, "isError", False):
+                raise ToolCallError(server_key, name, _result_text(result))
+            parsed = _parse_result(result)
+            ok = True
+            return parsed
+        except ToolCallError as exc:
+            # Carry the cause class (timeout vs server-flagged tool_error) into the
+            # trace so an operator can tell "raise the timeout" from "fix a bug".
+            kind = exc.kind
+            raise
+        except Exception as exc:
+            # A non-ToolCallError failure (transport/decode error, or a TimeoutError
+            # bubbling from the tool on the no-timeout path): classify it for the
+            # trace only — never label it "tool_error" — then propagate unchanged.
+            kind = "timeout" if isinstance(exc, TimeoutError) else "exception"
+            raise
+        finally:
+            if perf.perf_enabled():
+                event: dict[str, Any] = {
+                    "run_id": self.run_id,
+                    "server": server_key,
+                    "tool": name,
+                    "elapsed_s": round(perf.now() - start, 6),
+                    "ok": ok,
+                }
+                if not ok and kind is not None:
+                    event["kind"] = kind
+                # sample_rss() walks the process tree — only on the opt-in trace path,
+                # so the default run pays nothing; accept the per-call cost when on.
+                rss = perf.sample_rss()
+                if rss is not None:
+                    event.update(rss)
+                perf.record(event)
 
     async def list_tools(self, server_key: str) -> list[Any]:
         """Return the tool descriptors advertised by ``server_key``."""
@@ -169,12 +229,21 @@ class Hub:
 
 
 class ToolCallError(RuntimeError):
-    """Raised when an MCP tool returns an error result."""
+    """Raised when an MCP tool returns an error result.
 
-    def __init__(self, server_key: str, tool: str, detail: str) -> None:
+    ``kind`` distinguishes a server-flagged error result (``"tool_error"``) from a
+    client-side call timeout (``"timeout"``) so the failure cause is visible in the
+    perf trace. It is keyword-only with a default, so the historical
+    ``ToolCallError(server, tool, detail)`` call sites stay valid.
+    """
+
+    def __init__(
+        self, server_key: str, tool: str, detail: str, *, kind: str = "tool_error"
+    ) -> None:
         self.server_key = server_key
         self.tool = tool
         self.detail = detail
+        self.kind = kind
         super().__init__(f"{server_key}:{tool} failed: {detail}")
 
 

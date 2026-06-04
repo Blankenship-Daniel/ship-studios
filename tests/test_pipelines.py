@@ -969,6 +969,16 @@ def test_parent_dir_returns_directory() -> None:
             lambda h: pipelines.loops_to_deliverables(h, "m.wav", 120.0),
         ),
         ("understand-audio", lambda h: pipelines.understand_audio(h, "m.wav")),
+        ("batch-master", lambda h: pipelines.batch_master(h, ["a.wav", "b.wav"])),
+        ("house-curve", lambda h: pipelines.house_curve(h, "m.wav", ["a.wav", "b.wav"])),
+        (
+            "stem-master",
+            lambda h: pipelines.stem_master(h, {"kick": "kick.wav", "bass": "bass.wav"}),
+        ),
+        (
+            "unmask-stems",
+            lambda h: pipelines.unmask_stems(h, {"kick": "kick.wav", "bass": "bass.wav"}),
+        ),
     ],
 )
 async def test_pipelines_return_structured_steps(

@@ -1,8 +1,10 @@
 # Performance instrumentation — staged roadmap
 
-**Status:** roadmap (not yet implemented) · **Date:** 2026-06-03 · **Companion to:** [README.md](README.md) (the tool report) · **Scope:** the concrete, ordered steps to take ship-studios from "we can see *what* ran" to "we can see latency, cost, memory, determinism, and regressions."
+**Status:** Stages **0–2 ✅ implemented** + the hub `run_id`; Stage 3 ✅ already in the sibling (untouched here); Stage 4 optional · **Date:** 2026-06-03 · **Companion to:** [README.md](README.md) (the tool report) · **Scope:** the concrete, ordered steps to take ship-studios from "we can see *what* ran" to "we can see latency, cost, memory, determinism, and regressions."
 
 Each stage is independently shippable and ordered by **value ÷ friction**. Stage 0 is pure config; later stages add code behind opt-in `--extra`s so the **offline test suite stays fast, key-free, and network-free**. Every code change is verifiable against the existing `FakeSession` / `RecordingHub` fixtures (`uv run pytest`) — no live keys or sibling servers needed.
+
+> **What's wired in now** (see [README → Status](README.md#status--whats-wired-in)): `ship_studios/perf.py` (opt-in JSONL trace via `SHIP_STUDIOS_PERF_LOG` + run-id + psutil RSS), per-step timing + exception capture in `_Recorder.run`, the `ToolCallError.kind` timeout/tool_error split, handshake timing in `Hub._open_session`, the `metrics`/`bench`/`profiling` extras, `benchmarks/` (pytest-benchmark), and `tests/test_drum_prep_determinism.py`. Stage-0 env knobs are documented here + in README (the `.env.example` itself is policy-protected). Stage 3's retry + `usage_metadata` logging already exist in `../stemmy-gemini-mcp`, so only the hub-side run-id was added.
 
 > **Guardrail.** The hub is deliberately **DSP-free** and the base install is dependency-light. Keep it that way: timing uses stdlib (`time.perf_counter`); everything heavier (`psutil`, profilers, eval frameworks) goes in an opt-in extra, matching the repo's existing `--extra` convention.
 
@@ -48,8 +50,8 @@ Per-tool-call latency and **error-cause attribution** for both servers, in one p
 
 Lock down render **speed** and **output** so a numerics refactor can't silently regress either.
 
-1. **Add `pytest-benchmark`** to the dev dependency group under a dedicated marker. Create `benchmarks/` with `@pytest.mark.benchmark` tests over **deterministic** DSP (`render-mastered`, drum_prep phase-align FFT xcorr, `match-eq` FIR) on a fixed fixture WAV. Wrap async hub coroutines in `asyncio.run()` inside the benchmarked callable. Commit a `.benchmarks/` baseline; gate CI with `--benchmark-compare-fail=mean:5%`. Keep it **out** of the default `uv run pytest` (`--benchmark-disable`) so the offline suite stays fast; needs `--extra drum-prep` for the DSP deps.
-2. **Golden-WAV determinism test** — a ~10-line `numpy.testing.assert_allclose` of a render against a committed baseline WAV (drum_prep is seed-free/FFT-based → reproducible). Optionally use **syrupy** / **pytest-regtest** as the snapshot harness. For the **non-deterministic** VST/Pedalboard path, assert `allclose` within a **tolerance window** instead of bit-exact (a drift *alarm*, not equality).
+1. **Add `pytest-benchmark`** (the opt-in `bench` extra) and put benchmarks in `benchmarks/`, **outside** `[tool.pytest.ini_options].testpaths` so the default `uv run pytest` never collects them (the offline suite stays fast). Benchmark only **deterministic LOCAL DSP** — `drum_prep.dsp.zero_phase_eq` (shipped), and optionally the phase-align xcorr in `dsp.estimate`/`dsp.align_to`. *Not* `render-mastered` / `match-eq`: those are stemmy-loops **sibling-server** tools, so benchmarking them offline is impossible and would violate the local-only guardrail. Save a baseline + gate with `--benchmark-compare-fail=mean:5%`. Run: `uv run --extra bench --extra drum-prep pytest benchmarks/`.
+2. **Determinism test** — `*.wav` is gitignored, so **no committed golden render**. Instead (`tests/test_drum_prep_determinism.py`): (a) bit-exact reproducibility across two runs (`numpy.testing.assert_allclose` / `assert_array_equal`, machine-independent), and (b) a **tolerance-pinned numeric signature** (`rtol=1e-6`/`atol=1e-9`) so cross-version BLAS/FFT drift passes but a real numerics change trips CI. For the **non-deterministic** VST/Pedalboard path, a tolerance-window `allclose` would be a drift *alarm*, not equality.
 3. **Document on-demand deep profilers** (an opt-in `profiling` extra, never always-on): **Scalene** (`scalene <script>` — Python-vs-native + copy-volume), **py-spy**/**Austin** (attach to a live/hung MCP subprocess — use the venv/Homebrew Python to dodge macOS SIP), **memray** + **pytest-memray** `@limit_memory(...)` (native-allocation + memory-regression), **hyperfine** (standalone binary — end-to-end CLI wall-clock; don't aim it at Gemini-calling pipelines).
 
 **Files:** `pyproject.toml` (`[dependency-groups].dev` + markers; optional `profiling` extra), `benchmarks/` (new), `.benchmarks/` baseline, a golden fixtures dir, CI config.
@@ -58,13 +60,13 @@ Lock down render **speed** and **output** so a numerics refactor can't silently 
 
 ## Stage 3 — Gemini (sibling `stemmy-gemini-mcp`)
 
-The largest blind spot — and it's outside this hub's remit, so it's a sibling-repo change.
+The largest blind spot — outside this hub's remit. **Mostly already implemented upstream** (verified 2026-06-03): `../stemmy-gemini-mcp` ships native `genai.Client(retry_options=HttpRetryOptions())` retry/backoff (408/429/5xx + jitter), a concurrency semaphore, and `usage_metadata` logging (`prompt`/`candidates`/`thoughts`/`total` + cache details). So 1–2 below are **done**; this change does not touch the sibling (it also had active uncommitted work).
 
-1. **Add retry first (the prerequisite):** `tenacity` / `stamina` backoff around the Gemini calls, so transient **429/503** are distinguishable from hard failures.
-2. **Log the SDK's `response.usage_metadata`** per call — exact `prompt` / `candidates` / **`thoughts`** (thinking-tier) token counts → direct cost + thinking attribution. Time each call; classify outcomes (ok / 429-quota / timeout / error). Or use **Traceloop OpenLLMetry**'s `google-genai` instrumentor for OTLP spans.
-3. **Cross-process correlation:** have the hub inject a **run-id** argument the servers log, so a skill invocation (Claude Code OTel) stitches to its server-side Gemini calls (since `OTEL_*` does **not** cross into the stdio subprocess).
+1. ✅ **Retry/backoff** around the Gemini calls so transient **429/503** are distinguishable from hard failures — present via the SDK's `HttpRetryOptions`. (`tenacity`/`stamina` only if you want hub-side retry too.)
+2. ✅ **`response.usage_metadata` logging** per call (`prompt`/`candidates`/**`thoughts`** + cache) — present. Optionally promote `_log.debug` → structured/OTLP (Traceloop OpenLLMetry's `google-genai` instrumentor) and classify outcomes (ok / 429-quota / timeout / error).
+3. **Cross-process correlation — partially done, partially open.** The **hub-side `run_id`** is wired (in `ship_studios.perf` / `Hub`, on every traced event). It is **not** injected into tool-call `args`: the sibling servers validate strict input schemas and would reject an unknown property, so the run_id correlates calls **within one hub session/trace only**. Stitching the hub trace to the sibling's `usage_metadata` logs across the process boundary remains **open** — it needs a schema-sanctioned correlation field, or an OTel-baggage channel the stdio subprocess can read.
 
-**Files:** `../stemmy-gemini-mcp` (the Gemini call sites + deps); `ship_studios/mcp_client.py` (inject the run-id arg).
+**Files:** `../stemmy-gemini-mcp` (already covers 1–2; untouched here); `ship_studios/mcp_client.py` + `ship_studios/perf.py` (hub-side `run_id` in the perf trace — done).
 
 ---
 

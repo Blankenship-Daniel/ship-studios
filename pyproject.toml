@@ -34,6 +34,27 @@ drum-prep = [
     "soundfile>=0.12",
     "pyloudnorm>=0.1",
 ]
+# Opt-in performance measurement (docs/perf/). None of these are imported by the
+# hub's default path — the perf trace (ship_studios.perf) is stdlib-only and runs
+# only when SHIP_STUDIOS_PERF_LOG is set; these extras just add the measurement
+# tooling on demand, keeping the base install dependency-light.
+#   metrics  — per-subprocess CPU/RSS sampling for the JSONL perf trace.
+metrics = [
+    "psutil>=5.9",
+]
+#   bench    — render-time regression benchmarks under benchmarks/ (outside the
+#              offline testpaths). Run: uv run --extra bench --extra drum-prep pytest benchmarks/
+bench = [
+    "pytest-benchmark>=4",
+]
+#   profiling — on-demand deep profilers (CLI tools, not imported by the package):
+#              Scalene (Python-vs-native CPU+memory), py-spy (attach to a live
+#              process), memray (native-allocation memory). See docs/perf/roadmap.md.
+profiling = [
+    "scalene>=1.5",
+    "py-spy>=0.3",
+    "memray>=1.10",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -88,4 +109,10 @@ ignore_missing_imports = true
 # DSP libraries used only by the optional drum_prep package ship no/partial stubs.
 [[tool.mypy.overrides]]
 module = ["numpy", "numpy.*", "scipy", "scipy.*", "soundfile", "pyloudnorm"]
+ignore_missing_imports = true
+
+# psutil is an opt-in (`metrics` extra) dependency the perf module imports lazily;
+# ship no stubs and may be absent in the base dev env, so don't fail the type check.
+[[tool.mypy.overrides]]
+module = ["psutil"]
 ignore_missing_imports = true

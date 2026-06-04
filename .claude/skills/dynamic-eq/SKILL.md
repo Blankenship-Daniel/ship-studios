@@ -15,8 +15,9 @@ sub that dips). Difference-signal method, so it's dynamic without zipper noise.
 
 The overlap traps: a **static** tonal problem (always too much 200 Hz) is plain
 `apply-eq` ([[mix-check]]); a **ringing/harsh** resonance is `[[de-harsh]]`;
-**sibilance** is `[[de-ess]]`; **broadband density** is `[[multiband-compress]]`.
-This is specifically *level-dependent* EQ.
+**sibilance** is `[[de-ess]]`; **per-band dynamics/density** (a band's *level*, not
+its tone) is `[[multiband-compress]]`. This is specifically *level-dependent* EQ —
+it changes a band's **tone (EQ gain)** when that band crosses a level.
 
 ## Prerequisites
 

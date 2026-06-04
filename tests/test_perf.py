@@ -64,6 +64,34 @@ def test_sample_rss_shape() -> None:
     assert out is None or set(out) == {"rss_self", "rss_children"}
 
 
+def test_sample_rss_env_opt_out(monkeypatch: pytest.MonkeyPatch) -> None:
+    # With psutil present (a fake stands in if the extra isn't installed), the
+    # SHIP_STUDIOS_PERF_RSS="0" opt-out returns None; unset/"1" returns the dict.
+    class _FakeMemInfo:
+        rss = 1234
+
+    class _FakeProc:
+        def memory_info(self):
+            return _FakeMemInfo()
+
+        def children(self, recursive=False):
+            return []
+
+    class _FakePsutil:
+        Process = _FakeProc
+
+    monkeypatch.setattr(perf, "_PSUTIL", _FakePsutil)
+
+    monkeypatch.setenv(perf.PERF_RSS_ENV, "0")
+    assert perf.sample_rss() is None
+
+    monkeypatch.delenv(perf.PERF_RSS_ENV, raising=False)
+    assert perf.sample_rss() == {"rss_self": 1234, "rss_children": 0}
+
+    monkeypatch.setenv(perf.PERF_RSS_ENV, "1")
+    assert perf.sample_rss() == {"rss_self": 1234, "rss_children": 0}
+
+
 # --- ToolCallError.kind ---------------------------------------------------
 
 

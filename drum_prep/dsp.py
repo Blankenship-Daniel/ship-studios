@@ -14,6 +14,7 @@ both the tonal curve and the ownership shares.
 from __future__ import annotations
 
 import numpy as np
+from scipy.fft import next_fast_len
 from scipy.signal import welch
 
 # ISO third-octave + octave band centres (Hz) and the 6 macro reporting bands.
@@ -95,7 +96,7 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
         return 0.0, 0.0
     a = a - a.mean()
     b = b - b.mean()
-    nfft = 1 << int(np.ceil(np.log2(2 * n)))
+    nfft = next_fast_len(2 * n)
     # Clamp the search to the available correlation range. For normal inputs
     # nfft >> 2*max_lag so this is a no-op; it only guards pathologically short
     # segments (n <= max_lag), where the unclamped slices below would wrap the

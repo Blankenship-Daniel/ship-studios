@@ -141,7 +141,8 @@ ENV_VARS: tuple[str, ...] = (ANTHROPIC_API_KEY, GEMINI_API_KEY)
 #: These are NOT inherited automatically: the MCP stdio transport spawns the
 #: server with only a minimal safe allow-list (HOME/PATH/…) merged with whatever
 #: ``StdioServerParameters.env`` carries, so anything we don't forward here is
-#: silently dropped. Keep this in sync with CLAUDE.md's env-vars table.
+#: silently dropped. Keep this in sync with the env-vars table in docs/setup.md
+#: (the full table CLAUDE.md links out to; test_docs_env_table gates the sync).
 #: Gemini-server overrides ([G]): model + per-call thinking tier + FS allow-list.
 GEMINI_OVERRIDE_ENV: tuple[str, ...] = (
     "STEMMY_MCP_MODEL",

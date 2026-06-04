@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "src_dir": "/Users/ship/Documents/code/ship-studios/.claude/worktrees/twinkly-snacking-hippo/projects/adat-kit-02/mix",
+  "overhead_mode": "stereo",
+  "stems": [
+    {"file": "overheads_ffchain.wav", "role": "overhead"},
+    {"file": "kick_in_ffchain.wav", "role": "kick_in"},
+    {"file": "kick_beater_ffchain.wav", "role": "kick_beater"},
+    {"file": "snare_top_ffchain.wav", "role": "snare_top"},
+    {"file": "tom_ffchain.wav", "role": "tom", "label": "rack"}
+  ]
+}

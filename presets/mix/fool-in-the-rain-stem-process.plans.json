@@ -1,0 +1,134 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick in.wav",
+  "role": "kick (inside mic) — LF thump + beater body. Bonham: keep WEIGHT; gentle de-box, no bright click.",
+  "clean": {"hpf_hz": 30, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 30, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 31.5, "gain_db": -3, "q": 1.2},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3, "q": 1.1},
+   {"type": "bell", "freq_hz": 4000, "gain_db": 1, "q": 1}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -4, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 60, "lf_gain": 1, "lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 4000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -2
+  },
+  "rationale": "Bonham wants weight, not click. HPF 30 + a -3 dB 31.5 Hz bell tames the sub-rumble shelf without touching the 58-63 Hz fundamental; -3 dB at 350 de-boxes (gentler than the warm recipe's -3.5 so the body stays). Only a small +1 dB at 4 kHz click (warm recipe used +2) — Bonham is dark. API comp New(FF) 3:1 Medium for body/slam; 550 top kept flat (hmf/hf = 0). declick off (percussive). Polarity left as the phase-align set it."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic — owns attack. Bonham: it sits FAR under the room, so keep it gentle.",
+  "clean": {"hpf_hz": 90, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 90, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -2.5, "q": 1},
+   {"type": "bell", "freq_hz": 340, "gain_db": -3, "q": 1.2},
+   {"type": "bell", "freq_hz": 3000, "gain_db": 2, "q": 1},
+   {"type": "bell", "freq_hz": 6000, "gain_db": -2.5, "q": 1.8}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -6, "release_s": 0.12},
+   "eq": {"lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 3000, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "HPF 90 hands the thump back to the 'in' mic; -2.5/-3 at 200/340 kill cardboard box; +2 at 3 kHz beater click (BELOW the 5-7k harsh zone); -2.5 at 6 kHz + a gentle 5-7k de-harsh tame brittleness. Beater is ~10 LU under the room in the Bonham balance so this stays conservative. 550 top flat. No transient/excite (the room carries the life). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare top.wav",
+  "role": "snare top — crack + body. Bonham: deep + FAT, ghost-note friendly. Keep body; do NOT gate.",
+  "clean": {"hpf_hz": 70, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 5000, "gain_db": -2, "q": 1.6}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 3500, "focus_hi_hz": 6500},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 3, "thresh": -10, "release_s": 0.18},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": -1.5, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -4
+  },
+  "rationale": "Body-dominant (peak ~200 Hz). Bonham keeps the fat body: only a small -1.5 at 300 (warm recipe used -2.5) so the snare stays deep; -2 at 5 kHz de-spits the harsh nub; dynamic 3.5-6.5k de-harsh ducks ring only when it rings, leaving ghost notes intact. NO gate, NO transient snap (we want the natural body + ghost notes, not a modern crack), NO air (dark). API comp New(FF) 3:1 Medium for density; 550 top flat. Snare top sits under the room/OH in the balance. declick off; polarity left from phase-align."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires) — buzz/snap. Bonham: a touch of wires under the top; far down in balance.",
+  "clean": {"hpf_hz": 150, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4.5, "q": 1.4},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.6},
+   {"type": "bell", "freq_hz": 7000, "gain_db": 1.5, "q": 1.2}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 4800, "focus_hi_hz": 6800},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 200, "lf_gain": -1.5, "lmf_freq": 400, "lmf_gain": -2, "hmf_freq": 7000, "hmf_gain": 1, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -6
+  },
+  "rationale": "Wires mic: HPF 150 kills shell-ring/box LF junk; -4.5/-2.5 at 200/400 de-box; a modest +1.5 at 7 kHz (ABOVE the 5 kHz harsh edge, smaller than the warm recipe's +2.5 — Bonham is dark) presents the wire buzz, with 4.8-6.8k de-harsh guarding the edge. Sits ~13 LU under the snare top in the Bonham balance — just a hint of wires. 550 top flat (hf 0). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) — salt-shaker hat. Bonham: barely present (OH/room carry the cymbals); NO air.",
+  "clean": {"hpf_hz": 110, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 110, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 400, "gain_db": -3, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 3, "thresh": -8, "release_s": 0.1},
+   "eq": {"lmf_freq": 200, "lmf_gain": -2, "hmf_freq": 10000, "hmf_gain": 0, "hf_freq": 12000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "HPF 110 kills 63-80 Hz rumble/spill; -4.5 at 200 (single loudest band = whoosh/spill) and -3 at 400 clear the box; 5-7k de-harsh tames the brittle poke dynamically. KEY Bonham change vs the warm recipe: NO 11 kHz air shelf (the kit is dark and the OH/room own the cymbals) — the hat is pulled ~14 LU under the room in the balance. 550 top fully flat. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) — cymbals + whole-kit image. Bonham: warm + dark, just under the room.",
+  "clean": {"hpf_hz": 120, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 200, "gain_db": -1.5, "q": 1.1}
+  ],
+  "de_harsh": {"depth": 0.5, "max_reduction_db": 4, "focus_lo_hz": 3150, "focus_hi_hz": 6300},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 100,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "HPF only 120 (warm recipe used 140 — Bonham keeps more body) dumps the worst 63-80 Hz kick lump; just a gentle -1.5 at 200 to ease the box WITHOUT thinning the low-mid warmth (warm recipe cut -3 @200 + -1.5 @400 and brightened the bus — we deliberately keep the warmth); dynamic 3.15-6.3k de-harsh ducks cymbal/hat harshness only when it rings. KEY Bonham change: NO 12 kHz air shelf (warm recipe added +1.5) and hf gain 0 — keep it dark and natural. New(FF) 2.5:1 Medium comp for cohesion; 550 top flat. The OH carries the kit image just under the room."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) — THE STAR (the 'reverb'). Bonham: keep it WARM, ALIVE, and big. Treat lightly.",
+  "clean": {"hpf_hz": 45, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 45, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 210, "gain_db": -1, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 2500, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 45,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -6, "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 315, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "The room is the Bonham sound, so treat it lightly and KEEP ITS LOW WEIGHT/WARMTH: HPF only 45 Hz (warm recipe used 50; we keep more bottom) and just ONE very gentle -1 at 210 to ease the worst box — deliberately NOT the warm recipe's -3.5 @210 + -2 @400, which would thin the body and brighten the bus. Light 2.5-6k de-harsh keeps it alive. Old(FB) 2:1 Medium comp at 0.3 s for character/glue WITHOUT crushing the natural dynamics (the room's huge crest IS the vibe). NO air. The room is pushed FORWARD in the balance (the loudest layer). declick off; polarity left from phase-align."
+ }
+]

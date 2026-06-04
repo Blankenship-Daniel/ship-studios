@@ -1,0 +1,48 @@
+{
+  "name": "fool-in-the-rain",
+  "description": "FAMOUS DRUM SOUND: Led Zeppelin 'Fool In The Rain' / John Bonham. A room-DOMINANT, warm/dark, fat-low-mid, breathing drum bus. The room mic is the loudest layer (the 'reverb'); warmth comes from Helios colour + Studer 15 IPS tape + tilt (NOT bright EQ); glue from the SSL bus comp (the Polar-Studios SSL lineage). This is the TONE, not the half-time shuffle GROOVE, and it NEEDS room mics in the source. Dev-validated 2026-06-03 on a 45 s artifacts/drums clip (a non-Bonham, hyper-dynamic kit). Reproduce the whole pipeline below.",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems WITH room + overhead mics (drum-prep phase-align -> <kit>/phase-aligned/).",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/fool-in-the-rain-stem-process.plans.json (declick OFF; GENTLE corrective clean/de-box/de-harsh — KEEP the low-mid warmth, NO air boosts, no low-mid cuts on the loud room/overhead stems) -> <kit>/processed-fitr/.",
+    "3. ROOM-FORWARD BALANCE: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS; ROOM + OVERHEAD the loudest layer, close mics UNDER) -> bus_fitr_pre.wav.",
+    "4. BONHAM CHAIN: scripts/mix/fool_in_the_rain_bus.py bus_fitr_pre.wav bus_fitr.wav (Helios colour -> Studer 15 IPS tape -> SSL bus comp -> zero-phase polish; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages."
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem). THE INVERSION vs warm-tight: room/overhead are FORWARD (loudest), close mics UNDER — the ambience is the sound.",
+    "drum room": {"target_lufs": -16.0, "pan": 0.0, "_note": "THE STAR — the loudest layer, the 'reverb' (stereo, image preserved)"},
+    "overhead": {"target_lufs": -18.0, "pan": 0.0, "_note": "kit image + cymbals, just under the room (stereo)"},
+    "kick in": {"target_lufs": -20.0, "pan": 0.0, "_note": "weight/support, not the sound"},
+    "snare top": {"target_lufs": -21.0, "pan": -0.05, "_note": "deep fat snare; NOT gated so ghost notes survive"},
+    "kick beater": {"target_lufs": -30.0, "pan": 0.0, "_note": "a little click"},
+    "snare bottom": {"target_lufs": -34.0, "pan": -0.05, "_note": "a touch of wires"},
+    "hi hat": {"target_lufs": -32.0, "pan": -0.25, "_note": "barely — the OH/room carry the cymbals"}
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/fool_in_the_rain_bus.py — authoritative; a bare invocation reproduces these. Helios/Studer/SSL are driven inline via Pedalboard set_param (nearest-valid snap), the same mechanism as the preset harness; apply-vst-chain's float dict would drop the string enums.",
+    "1_eq_pre_zero_phase": ["high_pass 35 Hz q0.707 (keep subsonic out of the tape)"],
+    "2_helios_type_69": {"plugin": "uaudio_helios_type_69.vst3", "input_select": "Mic", "gain": 40.0, "pad": "-20 dB", "eq_in": "In", "mid_type": "Peak", "mid_freq": 700.0, "mid_gain": 3.0, "hi_shelf_gain": 0.0, "bass": 0.0, "level": -14.0, "_intent": "warm British transformer + 700 Hz body colour; NO air (hi_shelf only CUTS up high; bass boost is INERT headless). gain40+pad=-20 dB = the musical ~1.9%-THD-on-a-sine sweet spot; level -14 trims the Mic-gain boost back into the tape."},
+    "3_studer_a800_tape": {"plugin": "uaudio_studer_a800.vst3", "path_select": "Repro", "ips": "15 IPS", "tape_type": "456", "emphasis_eq": "NAB", "cal_level": 6.0, "auto_cal": true, "input_level": 2.0, "repro_hf_eq": 2.0, "output_level": 0.0, "_intent": "fat ~50-70 Hz head-bump BLOOM + warmth/glue; darkens the top (repro_hf_eq 2). 15 IPS NOT 30 — the bloom IS the Bonham bottom (warm-tight uses 30 to TIGHTEN; do not 'fix' to 30)."},
+    "4_ssl_bus_compressor_2": {"plugin": "SSL Native Bus Compressor 2.vst3", "ratio": "4:1", "attack_ms": 10.0, "release_s": "AUTO", "threshold_db": -14.0, "makeup_gain_db": 3.0, "sidechain_hpf_hz": "60 -> snaps to 59.9", "oversampling": "2x", "dry_wet_mix": 100.0, "_intent": "clean STEREO VCA glue (preserves the room image, unlike a mono comp). attack 10 ms = classic drum-bus 'breathing' glue. NOTE: a SLOW (30 ms) attack on a peaky drum bus RAISES crest (compresses sustain, not peaks). SC-HPF 60 keeps the kick from pumping the bus."},
+    "5_eq_post_zero_phase": ["low_shelf 120 +1.5 dB q0.7 (low weight)", "bell 300 +1.5 dB q0.8 (200-400 Hz head/low-mid thump)", "bell 3000 -2.0 dB q1.0 (tame harshness)", "high_shelf 10000 +0.5 dB q0.7 (GENTLE air, not bright)"],
+    "6_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 3595,
+    "tilt_db_per_oct": -2.01,
+    "crest_db": 28.0,
+    "correlation": 0.80,
+    "lufs_i": -21.7,
+    "_measured_on": "a 45 s clip of the artifacts/drums kit (dev smoke test) — a BRIGHT (centroid 4630, tilt -1.5) and HYPER-DYNAMIC (room crest 34) kit, i.e. a stress test, not a Bonham performance.",
+    "_what_to_check": "the DIRECTION, not absolutes: centroid DOWN ~1000 Hz (warmer/darker), tilt more negative (warm, ~-2.0 here from -1.5), correlation MODERATE ~0.65-0.85 (the room/OH stereo is preserved — a live room sits well below the warm-tight bus's 0.97). CREST IS CONTENT-DEPENDENT: this kit's room is so dynamic the bus stays ~28; on a more controlled Bonham source expect lower. 'Breathing glue' = a few dB of crest reduction vs the pre-bus, NOT an absolute 16-18."
+  },
+  "notes": [
+    "Needs ROOM mics — no room channel, no Bonham sound (the room is the loudest layer, the 'reverb').",
+    "This is the TONE, not the half-time shuffle GROOVE or the ghost-note performance — those live in the source.",
+    "Warmth = Helios colour + Studer 15 IPS tape + tilt, NEVER a bright EQ boost. 15 IPS BLOOMS the lows (fat); do NOT 'fix' it to 30 IPS (that's the warm-TIGHT move).",
+    "Keep the low-mid body in the stem-process: gentle de-box only, and NO low-mid cuts in the API color EQ on the loud room/overhead stems (those scoop out the warmth — learned in the dev pass).",
+    "Don't slam the SSL — a few dB of glue. A 30 ms attack RAISES crest on peaky drums; 10 ms is the breathing default.",
+    "Honest nuance: the real track used an SSL at Polar Studios (Stockholm), NOT a Helios desk. Helios is the repo's era-appropriate Zeppelin-warmth COLOUR; the chase is the tone/feel, not a literal signal path. Run .claude/workflows/fool-in-the-rain.js to A/B Helios-on/off, 15-vs-30 IPS, SSL settings.",
+    "This is a MIX bus (peak -1, NOT mastered) — hand to master-track for loudness/limiting and loops-to-deliverables for loops."
+  ]
+}

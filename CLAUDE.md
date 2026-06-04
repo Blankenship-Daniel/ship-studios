@@ -333,7 +333,7 @@ Always master into `masters/`, never overwrite `mix/`. Deliverable exports land 
 
 ## Setup prerequisites
 
-Both servers are sibling repos using `uv`; sync each in its own directory before first use. **Full extras list + the complete `STEMMY_*` / `SHIP_STUDIOS_*` env-var reference → [`docs/setup.md`](docs/setup.md).**
+Both servers are sibling repos using `uv`; sync each in its own directory before first use. **Full extras list + the complete `STEMMY_*` / `SHIP_STUDIOS_*` env-var reference → [`docs/setup.md`](docs/setup.md) (the `[[setup]]` skill).**
 
 ```bash
 # stemmy-loops — minimal (DSP measure/render) | + VST hosting | full superset:
@@ -362,7 +362,7 @@ uv run python scripts/lint_skills.py   # skill-contract lint (CI-gated)
 ```
 
 - **Editing a pipeline = editing `ship_studios/pipelines.py`**; `tests/test_pipelines.py` asserts the *ordered tool-call log*, so a reorder/rename fails loudly — keep it in lockstep with **Canonical pipelines** above.
-- Full developer reference — the VST harness workflow, the skill/doc contract guards (`/audit-skill-consistency`, `/audit-pipeline-lockstep`, `/create-skill`, `/repo-review`, `/fold-learnings`), the opt-in pre-release live-contract check, **and the headless `ship-studios` CLI** (nine pipeline subcommands + `doctor`, for batch/CI runs) → [`docs/developing.md`](docs/developing.md).
+- Full developer reference — the VST harness workflow, the skill/doc contract guards (`/audit-skill-consistency`, `/audit-pipeline-lockstep`, `/create-skill`, `/repo-review`, `/fold-learnings`), the opt-in pre-release live-contract check, **and the headless `ship-studios` CLI** (nine pipeline subcommands + `doctor`, for batch/CI runs) → [`docs/developing.md`](docs/developing.md) (the `[[developing]]` skill).
 
 ---
 

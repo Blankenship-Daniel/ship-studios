@@ -98,10 +98,18 @@ path. A/B loudness-matched so taste isn't a level illusion.
 
 ## Pitfalls
 
+- **For a multi-mic KIT pass, don't use the default `apply_vst_preset.py` harness** — it **upmixes mono→stereo**
+  (`np.repeat`, before the chain) AND **peak-normalizes** to `output_peak_dbfs` (default −1.0), breaking a mono close mic's
+  channel count and the measured inter-stem LUFS balance. `output_peak_dbfs: null` gives **faithful gain** (no renorm) but
+  **still upmixes** — so for a per-stem soothe/EQ prefer `[L] apply-vst-chain` (preserves channels, no renorm) or a
+  channel-preserving render ([[stem-process]]). A single stereo bus/loop: the harness is fine.
 - **Don't trust a bare load to be flat** (restores the last GUI curve) and **don't drive it via the float dict**
   (can't shape/enable bands) — flatten + configure via [[vst-preset]], or a `dump_state` blob.
 - **Spectral forces linear phase on that band** (latency/pre-ring) — keep its resolution Low/Medium, esp. >1 kHz;
   dynamics aren't supported above High resolution.
+- **Per-stem kit soothe stays sample-aligned** — though Spectral runs linear-phase, Pedalboard 0.9.23
+  **auto-compensates** the band's latency (impulse probe: flattened Pro-Q + one 5 kHz spectral band = **0 samples in==out**),
+  so soothing the individual mics of a multi-mic kit doesn't smear them out of phase. Safe to de-harsh per-stem **before** summing ([[stem-process]]).
 - **Linear Phase isn't free** — pre-ring softens transients; use Natural Phase / Zero Latency on drum/lead material.
 - **Character has no amount knob; Auto Gain isn't metered** — verify level with a meter before any A/B.
 - **Pro-Q 3 ≠ Pro-Q 4** — dynamic EQ/M/S/EQ-Match/Spectrum-Grab/Atmos were already in 3; new in 4 = Spectral

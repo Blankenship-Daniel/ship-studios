@@ -52,6 +52,7 @@ express. Backed by `presets/vst/apply_vst_preset.py`; see [`presets/vst/README.m
 - **`uaudio_*` only** — a preset built on a `UAD ….component` path will passthrough; use the `uaudio_*` twin.
 - **Non-deterministic** — tape wow/flutter means re-applies aren't bit-exact (that's real tape); the
   `target_signature` is how you confirm a faithful re-apply. Pin plugin versions.
+- **Not for a per-stem multi-mic kit pass** — the harness always upmixes mono→stereo (`np.repeat`) and, unless `output_peak_dbfs: null`, sample-peak-normalizes each output to the recipe ceiling (default −1.0). On a balanced kit that's two ways to break it: mono close mics go stereo, and independent peak-norm wrecks the carefully set inter-stem LUFS balance. `output_peak_dbfs: null` keeps the gain faithful but still upmixes. For a per-stem soothe/EQ ([[stem-process]]), use a channel-preserving faithful render — or `[L] apply-vst-chain`, which preserves channel count and doesn't renormalize. This preset path is for a single stereo bus/master.
 - Recipe `params` reproduce from scratch and are portable; `.state` blobs are byte-exact but tied to this
   machine's plugin versions.
 

@@ -74,3 +74,4 @@ the A/B is the real test.
 - [[dynamic-eq]] — level-dependent (threshold-gated) carving
 - [[mix-check]] — find-resonances + the full diagnostic read
 - [[excite]] — the opposite move (add air) when something's dull, not harsh
+- [[fabfilter-pro-q-4]] — the in-the-box (VST) soothe twin (Spectral Dynamics); Pedalboard auto-compensates its spectral band's linear-phase latency (net 0 samples in→out), so soothed stems stay sample-aligned — safe to soothe **per-stem before summing**

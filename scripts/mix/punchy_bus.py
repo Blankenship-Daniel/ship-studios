@@ -33,7 +33,12 @@ heavy shaping double-dips. The first pass (--mid-trans 0.40 --hi-trans 0.30) mad
 (a meter-grounded detect-mix-issues flagged "excessive transient shaping"; the meters showed NO clipping,
 so it was a transient/tone defect, not level). Easing to 0.20/0.10 cleared it with ~no crest loss
 (24.7 -> 24.5) — proof the punch was the comp, not the shaper. Keep mid/hi-trans gentle. For more snap
-WITHOUT harshness, lower --comp-thresh or raise --comp-ratio — never boost the top, never crank the shaper.
+WITHOUT harshness, lower --comp-thresh or raise --comp-ratio — never boost the top, never crank the shaper. CAVEAT: that "never boost the top" rule is for an ALREADY-BRIGHT kit. A DARK/soothed kit comes out
+punchy-but-dark and does NOT read aggressive — there the fix is a FORWARD PRESENCE EQ applied AFTER this
+strip (zero-phase: low-shelf ~110 -4, de-box ~300, +3-5 kHz crack bell, high-shelf air), not more comp.
+And more comp != more aggression: a 3-intensity shootout showed the GENTLE 225 (--comp-thresh -7
+--comp-ratio 3) was the best base; HARD comp (-14 / 6:1 + drive) ADDED 300-400 Hz box + flabby lows and
+bought NO aggression. Brightness/forwardness is what reads as aggression on a dark kit — not crush.
 
 Run with the stemmy-loops vst venv (../stemmy-loops-mcp/.venv/bin/python). Pair upstream with the dry
 measured balance (close mics forward, OH under, ambience out) — scripts/mix/balance_stems.py.

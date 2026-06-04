@@ -1,0 +1,136 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick in.wav",
+  "role": "kick (inside mic) — LF thump + beater body. Aja: TIGHT + ROUND + deep, clean attack (not boomy, not dark).",
+  "clean": {"hpf_hz": 30, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 30, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 31.5, "gain_db": -2.5, "q": 1.2},
+   {"type": "bell", "freq_hz": 350, "gain_db": -2.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 3500, "gain_db": 1.5, "q": 1}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -4, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 60, "lf_gain": 1, "lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 3500, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -2
+  },
+  "rationale": "Aja kick is tight, round, deep, with a clean (not boxy, not dark) attack. HPF 30 + a -2.5 dB 31.5 Hz bell tame the sub-rumble shelf, keeping the ~58-63 Hz fundamental; -2.5 @350 de-boxes for a clean low-mid; a small +1.5 @3.5k gives the beater click definition (Aja has a defined kick, more than the dark Bonham recipe but cleaner than a modern click). API New(FF) 3:1 Medium is GENTLE density that preserves dynamics; lf +1 @60 round weight, 550 top kept flat. declick off (percussive). Polarity left as the phase-align set it."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic — owns attack. Aja: clean defined click, sits under the 'in' mic.",
+  "clean": {"hpf_hz": 90, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 90, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -2.5, "q": 1},
+   {"type": "bell", "freq_hz": 340, "gain_db": -2.5, "q": 1.2},
+   {"type": "bell", "freq_hz": 3500, "gain_db": 2, "q": 1},
+   {"type": "bell", "freq_hz": 6500, "gain_db": -2, "q": 1.8}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -6, "release_s": 0.12},
+   "eq": {"lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 3500, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "HPF 90 hands the thump back to the 'in' mic; -2.5 at 200/340 kill cardboard box; +2 @3.5k presents a CLEAN beater click (below the 5-7k harsh zone); -2 @6.5k + a gentle 5-7k de-harsh keep it smooth (Aja is never harsh). 550 top flat. No transient/excite (preserve natural dynamics). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare top.wav",
+  "role": "snare top — THE STAR of the Purdie shuffle: full round woody body + crisp-but-smooth ghost notes. Keep the dynamics; do NOT gate.",
+  "clean": {"hpf_hz": 70, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 5000, "gain_db": 1.5, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 4000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 2, "thresh": -12, "release_s": 0.2},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": -1.5, "hmf_freq": 5000, "hmf_gain": 1, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -4
+  },
+  "rationale": "Body-dominant (peak ~200 Hz). Aja keeps the full round body: a small -1.5 @300 de-boxes without thinning; +1.5 @5k gives a CLEAN crack/presence (Aja snare is detailed), with a 4-7k dynamic de-harsh that ducks ring only when it rings so the smooth top + ghost notes survive. CRITICAL: NO gate, NO transient snap — the loud-backbeat/whisper-ghost-note dynamic contrast IS the Purdie shuffle, so the API comp ratio is kept LOW (2:1, high threshold -12) to LEVEL gently, not crush. 550 top flat. declick off; polarity left from phase-align."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires) — buzz/snap detail. Aja: a clean touch of wires + ghost-note snap under the top.",
+  "clean": {"hpf_hz": 150, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4, "q": 1.4},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.6},
+   {"type": "bell", "freq_hz": 7000, "gain_db": 2, "q": 1.2}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 2.5, "thresh": -6, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 200, "lf_gain": -1.5, "lmf_freq": 400, "lmf_gain": -2, "hmf_freq": 7000, "hmf_gain": 1, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -6
+  },
+  "rationale": "Wires mic: HPF 150 kills shell-ring/box LF junk; -4/-2.5 @200/400 de-box; +2 @7k (ABOVE the 5 kHz harsh edge) presents a CLEAN wire buzz / ghost-note snap, with a 5-7k de-harsh guarding the edge. Sits under the snare top — a clean hint of wires that helps the ghost notes read. Comp ratio kept low (2.5:1) to keep the snap dynamics. 550 top flat. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) — the shuffle's triplet hat: PRESENT + smooth + detailed (audible but never splashy/harsh).",
+  "clean": {"hpf_hz": 110, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 110, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4, "q": 1.1},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.4},
+   {"type": "bell", "freq_hz": 9000, "gain_db": 1, "q": 0.9}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 2.5, "thresh": -8, "release_s": 0.1},
+   "eq": {"lmf_freq": 200, "lmf_gain": -2, "hmf_freq": 9000, "hmf_gain": 1, "hf_freq": 12000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Aja change vs the dark Bonham/TNK recipes: the hat is PRESENT + detailed (the triplet shuffle hat is a defining rhythmic element), but SMOOTH. HPF 110 kills 63-80 Hz rumble/spill; -4 @200 (whoosh/spill) + -2.5 @400 clear the box; a gentle +1 @9k lift adds sizzle DETAIL (per the salt-shaker rule: lift 8-16k, de-whoosh 160-500), while the 5-7k de-harsh tames the brittle poke. Modest lift only (the kit has a noise floor — a broad bright shelf would raise hiss). 550 top flat. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) — clean detailed cymbal + whole-kit image. Aja: warm-but-DETAILED, smooth silky top.",
+  "clean": {"hpf_hz": 120, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 200, "gain_db": -1.5, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 11000, "gain_db": 1, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 3.5, "focus_lo_hz": 3150, "focus_hi_hz": 6300},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 100,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "The OH carries the clean, detailed kit image in a studio mix. HPF 120 dumps the worst 63-80 Hz kick lump; a gentle -1.5 @200 eases the box WITHOUT thinning the low-mid warmth; a modest +1 dB 11 kHz high-shelf adds the silky DETAIL Aja is known for (the one famous-drum recipe that ALLOWS gentle air — Bonham/TNK forbid it), guarded by a 3.15-6.3k dynamic de-harsh so it stays SMOOTH, never harsh. Old(FB) 2:1 Medium for cohesion that keeps the cymbal dynamics; 550 top flat (the corrective shelf + the bus Pultec own the air)."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) — TASTEFUL controlled depth (NOT the star, unlike Bonham). Clean, gives dimension.",
+  "clean": {"hpf_hz": 60, "denoise": true, "denoise_db": 5},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 60, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 210, "gain_db": -2, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 2500, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 60,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -6, "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": -1, "lmf_freq": 315, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Aja inversion vs Bonham: the room is NOT the star here — it adds tasteful, CONTROLLED depth/dimension, sitting well under the close mics. HPF 60 (tighter than Bonham's 45) + a -2 @210 + a -1 @200 in the API EQ keep the room low buildup TIGHT (Aja is controlled, not boomy); a 2.5-6k de-harsh keeps it smooth. Old(FB) 2:1 Medium at 0.3 s for gentle character WITHOUT crushing (keep the natural dynamics). declick off; polarity left from phase-align."
+ }
+]

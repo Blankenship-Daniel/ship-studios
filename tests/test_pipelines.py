@@ -474,6 +474,20 @@ async def test_mix_check_compress_chains_off_eq_output(recording_hub) -> None:
     assert recording_hub.args_for("compress-loop")["path"] == eq_out
 
 
+async def test_mix_check_honors_custom_out_paths(recording_hub) -> None:
+    # eq_out_path / compress_out_path (the latter only reachable via the pipeline
+    # API + the CLI --compress-out flag) must override the default suffix paths.
+    bands = [{"type": "bell", "freq_hz": 200.0, "gain_db": -2.0, "q": 1.0}]
+    await pipelines.mix_check(
+        recording_hub, "mix.wav", eq_bands=bands,
+        eq_out_path="out/eq.wav", compress=True, compress_out_path="out/comp.wav",
+    )
+    assert recording_hub.args_for("apply-eq")["out_path"] == "out/eq.wav"
+    assert recording_hub.args_for("compress-loop")["out_path"] == "out/comp.wav"
+    # the compressor still chains off the EQ'd output (custom path threaded through).
+    assert recording_hub.args_for("compress-loop")["path"] == "out/eq.wav"
+
+
 async def test_mix_check_no_mutation_without_moves(recording_hub) -> None:
     await pipelines.mix_check(recording_hub, "mix.wav")
     assert "apply-eq" not in recording_hub.tool_sequence

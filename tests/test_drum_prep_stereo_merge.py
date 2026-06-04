@@ -48,6 +48,18 @@ def test_ambiguous_side_raises(tmp_path) -> None:
         stereo_merge.find_pairs(str(tmp_path))
 
 
+def test_stereo_side_rejected_not_silently_mono_summed(tmp_path) -> None:
+    # A genuinely STEREO side must be rejected, not averaged down to mono — which
+    # would silently destroy its L/R data and write two identical mono channels.
+    rng = np.random.default_rng(3)
+    stereo = (rng.standard_normal((SR, 2)) * 0.3).astype(np.float32)  # a 2-channel "side"
+    mono = (rng.standard_normal(SR) * 0.3).astype(np.float32)
+    _w(tmp_path / "oh - left.wav", stereo)
+    _w(tmp_path / "oh - right.wav", mono)
+    with pytest.raises(ValueError, match="single channel"):
+        stereo_merge.merge_dir(str(tmp_path))
+
+
 def test_subtype_mismatch_reported(tmp_path) -> None:
     # The merged file carries ONE subtype (the left's); a differing right subtype
     # is coerced, which must be reported, not lossy-by-stealth.

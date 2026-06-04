@@ -205,6 +205,10 @@ def group_avg(curve: np.ndarray, centers: np.ndarray,
 
 def tilt(db: np.ndarray, centers: np.ndarray) -> float:
     """Spectral tilt in dB/octave (lstsq slope vs log2 frequency)."""
+    if np.any(np.asarray(centers, dtype=float) <= 0):
+        # log2(<=0) -> -inf/nan makes polyfit fail with "SVD did not converge";
+        # reject up front so a caller passing a 0 Hz center gets a clear error.
+        raise ValueError("tilt() centers must be positive frequencies (log2 needs > 0)")
     return float(np.polyfit(np.log2(centers), db, 1)[0])
 
 

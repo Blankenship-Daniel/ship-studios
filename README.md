@@ -281,8 +281,9 @@ JSON, so it's safe to commit — audio stays gitignored). See
 
 The core close-mic flows + an end-to-end chain. Each is a `drum-prep`
 subcommand; `phase-align` / `reference-match` / `audition` / `chain` also have
-Claude Code skills/commands (`overheads` is CLI-only). The full CLI exposes
-more subcommands — run `drum-prep --help` for the complete list:
+Claude Code skills/commands (`overheads` is CLI-only). The full CLI exposes more
+subcommands — several with their own `/drum-*` skills (e.g. `mix`, `normalize`,
+`stereo-merge`, `tune`, `sub-design`) — run `drum-prep --help` for the complete list:
 
 - **overheads** — merge an L/R overhead pair into one stereo reference (no-op if
   already stereo). `drum-prep overheads <dir>` *(CLI only — no slash command)*

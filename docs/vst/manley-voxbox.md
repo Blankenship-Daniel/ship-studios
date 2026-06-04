@@ -22,7 +22,7 @@ cited* (Manley + UA manuals, Sound on Sound, MusicRadar, reviews). The skill [[m
 
 1. **It renders headless — load the `uaudio_` build.** `uaudio_manley_voxbox.vst3` loads + processes through
    Pedalboard 0.9.23 (param-response confirmed). The `UAD Manley VOXBOX.component` twin is the **passthrough**
-   offline build — never load it ([[vst-verify]]). UADx native = no DSP/iLok dongle for the render here.
+   offline build — never load it ([[vst-verify]]). UADx native = **iLok account** (no DSP/dongle) for the render here.
 2. **The audio path is NOT the GUI layout.** Internal flow is **INPUT → COMPRESSOR → tube PREAMP → EQ → DE-ESS/LIMITER → OUTPUT**
    — the **compressor is FIRST, before the preamp** (it clamps transients before the first tube), and it's **fixed/
    non-reorderable**. Don't reason about order from the panel's left-to-right blocks.

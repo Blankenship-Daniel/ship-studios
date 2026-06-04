@@ -50,7 +50,11 @@ def main(argv: list[str]) -> int:
         )
         return 2
     key = positional[0]
-    cmd = ["uv", "--directory", str(config.server_dir(key)), "run", _console_for(key)]
+    # ``--check`` is a dry run (print the resolved command) and must work before
+    # the siblings are synced; the real exec path validates the dir first so a
+    # missing/un-synced repo fails clearly rather than as an opaque uv error.
+    directory = config.server_dir(key) if check else config.checked_server_dir(key)
+    cmd = ["uv", "--directory", str(directory), "run", _console_for(key)]
     if check:
         print(" ".join(cmd))
         return 0

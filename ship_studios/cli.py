@@ -479,12 +479,14 @@ def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
               help="Also add band-limited air/presence (excite-loop).")
 @click.option("--compress", is_flag=True, default=False,
               help="Also run compress-loop.")
+@click.option("--compress-out", "compress_out_path", type=click.Path(), default=None,
+              help="Where to write the compressed mix (with --compress).")
 @click.option("--multiband", is_flag=True, default=False,
               help="Also run multiband-compress (per-band dynamics).")
 def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
                   eq_out_path: str | None, deess: bool, de_harsh: bool,
                   dynamic_eq_json: str | None, excite: bool, compress: bool,
-                  multiband: bool) -> None:
+                  compress_out_path: str | None, multiband: bool) -> None:
     """Diagnose a mix (perceptual + measurement) and surface concrete moves.
 
     The corrective steps are opt-in and chain in order: --eq-json, --deess,
@@ -507,6 +509,7 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
                 dynamic_eq_bands=dyn_bands,
                 excite={} if excite else None,
                 compress=compress,
+                compress_out_path=compress_out_path,
                 multiband={} if multiband else None,
             )
 

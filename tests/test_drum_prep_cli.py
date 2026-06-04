@@ -28,6 +28,18 @@ def test_detect_outputs_roles(tmp_path) -> None:
     assert any(s["role"] == "overhead" for s in data["stems"])
 
 
+def test_stem_mix_bad_spec_json_is_clean_error(tmp_path) -> None:
+    # A malformed --spec must produce a clean CLI error that NAMES the file, not a
+    # bare decoder message or a traceback.
+    src = tmp_path / "stems"
+    src.mkdir()
+    spec = tmp_path / "spec.json"
+    spec.write_text("{not valid json")
+    res = CliRunner().invoke(main, ["stem-mix", str(src), "--spec", str(spec)])
+    assert res.exit_code != 0
+    assert "invalid JSON" in res.output and "spec.json" in res.output
+
+
 def test_phase_align_parses_options(tmp_path, monkeypatch) -> None:
     captured: dict = {}
 

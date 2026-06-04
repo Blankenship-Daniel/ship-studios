@@ -127,10 +127,22 @@ def merge_pair(left_path: str, right_path: str, out_path: str,
                align: bool = False, max_lag: int = 600) -> dict:
     """Interleave L/R -> stereo at the source subtype (container = out extension);
     returns the review + verify."""
-    L, srL = io.read(left_path, mono_sum=True)
-    R, srR = io.read(right_path, mono_sum=True)
+    # Each side is ONE channel of the target stereo pair, so read it WITHOUT
+    # mono-summing. mono_sum=True here would average a genuinely stereo side down
+    # to mono, silently destroying its L/R data — the merge would then hold two
+    # identical mono averages, not the documented L->left / R->right interleave.
+    # A multi-channel side is not a single side of a pair, so reject it loudly.
+    Lc, srL = io.read(left_path)
+    Rc, srR = io.read(right_path)
     if srL != srR:
         raise ValueError(f"sample-rate mismatch: {srL} vs {srR}")
+    if Lc.shape[1] != 1 or Rc.shape[1] != 1:
+        raise ValueError(
+            f"each side of an L/R merge must be a single channel; got "
+            f"left={Lc.shape[1]}ch, right={Rc.shape[1]}ch — a stereo file is not "
+            "one side of a pair (split it first, or use the channels directly)"
+        )
+    L, R = Lc[:, 0], Rc[:, 0]
     sr = srL
     n = min(len(L), len(R))
     L, R = L[:n], R[:n]

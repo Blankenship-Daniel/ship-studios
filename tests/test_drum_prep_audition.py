@@ -107,3 +107,31 @@ def test_audition_too_short_excerpt_raises(tmp_path) -> None:
     with pytest.raises(ValueError, match="too short"):
         render_auditions(kit, refp, aligned_dir=aligned, matched_dir=matched,
                          out_dir=str(tmp_path / "auditions"), t0=0.0, dur=0.1)
+
+
+def test_audition_reported_lufs_matches_trimmed_file(tmp_path) -> None:
+    # When the anti-clip trim fires, the reported lufs_before must reflect the
+    # WRITTEN (post-trim) file — not the pre-trim measurement, which overstated the
+    # files by the trim amount. `before` is only scaled by the trim, so its file
+    # loudness == reported lufs_before exactly (within meter precision).
+    n = SR * 14
+    sig = np.random.default_rng(0).standard_normal(n) * 0.6  # hot -> trim WILL fire
+    aligned = tmp_path / "phase-aligned"
+    matched = tmp_path / "ref-matched"
+    aligned.mkdir()
+    matched.mkdir()
+    sf.write(str(aligned / "snare.aif"), sig, SR, subtype="PCM_24", format="AIFF")
+    sf.write(str(matched / "snare.aif"), sig * 0.5, SR, subtype="PCM_24", format="AIFF")
+    ref = np.random.default_rng(1).standard_normal(n) * 0.1
+    refp = tmp_path / "ref.wav"
+    sf.write(str(refp), np.column_stack([ref, ref]), SR, subtype="PCM_24")
+
+    kit = Kit(src_dir=str(tmp_path), stems=[])
+    res = render_auditions(kit, str(refp), aligned_dir=str(aligned), matched_dir=str(matched),
+                           out_dir=str(tmp_path / "auditions"), t0=0.0, dur=12.0)
+    ab = next(a for a in res["auditions"] if a["name"] == "before-vs-after")
+
+    y, _ = sf.read(str(tmp_path / "auditions" / "AB_before-vs-after.wav"))
+    assert abs(np.abs(y).max() - 0.95) < 0.02  # trim engaged (clamped to the ceiling)
+    file_before = pyln.Meter(SR).integrated_loudness(y[: int(12 * SR)])
+    assert abs(ab["lufs_before"] - file_before) < 0.3  # reported == the written file

@@ -32,7 +32,8 @@ Pedalboard param surface + our isolation/curve/M-S render numbers); **Part B** i
    (passive). Dial broad, stack bands; don't expect "+8 = +8 dB."
 3. **`speed` is INERT headless — set the per-band `lN_freq` instead.** Flipping the global `left_speed`/
    `right_speed` to `'1/2'` did **not** move a band's center (848 Hz stayed 848); setting `l4_freq=400.0`
-   **did** (→ 414 Hz). The seven `lN_freq` two-value enums are the real frequency control.
+   **did** move it (measured center ≈ 414 Hz — the nominal enum value lands on the nearest band of the set,
+   not exactly 400). The seven `lN_freq` two-value enums are the real frequency control.
 4. **All 53 params are enums, and the string ones don't set via the float dict.** `apply-vst-chain` can pass the
    float-valued enums (`lN_gain`, `lN_freq`, `left/right_gain`) but **silently drops** the strings (`lN_dip_pk`,
    `ctrl_link`, `filter`, `mid_side`, `*_byp`, `*_speed`). **Use the [[vst-preset]] harness** for any real patch.

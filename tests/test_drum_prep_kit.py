@@ -13,6 +13,7 @@ from drum_prep.kit import (
     overhead_reference,
     partner_pairs,
     resolve_kit,
+    save_manifest,
 )
 from drum_prep.roles import Role
 
@@ -153,3 +154,19 @@ def test_manifest_accepts_valid_optional_fields(tmp_path) -> None:
     kit = resolve_kit(src)
     ks = kit.by_name("k.aif")
     assert ks.lowpass_hz == 80 and ks.polarity_lock == -1 and ks.ambience is False
+
+
+def test_to_dict_roundtrips_ambience_false(tmp_path) -> None:
+    # Round-trip fidelity: an explicit ambience=False must serialize AND reload as
+    # False. A ROOM stem auto-detects ambience=True, so if to_dict drops the key
+    # when the value is False (the old ``s.ambience or None`` bug), save -> reload
+    # silently flips the override back to True.
+    src = _make(tmp_path, ["overheads - stereo.aif", "drum room.aif"])
+    kit = resolve_kit(src, strict=False)
+    assert kit.by_name("drum room.aif").ambience is True  # auto from the ROOM role
+    kit.by_name("drum room.aif").ambience = False
+    save_manifest(kit, str(tmp_path / "kit.json"))
+    entry = next(s for s in json.loads((tmp_path / "kit.json").read_text())["stems"]
+                 if s["file"] == "drum room.aif")
+    assert entry["ambience"] is False  # serialized, not dropped
+    assert resolve_kit(src, strict=False).by_name("drum room.aif").ambience is False

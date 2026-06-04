@@ -61,6 +61,11 @@ def _prep_pair(left: np.ndarray, right: np.ndarray, sr: int, ceil: float):
     Callers must pass excerpts of at least ``_MIN_MATCH_S`` (see
     :func:`render_auditions`); a genuinely silent half still measures -inf, in
     which case the match is skipped and the reported LUFS will show -inf.
+
+    The returned ``l_left`` / ``l_right`` are what the caller reports, so they are
+    corrected for the anti-clip trim: the WAVs written downstream are post-trim and
+    the trim scales both clips equally, so folding it in keeps the reported loudness
+    honest with the files on disk (otherwise it overstates them by the trim amount).
     """
     meter = pyln.Meter(sr)
     l_left = meter.integrated_loudness(left)
@@ -71,6 +76,9 @@ def _prep_pair(left: np.ndarray, right: np.ndarray, sr: int, ceil: float):
     if pk > ceil:
         f = ceil / pk
         left, right = left * f, right * f
+        trim_db = 20.0 * float(np.log10(f))  # f < 1 -> negative; both clips trimmed equally
+        l_left += trim_db
+        l_right += trim_db
     return left, right, l_left, l_right
 
 

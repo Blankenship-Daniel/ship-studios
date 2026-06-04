@@ -3,10 +3,11 @@
     "stemmy-loops": {
       "command": "uv",
       "args": [
-        "--directory",
-        "../stemmy-loops-mcp",
         "run",
-        "stemmy-loops-mcp"
+        "--no-project",
+        "python",
+        "scripts/mcp_launch.py",
+        "stemmy-loops"
       ],
       "env": {
         "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
@@ -16,10 +17,11 @@
     "stemmy-gemini": {
       "command": "uv",
       "args": [
-        "--directory",
-        "../stemmy-gemini-mcp",
         "run",
-        "stemmy-gemini-mcp"
+        "--no-project",
+        "python",
+        "scripts/mcp_launch.py",
+        "stemmy-gemini"
       ],
       "env": {
         "GEMINI_API_KEY": "${GEMINI_API_KEY}"

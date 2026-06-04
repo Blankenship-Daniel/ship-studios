@@ -36,8 +36,10 @@ def test_env_vars_are_only_the_two_keys() -> None:
     assert config.ENV_VARS == ("ANTHROPIC_API_KEY", "GEMINI_API_KEY")
 
 
-def test_default_sibling_paths_resolve_next_to_repo() -> None:
-    root = config.repo_root()
+def test_default_sibling_paths_resolve_next_to_main_checkout() -> None:
+    # Siblings sit next to the MAIN checkout — == repo_root in a normal checkout,
+    # the canonical checkout when run from a git worktree.
+    root = config.main_repo_root()
     assert config.loops_dir() == (root.parent / "stemmy-loops-mcp").resolve()
     assert config.gemini_dir() == (root.parent / "stemmy-gemini-mcp").resolve()
 
@@ -52,6 +54,58 @@ def test_sibling_paths_overridable_via_env(
 
     assert config.loops_dir() == loops_override.resolve()
     assert config.gemini_dir() == gemini_override.resolve()
+
+
+def _make_fake_worktree(tmp_path: Path, *, commondir: bool = True) -> tuple[Path, Path]:
+    """Build a fake canonical checkout + a linked worktree under it, mirroring git's
+    real layout. Returns ``(worktree_root, canonical_root)``."""
+    canonical = tmp_path / "ship-studios"
+    gitdir = canonical / ".git" / "worktrees" / "wt"
+    gitdir.mkdir(parents=True)
+    if commondir:
+        (gitdir / "commondir").write_text("../..\n")
+    wt = canonical / ".claude" / "worktrees" / "wt"
+    wt.mkdir(parents=True)
+    (wt / ".git").write_text(f"gitdir: {gitdir}\n")
+    return wt, canonical
+
+
+def test_resolve_main_root_normal_checkout(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()                       # .git is a real dir -> not a worktree
+    assert config._resolve_main_root(tmp_path) == tmp_path
+
+
+def test_resolve_main_root_no_git_returns_root(tmp_path: Path) -> None:
+    assert config._resolve_main_root(tmp_path) == tmp_path
+
+
+def test_resolve_main_root_worktree_via_commondir(tmp_path: Path) -> None:
+    wt, canonical = _make_fake_worktree(tmp_path, commondir=True)
+    assert config._resolve_main_root(wt) == canonical.resolve()
+
+
+def test_resolve_main_root_worktree_layout_fallback(tmp_path: Path) -> None:
+    # No commondir file -> fall back to the standard .git/worktrees/<name> layout.
+    wt, canonical = _make_fake_worktree(tmp_path, commondir=False)
+    assert config._resolve_main_root(wt) == canonical.resolve()
+
+
+def test_resolve_main_root_malformed_pointer_falls_back(tmp_path: Path) -> None:
+    (tmp_path / ".git").write_text("garbage, no gitdir line\n")
+    assert config._resolve_main_root(tmp_path) == tmp_path
+
+
+def test_siblings_resolve_from_main_checkout_in_worktree(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The regression this fixes: from a worktree, siblings must resolve next to the
+    # CANONICAL checkout, not the worktree dir under .claude/worktrees/.
+    monkeypatch.delenv(config.LOOPS_DIR_ENV, raising=False)
+    monkeypatch.delenv(config.GEMINI_DIR_ENV, raising=False)
+    wt, canonical = _make_fake_worktree(tmp_path)
+    monkeypatch.setattr(config, "repo_root", lambda: wt)
+    assert config.loops_dir() == (canonical.parent / "stemmy-loops-mcp").resolve()
+    assert config.gemini_dir() == (canonical.parent / "stemmy-gemini-mcp").resolve()
 
 
 def test_server_dir_dispatches_on_key() -> None:

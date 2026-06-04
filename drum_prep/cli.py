@@ -145,7 +145,8 @@ def stereo_merge_cmd(src: str, out_dir: str | None, align: bool) -> None:
               show_default=True,
               help="global preserves kit balance; per-file maximizes each stem (changes balance).")
 @click.option("--include", "include", multiple=True, type=click.Path(exists=True, dir_okay=False),
-              help="Extra file(s) folded into the SAME global gain (e.g. an fx return). Repeatable.")
+              help="Extra file(s) folded into the SAME global gain "
+                   "(e.g. an fx return). Repeatable.")
 def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
               include: tuple[str, ...]) -> None:
     """Gain-stage the kit (balance-preserving global gain by default)."""
@@ -161,7 +162,8 @@ def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
 @_MANIFEST
 @click.option("--stems-dir", type=click.Path(), default=None,
               help="Stems to mix (default: <SRC>/ref-matched/ if present, else <SRC>).")
-@click.option("--out-dir", type=click.Path(), default=None, help="Output dir (default: <SRC>/mix/).")
+@click.option("--out-dir", type=click.Path(), default=None,
+              help="Output dir (default: <SRC>/mix/).")
 @click.option("--feel", type=click.Choice(["roomy", "punchy", "natural", "dry"]), default="roomy",
               show_default=True)
 @click.option("--perspective", type=click.Choice(["audience", "drummer"]), default="audience",
@@ -172,7 +174,8 @@ def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
 @click.option("--flat", is_flag=True, default=False,
               help="Unity bounce (no balance/pan), just anti-clip — a print of the prepped kit.")
 @click.option("--t0", default=44.0, show_default=True, type=float, help="Excerpt start (s).")
-@click.option("--dur", default=12.0, show_default=True, type=float, help="Excerpt length (s); 0 to skip.")
+@click.option("--dur", default=12.0, show_default=True, type=float,
+              help="Excerpt length (s); 0 to skip.")
 def mix(src: str, manifest: str | None, stems_dir: str | None, out_dir: str | None,
         feel: str, perspective: str, plate: str | None, plate_offset: float,
         flat: bool, t0: float, dur: float) -> None:
@@ -191,12 +194,14 @@ def mix(src: str, manifest: str | None, stems_dir: str | None, out_dir: str | No
 
 @main.command(name="stem-mix")
 @_SRC
-@click.option("--out-dir", type=click.Path(), default=None, help="Output dir (default: <SRC>/mix/).")
+@click.option("--out-dir", type=click.Path(), default=None,
+              help="Output dir (default: <SRC>/mix/).")
 @click.option("--target-lufs", default=-18.0, show_default=True, type=float)
 @click.option("--spec", type=click.Path(exists=True), default=None,
               help='JSON balance spec {filename: {gain_db, pan, mute}}.')
 @click.option("--t0", default=0.0, show_default=True, type=float)
-@click.option("--dur", default=0.0, show_default=True, type=float, help="Excerpt length (0 = skip).")
+@click.option("--dur", default=0.0, show_default=True, type=float,
+              help="Excerpt length (0 = skip).")
 def stem_mix_cmd(src: str, out_dir: str | None, target_lufs: float, spec: str | None,
                  t0: float, dur: float) -> None:
     """Mix arbitrary named stems to a stereo bus (role-agnostic song mix)."""
@@ -215,7 +220,8 @@ def stem_mix_cmd(src: str, out_dir: str | None, target_lufs: float, spec: str | 
 @main.command(name="sub-design")
 @click.argument("path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--out", "out_path", type=click.Path(), required=True)
-@click.option("--sub-hz", default=None, type=float, help="Sub frequency (default: detected fundamental).")
+@click.option("--sub-hz", default=None, type=float,
+              help="Sub frequency (default: detected fundamental).")
 @click.option("--amount-db", default=-3.0, show_default=True, type=float,
               help="Sub level relative to the kick.")
 def sub_design_cmd(path: str, out_path: str, sub_hz: float | None, amount_db: float) -> None:
@@ -362,7 +368,8 @@ def audition(src: str, reference: str | None, manifest: str | None, aligned_dir:
               required=True, help="Reference audio to match the kit to.")
 @_MANIFEST
 @click.option("--out-root", type=click.Path(), default=None,
-              help="Root for outputs (default: SRC). Subdirs phase-aligned/ ref-matched/ auditions/.")
+              help="Root for outputs (default: SRC). "
+                   "Subdirs phase-aligned/ ref-matched/ auditions/.")
 @click.option("--strict/--no-strict", default=True, show_default=True)
 @click.option("--max-lag", default=600, show_default=True, type=int)
 @click.option("--excerpt-s", default=40.0, show_default=True, type=float)

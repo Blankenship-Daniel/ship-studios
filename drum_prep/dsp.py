@@ -75,7 +75,8 @@ def fractional_delay(x: np.ndarray, delay: float) -> np.ndarray:
         return x.copy()
     n = len(x)
     pad = int(np.ceil(abs(delay))) + 8
-    xp = np.concatenate([np.zeros(pad), x, np.zeros(pad)])
+    z = np.zeros(pad, dtype=x.dtype)  # preserve dtype (don't upcast float32 -> float64)
+    xp = np.concatenate([z, x, z])
     nfft = len(xp)
     k = np.fft.rfftfreq(nfft)
     y = np.fft.irfft(np.fft.rfft(xp) * np.exp(-2j * np.pi * k * delay), n=nfft)
@@ -101,7 +102,10 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     # circular correlation and return a corrupt lag.
     max_lag = min(max_lag, nfft - 1)
     cc = np.fft.irfft(np.fft.rfft(a, nfft) * np.conj(np.fft.rfft(b, nfft)), nfft)
-    cc = np.concatenate([cc[-max_lag:], cc[:max_lag + 1]])
+    # Index from the front (len(cc) == nfft): identical to cc[-max_lag:] for any
+    # max_lag >= 1, but correct at the degenerate max_lag == 0 (where cc[-0:] would
+    # wrongly take the WHOLE array instead of the empty negative-lag slice).
+    cc = np.concatenate([cc[nfft - max_lag:], cc[:max_lag + 1]])
     lags = np.arange(-max_lag, max_lag + 1)
     mag = np.abs(cc)
     if halfwidth is not None:

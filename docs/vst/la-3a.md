@@ -36,7 +36,7 @@ successor to the tube LA-2A. It's the **solid-state opto LEVELER** counterpart t
    **Engaged-flat (pr 0) is clean** except makeup gain (not a colored passthrough).
 7. **GAIN is perfectly clean makeup** (~4.9 dB/unit). **MIX is built-in parallel** and **blends AFTER the
    makeup gain** — for a parallel smash you must drive GAIN up or the crushed (quiet) wet adds nothing.
-8. **Tooling:** 8 params, all enums. `peak_reduction`/`gain`/`hf_emphasis`/`mix` are numeric (float dict can
+8. **Tooling:** 8 params (mixed types). `peak_reduction`/`gain`/`hf_emphasis`/`mix` are numeric (float dict can
    set them), but **`comp_limit` and `meter` are STRING enums** → use the **[[vst-preset]] harness** for any
    Limit-mode recipe.
 9. **Renders headless via the `uaudio_la3a.vst3` UADx native build.** The

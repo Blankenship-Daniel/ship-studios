@@ -76,7 +76,7 @@ Full code incl. WAV wrapping: [sdk-patterns.md](sdk-patterns.md).
 A `synthesize-speech` tool would: add `stemmy_gemini_mcp/tools/synthesize_speech.py`, reuse
 `_call.call_gemini` with `response_modalities=["AUDIO"]` + `speech_config`, **write a WAV** to a
 caller-supplied path, and register in `tools/__init__.py`. **Caveat:** this **writes audio**,
-breaking the server's read-only invariant ([SECURITY.md] of stemmy-gemini) — it's a deliberate
+breaking the server's read-only invariant (see stemmy-gemini's SECURITY.md) — it's a deliberate
 scope change, not a drop-in, and would need the security model updated and an output-path
 allowlist. For musical context, voiceovers/stems could feed the create stage, but rendering of
 *music* is Lyria's job ([music-generation.md](music-generation.md)), not TTS.

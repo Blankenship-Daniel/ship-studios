@@ -127,6 +127,15 @@ def _compute_overhead_mode(stems: list[KitStem]) -> str:
     return "lr_pair" if (has_lr and not has_oh) else "stereo"
 
 
+def _excluded_from_alignment(s: KitStem) -> bool:
+    """Ambience/room and FX returns are never phase-aligned (room is polarity-only,
+    keeping its timing; FX returns are not mics). So neither a partner stem NOR a
+    partner's anchor may be one — aligning a real mic to/against a reverb return is
+    meaningless and corrupts it. Both :func:`partner_pairs` (drops the pair) and
+    :func:`_validate` (flags it) gate on this, in BOTH directions."""
+    return s.ambience or s.role in (Role.ROOM, Role.FX)
+
+
 def detect_kit(src_dir: str, exclude: tuple[str, ...] | set[str] = ()) -> Kit:
     """Pure filename auto-detect — no manifest, no validation.
 
@@ -230,11 +239,18 @@ def _validate(kit: Kit, strict: bool) -> None:
     for s in kit.stems:
         if s.role == Role.UNKNOWN:
             problems.append(f"could not detect a role for {s.name!r} — set it in kit.json (roles: {valid})")
-        if s.partner and kit.by_name(s.partner) is None:
-            problems.append(f"{s.name!r} names partner {s.partner!r}, which is not in the kit")
-        if s.partner and (s.ambience or s.role in (Role.ROOM, Role.FX)):
-            problems.append(f"{s.name!r} is ambience/room/fx but names a partner "
-                            f"{s.partner!r} — these are excluded from alignment and must not be partnered")
+        if s.partner:
+            anchor = kit.by_name(s.partner)
+            if anchor is None:
+                problems.append(f"{s.name!r} names partner {s.partner!r}, which is not in the kit")
+            elif _excluded_from_alignment(anchor):
+                problems.append(
+                    f"{s.name!r} partners to {s.partner!r}, which is excluded from "
+                    "alignment (ambience/room/fx) and cannot be an anchor")
+            if _excluded_from_alignment(s):
+                problems.append(
+                    f"{s.name!r} is ambience/room/fx but names a partner {s.partner!r} "
+                    "— these are excluded from alignment and must not be partnered")
     if problems:
         if strict:
             raise KitError("kit resolution problems:\n  - " + "\n  - ".join(problems))
@@ -289,10 +305,10 @@ def partner_pairs(kit: Kit) -> list[tuple[KitStem, KitStem]]:
     """
     out = []
     for s in kit.stems:
-        if s.ambience or s.role in (Role.ROOM, Role.FX):
+        if _excluded_from_alignment(s):
             continue
         anchor = kit.by_name(s.partner)
-        if anchor is not None:
+        if anchor is not None and not _excluded_from_alignment(anchor):
             out.append((s, anchor))
     return out
 
@@ -302,8 +318,7 @@ def anchored_to_oh(kit: Kit) -> list[KitStem]:
     Includes UNKNOWN stems in non-strict mode (treated as broadband close mics)."""
     return [s for s in kit.stems
             if s.role not in _OH_ROLES
-            and not (s.ambience or s.role == Role.ROOM)
-            and s.role != Role.FX
+            and not _excluded_from_alignment(s)
             and s.partner is None]
 
 

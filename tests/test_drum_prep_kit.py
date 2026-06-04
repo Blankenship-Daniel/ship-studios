@@ -62,6 +62,30 @@ def test_fx_with_partner_fails_strict(tmp_path) -> None:
         resolve_kit(src, strict=True)
 
 
+def test_partner_to_fx_or_room_anchor_excluded_and_flagged(tmp_path) -> None:
+    # The INVERSE of the FX-as-partner case: a NORMAL mic whose partner points at an
+    # FX/room/ambience ANCHOR. Aligning a real mic against a reverb/room return is
+    # meaningless, so the pair must be dropped from partner_pairs AND flagged. (This
+    # is the gap that let a misconfigured anchor through.)
+    src = _make(tmp_path, ["overheads - stereo.aif", "snare top.aif", "drum room.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "snare top.aif", "partner": "drum room.aif"}]}))
+    kit = resolve_kit(src, strict=False)
+    assert kit.by_name("drum room.aif").role == Role.ROOM  # the anchor is room/ambience
+    pairs = {(p.name, a.name) for p, a in partner_pairs(kit)}
+    assert ("snare top.aif", "drum room.aif") not in pairs
+    assert any("snare top.aif" in w and "drum room.aif" in w for w in kit.warnings)
+
+
+def test_partner_to_fx_anchor_fails_strict(tmp_path) -> None:
+    src = _make(tmp_path, ["overheads - stereo.aif", "snare top.aif", "snare plate.aif"])
+    (tmp_path / "kit.json").write_text(json.dumps(
+        {"stems": [{"file": "snare plate.aif", "role": "fx"},
+                   {"file": "snare top.aif", "partner": "snare plate.aif"}]}))
+    with pytest.raises(KitError, match="anchor"):
+        resolve_kit(src, strict=True)
+
+
 def test_manifest_overrides_detection(tmp_path) -> None:
     src = _make(tmp_path, ["weird.aif", "overheads - stereo.aif"])
     (tmp_path / "kit.json").write_text(json.dumps({"stems": [{"file": "weird.aif", "role": "snare_top"}]}))

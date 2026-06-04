@@ -111,6 +111,16 @@ async def test_master_track_export_presets_and_tag(recording_hub) -> None:
     ]
     assert args["tag"] is True
     assert set(args) == {"path", "out_dir", "presets", "tag"}
+    # Assert the COMPUTED value, not just the key: a default deliverables dir for a
+    # bare filename resolves to a sibling "deliverables/" (would catch a regression
+    # in _deliverables_dir that key-presence alone would miss).
+    assert args["out_dir"] == pipelines._deliverables_dir("o.wav") == "deliverables"
+
+
+async def test_master_track_explicit_deliverables_dir(recording_hub) -> None:
+    # An explicit deliverables_dir overrides the computed default verbatim.
+    await pipelines.master_track(recording_hub, "m.wav", "o.wav", deliverables_dir="dist")
+    assert recording_hub.args_for("export-deliverables")["out_dir"] == "dist"
 
 
 async def test_mix_check_diagnostic_sequence(recording_hub) -> None:
@@ -544,6 +554,16 @@ async def test_mix_check_multiband_is_a_compress_alternative(recording_hub) -> N
     assert recording_hub.args_for("multiband-compress")["path"] == "mix.wav"
 
 
+async def test_mix_check_compress_runs_compress_loop_only(recording_hub) -> None:
+    # The inverse of the multiband case: compress=True (no multiband) runs ONLY the
+    # downward compressor, never the multiband one.
+    await pipelines.mix_check(recording_hub, "mix.wav", compress=True)
+    seq = recording_hub.tool_sequence
+    assert "compress-loop" in seq
+    assert "multiband-compress" not in seq
+    assert recording_hub.args_for("compress-loop")["path"] == "mix.wav"
+
+
 async def test_reference_match_sequence(recording_hub) -> None:
     result = await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     assert recording_hub.server_tool_sequence == [
@@ -748,6 +768,25 @@ async def test_loops_to_deliverables_describe_optional(recording_hub) -> None:
     assert hub2.args_for("describe-loops") == {"out_dir": "out"}
 
 
+async def test_loops_to_deliverables_describe_target_falls_back_to_parent(recording_hub) -> None:
+    # With no out_dir and a manifest carrying no out_dir (the fake returns {}), the
+    # describe target falls back to the parent dir of the first loop path — here the
+    # input itself, since an unparseable manifest collapses to [input_path].
+    await pipelines.loops_to_deliverables(recording_hub, "loops/drums.wav", 100.0, describe=True)
+    assert recording_hub.args_for("describe-loops") == {
+        "out_dir": pipelines._parent_dir("loops/drums.wav")
+    }
+
+
+async def test_loops_to_deliverables_multi_bar_omits_bars_tag(recording_hub) -> None:
+    # A multi-length request forwards every bar length to find-loops, but a loop
+    # could be any one of them — so tag-deliverable must NOT stamp a single 'bars'
+    # value (only a single-element list collapses to a scalar tag).
+    await pipelines.loops_to_deliverables(recording_hub, "drums.wav", 120.0, bars=[2, 4])
+    assert recording_hub.args_for("find-loops")["bars"] == [2, 4]
+    assert "bars" not in recording_hub.args_for("tag-deliverable")
+
+
 async def test_understand_audio_runs_only_requested_tools(recording_hub) -> None:
     await pipelines.understand_audio(
         recording_hub,
@@ -870,6 +909,36 @@ async def test_understand_audio_full_ordered_sequence(recording_hub) -> None:
         (GEMINI_SERVER, "compare-audio-files"),
         (GEMINI_SERVER, "audio-to-json"),
     ]
+
+
+# --- path-helper unit tests (pure sync functions, exercised only via pipelines) --
+
+def test_suffix_path_inserts_before_extension() -> None:
+    assert pipelines._suffix_path("a/b.wav", "clean") == "a/b.clean.wav"
+    assert pipelines._suffix_path("track.wav", "master") == "track.master.wav"
+
+
+def test_profile_json_path_sits_beside_mix() -> None:
+    assert pipelines._profile_json_path("a/mix.wav") == "a/mix.house-profile.json"
+
+
+def test_master_out_honors_mix_masters_layout() -> None:
+    # A mix in a mix/ dir -> the SIBLING masters/ dir; else masters/ beside the file.
+    assert pipelines._master_out("proj/mix/song.wav", None) == "proj/masters/song.master.wav"
+    assert pipelines._master_out("song.wav", None) == "masters/song.master.wav"
+    # An explicit masters_dir wins verbatim.
+    assert pipelines._master_out("proj/mix/song.wav", "out") == "out/song.master.wav"
+
+
+def test_deliverables_dir_is_sibling_of_masters() -> None:
+    # deliverables/ is a SIBLING of masters/, not a child.
+    assert pipelines._deliverables_dir("proj/masters/song.master.wav") == "proj/deliverables"
+    assert pipelines._deliverables_dir("o.wav") == "deliverables"
+
+
+def test_parent_dir_returns_directory() -> None:
+    assert pipelines._parent_dir("loops/drums.wav") == "loops"
+    assert pipelines._parent_dir("drums.wav") == "."
 
 
 @pytest.mark.parametrize(

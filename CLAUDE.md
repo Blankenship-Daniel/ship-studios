@@ -13,7 +13,7 @@ Both servers are registered in `.mcp.json` and launched as stdio subprocesses vi
 
 > **Worktree note:** the hub (`ship_studios/config.py`) and the `.mcp.json` servers (via `scripts/mcp_launch.py`) **auto-resolve** the `../stemmy-*-mcp` siblings from the **main checkout** even when run from a git worktree under `.claude/worktrees/` — no env vars needed (a linked worktree's `.git` pointer + `commondir` is read to find the canonical root). `SHIP_STUDIOS_LOOPS_DIR` / `SHIP_STUDIOS_GEMINI_DIR` still override for a non-standard layout (CI, a vendored checkout). *(An already-running Claude Code session must reload/restart to pick up an `.mcp.json` change.)*
 
-> **Mix/master/EQ surface:** the roadmap in [`docs/mix-master-capability-roadmap.md`](docs/mix-master-capability-roadmap.md) is **implemented** in both sibling repos and folded into the tool surface + pipelines below — `[L]` is **45 tools** (43 pure-DSP + the 2-tool VST-hosting pair below), `[G]` 23. The six `[G]` critique tools are meter-grounded + typed (see the note under §4), and `check-streaming-targets` projects asymmetric playback gain. Per-tool Gemini thinking tiers + a Files-API upload cache are internal (no surface change). **Caveat:** `suppress-resonances` / `apply-dynamic-eq` (time-varying DSP) are unit-tested only and want an ear-tuning pass on real material before you trust them on a release.
+> **Mix/master/EQ surface:** the roadmap in [`docs/mix-master-capability-roadmap.md`](docs/mix-master-capability-roadmap.md) is **implemented** in both sibling repos and folded into the tool surface + pipelines below — `[L]` is **48 tools** (43 pure-DSP + the 2-tool VST-hosting pair + the 3 batch tools below), `[G]` 23. The six `[G]` critique tools are meter-grounded + typed (see the note under §4), and `check-streaming-targets` projects asymmetric playback gain. Per-tool Gemini thinking tiers + a Files-API upload cache are internal (no surface change). **Caveat:** `suppress-resonances` / `apply-dynamic-eq` (time-varying DSP) are unit-tested only and want an ear-tuning pass on real material before you trust them on a release.
 
 > **Gemini audio reference:** what *every* Gemini model can do with audio — understanding (the part this repo wires up) plus speech/TTS, the Live API, and Lyria music generation, with models, pricing, SDK patterns, and limits — is documented in [`docs/gemini-audio/`](docs/gemini-audio/README.md) and surfaced as the **`[[gemini-audio]]`** skill suite (`gemini-audio` index + `gemini-audio-understanding` / `gemini-speech-generation` / `gemini-live-audio` / `gemini-music-generation`). Reach for it whenever you need to know what Gemini can/can't hear or which model/format/limit/price applies. The governing fact: Gemini downmixes to ~16 kbps mono, so **meters own loudness/peak/stereo**.
 
@@ -65,6 +65,7 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | Capability | `[L]` tool | `[G]` tool |
 |---|---|---|
 | Loudness (LUFS-I/ST/M, true-peak, crest, LRA …) | `measure-loudness` | `measure-loudness` |
+| Loudness over a LIST of files, ONE call, concurrent | `measure-loudness-batch` | — |
 | Spectrum (third-octave, tilt, bands, centroid) | `measure-spectrum` | `measure-spectrum` |
 | Stereo / phase / mono-sum loss | `measure-stereo` | `analyze-phase-mono` |
 | Clipping / DC / polarity | `check-clipping` | *(in `check-delivery-spec`)* |
@@ -104,6 +105,7 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | Capability | Tool |
 |---|---|
 | RBJ biquad EQ (shelves/bells/pass) + tilt; `phase` = min/zero/linear | `apply-eq` |
+| `apply-eq` over a LIST of files, ONE call, concurrent | `apply-eq-batch` |
 | Threshold-gated per-band dynamic EQ (difference-signal) → `[[dynamic-eq]]` | `apply-dynamic-eq` |
 | Render a reference delta curve as a min/linear-phase FIR EQ → `[[reference-match]]` / `[[house-curve]]` | `match-eq` |
 | Soothe-style dynamic resonance/harshness suppressor → `[[de-harsh]]` | `suppress-resonances` |
@@ -119,10 +121,13 @@ Two servers, six lifecycle stages. `[L]` = stemmy-loops, `[G]` = stemmy-gemini. 
 | HPF → transient → optional zero-phase EQ → normalize → limiter → resample/dither | `render-mastered` |
 | Normalize to target/reference LUFS, peak-safe (no limiting) → `[[level-match]]` | `match-loudness` |
 | Loudness-matched [ref \| gap \| processed] audition | `render-ab` |
+| Full per-stem corrective + optional console-color chain over a LIST of stems, ONE call → `[[stem-process]]` | `process-stems` |
 | Run a chain of 3rd-party VST3/AU **effect** plugins, offline/headless (needs `vst` extra; non-deterministic) | `apply-vst-chain` |
 | Discover installed VST3/AU plugins (read-only; no `vst` extra) | `list-vst-plugins` |
 
 > **`apply-vst-chain` is the one non-pure-DSP render tool** — it loads external plugin binaries via Pedalboard, so it needs `uv sync --extra vst` and is not deterministic across plugin versions. Effects only; VST3 cross-platform, AU macOS-only. Pass `plugins=[{plugin_path, parameters?, state_path?, bypass?}]`; set `dump_state=true` to capture each plugin's opaque state next to the output for a reproducible re-render. Use `list-vst-plugins` to find plugin paths. See the **VST plugin hosting** note near the top of this file.
+
+> **Batch tools — one call, not N (the efficiency contract).** For a *folder of stems/files*, prefer the batch tools over fanning out per-file MCP calls. `measure-loudness-batch` / `apply-eq-batch` measure/EQ a LIST in one call, **genuinely concurrent** (the loops server thread-offloads its pure-DSP handlers — numpy releases the GIL — and bounds the fan-out with `STEMMY_LOOPS_DSP_CONCURRENCY`). `process-stems` runs the whole per-stem corrective chain (clean → zero-phase EQ → de-harsh → dynamic-EQ → transient → excite) + an optional API-console color stage over a LIST in one call, the server-side equivalent of `scripts/mix/process_stems.py`. It is **serial by design**: the color stage loads a VST per stem and Pedalboard plugins load only on the main thread + render non-deterministically under concurrency, so `process-stems` (and every `apply-vst-chain` render) is serialized server-side. **Never fan out `apply-vst-chain` / `process-stems` color across parallel calls** — it's structurally serialized (a process-global render lock), so parallel calls only add overhead. The color stage is API-Vision-specific: pass `color_plugin_path` to an API-Vision-compatible plugin, or omit it for a pure-DSP pass.
 
 ### 6. Deliver (tag + export — all `[L]`, pure DSP)
 
@@ -336,6 +341,7 @@ Always master into `masters/`, never overwrite `mix/`. Deliverable exports land 
 - **Never hardcode API keys.** Use `${ANTHROPIC_API_KEY}` / `${GEMINI_API_KEY}` env expansion (already wired in `.mcp.json`); `.env.example` holds placeholders only.
 - **Only use verified tool names** from the surface above, spelled exactly (hyphen vs underscore matters).
 - **Measure before and after** any corrective/render step so changes are quantified.
+- **Concurrency: batch, don't fan out.** Per-file DSP and every VST render are **serialized server-side** (pure-DSP handlers are thread-offloaded so they parallelize internally; VST renders are behind a process-global lock and load only on the main thread). For a **folder of stems/files**, reach for the **batch tools** (`process-stems`, `apply-eq-batch`, `measure-loudness-batch`) or the batch **scripts** (`scripts/mix/process_stems.py`) — ONE call that loops internally and bounds its own concurrency — instead of firing N separate MCP calls. **Never parallelize `apply-vst-chain` / `process-stems` color**: concurrent plugin renders are non-deterministic, so parallel calls only add overhead, not speed.
 - **Balance volumes before EQ.** When summing stems/mics, set levels by **measured integrated LUFS** (`[[mix-balance]]` / `[[drum-mix]]` / `[[song-mix]]`), never eyeballed dB, never RMS (overheads read hot in LUFS and carry the hi-hat/cymbals → put them *under* the close mics), and never by peak-normalizing the sum. A balance problem (e.g. "too much hi-hat" = overhead too loud) is **not** an EQ problem; de-spill forward close mics with `[[bleed-gate]]` first.
 - BPM is required for `find-loops` / `analyze-loops` / `quantize-loop` / `extract-drums` — never guess; ask or read `track.md`.
 - **Capability docs are discoverable via skills.** The `[[gemini-audio]]` suite links to `docs/gemini-audio/*.md`; these reference skills link directly to their doc file — a deliberate extension of the usual skill→skill wikilink convention — so an agent can pull a Gemini audio capability doc on demand.
@@ -381,6 +387,8 @@ uv sync   # no extras — all deps bundled
 | `STEMMY_MCP_MODEL` | optional `[G]` Gemini model override (default `gemini-3.1-pro-preview`) |
 | `STEMMY_LISTEN_MODEL` | optional `[L] describe-loops` Gemini model override (default `gemini-3.1-pro-preview`). **Separate from `STEMMY_MCP_MODEL`** — the loops server's listen tool reads its own var, so to move *every* Gemini read off the default you must set this **alongside** `STEMMY_MCP_MODEL` (changing only `STEMMY_MCP_MODEL` leaves `describe-loops` on the old model — the footgun) |
 | `STEMMY_MCP_THINKING_LEVEL` / `STEMMY_MCP_THINKING_BUDGET` | optional `[G]` per-call thinking-tier override (else a per-tool default tier is used: high for verdict/critique tools, low for cheap tags) |
+| `STEMMY_MCP_MODEL_CONCURRENCY` | optional `[G]` cap on concurrent Gemini **model** calls (default `3`; separate from the File-API upload cap). Throttles a perceptual-tool fan-out at the source so it doesn't trip the 429 per-minute quota |
+| `STEMMY_LOOPS_DSP_CONCURRENCY` | optional `[L]` cap on concurrent pure-DSP offloads inside the batch tools (`measure-loudness-batch` / `apply-eq-batch`); default `min(cpu, 4)` |
 | `STEMMY_MCP_ALLOWED_ROOTS` | optional `[G]` filesystem allow-list — an OS-path-separator-delimited (`:` on POSIX, `;` on Windows) list of **absolute** directory roots. The **Gemini server enforces** it (each input path is `Path.resolve()`d and must be a child of an allowed root, else the read is refused); the **hub passes paths through unmodified** (no validation/rewrite on this side). Add your `projects/` / `artifacts/` roots, or leave it unset for unrestricted local use. |
 | `SHIP_STUDIOS_LOOPS_DIR` / `SHIP_STUDIOS_GEMINI_DIR` | optional override for the sibling-repo locations (the hub/CLI auto-resolve `../stemmy-*-mcp` from the **main** checkout, git worktrees included); set these only for a non-standard layout (CI, a vendored checkout) |
 | `SHIP_STUDIOS_STARTUP_TIMEOUT` / `SHIP_STUDIOS_CALL_TIMEOUT` | optional **hub** timeouts in seconds (`ship_studios/config.py`): MCP-handshake budget (default `120`) and per tool-call budget (default `600`); `0` disables either |

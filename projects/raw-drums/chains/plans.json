@@ -1,0 +1,129 @@
+[
+  {
+    "stem": "Kick In",
+    "rationale": "HPF 30 rumble; de-box 350; beater click +2@4k; gentle low MB; punch.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 30, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 350, "gain": -2.0, "q": 1.2},
+      {"shape": "Bell", "frequency": 4000, "gain": 2.0, "q": 1.0}
+    ],
+    "promb_bands": [
+      {"low_crossover": 20, "high_crossover": 120, "mode": "Compression", "threshold": -16, "range": -3, "ratio": 2.0, "attack": 15, "release": 80}
+    ],
+    "proc": {"style": "Punch", "threshold": -14, "ratio": 2.0, "attack": 20, "release": 150},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Kick Out",
+    "rationale": "HPF 30; de-mud 300; keep sub weight; gentle low MB.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 30, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 300, "gain": -2.5, "q": 1.2}
+    ],
+    "promb_bands": [
+      {"low_crossover": 20, "high_crossover": 120, "mode": "Compression", "threshold": -16, "range": -3, "ratio": 2.0, "attack": 15, "release": 80}
+    ],
+    "proc": {"style": "Punch", "threshold": -14, "ratio": 1.8, "attack": 20, "release": 150},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Snare Top",
+    "rationale": "HPF 95 kick spill; de-box 500; crack +1.5@4.5k; dynamic de-harsh 7k; punch.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 95, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 500, "gain": -1.5, "q": 1.2},
+      {"shape": "Bell", "frequency": 4500, "gain": 1.5, "q": 1.0},
+      {"shape": "Bell", "frequency": 7000, "gain": 0.0, "q": 3.5, "dynamic": true, "dynamic_range": -4}
+    ],
+    "promb_bands": [
+      {"low_crossover": 150, "high_crossover": 7000, "mode": "Compression", "threshold": -12, "range": -2, "ratio": 1.5, "attack": 20, "release": 80}
+    ],
+    "proc": {"style": "Punch", "threshold": -16, "ratio": 2.5, "attack": 15, "release": 120},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Snare Bottom",
+    "rationale": "steep HPF 180 keep wires; wire detail +1@6k; dynamic de-spit 8k; light.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 180, "slope": "48 dB/oct"},
+      {"shape": "Bell", "frequency": 6000, "gain": 1.0, "q": 1.5},
+      {"shape": "Bell", "frequency": 8000, "gain": 0.0, "q": 3.0, "dynamic": true, "dynamic_range": -4}
+    ],
+    "promb_bands": [
+      {"low_crossover": 200, "high_crossover": 9000, "mode": "Compression", "threshold": -12, "range": -2, "ratio": 1.5, "attack": 20, "release": 80}
+    ],
+    "proc": {"style": "Clean", "threshold": -12, "ratio": 1.5, "attack": 25, "release": 120},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Hi-Hat",
+    "rationale": "HPF 400 de-whoosh/bleed; trim 550; dynamic de-harsh 6.5k; air +1.5@10k.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 400, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 550, "gain": -1.5, "q": 1.5},
+      {"shape": "Bell", "frequency": 6500, "gain": 0.0, "q": 3.5, "dynamic": true, "dynamic_range": -4},
+      {"shape": "High Shelf", "frequency": 10000, "gain": 1.5, "q": 0.7}
+    ],
+    "promb_bands": [
+      {"low_crossover": 400, "high_crossover": 12000, "mode": "Compression", "threshold": -10, "range": -2, "ratio": 1.5, "attack": 20, "release": 80}
+    ],
+    "proc": {"style": "Clean", "threshold": -14, "ratio": 1.5, "attack": 20, "release": 120},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Rack Tom",
+    "rationale": "HPF 65; de-box 320; attack +1.5@5k; gentle low MB; preserve dynamics.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 65, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 320, "gain": -2.0, "q": 1.2},
+      {"shape": "Bell", "frequency": 5000, "gain": 1.5, "q": 1.0}
+    ],
+    "promb_bands": [
+      {"low_crossover": 60, "high_crossover": 200, "mode": "Compression", "threshold": -14, "range": -3, "ratio": 1.8, "attack": 15, "release": 80}
+    ],
+    "proc": {"style": "Punch", "threshold": -12, "ratio": 1.5, "attack": 20, "release": 120},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Floor Tom",
+    "rationale": "HPF 42; de-mud 280; attack +1.5@4.5k; gentle low MB; preserve dynamics.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 42, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 280, "gain": -2.0, "q": 1.2},
+      {"shape": "Bell", "frequency": 4500, "gain": 1.5, "q": 1.0}
+    ],
+    "promb_bands": [
+      {"low_crossover": 40, "high_crossover": 160, "mode": "Compression", "threshold": -14, "range": -3, "ratio": 1.8, "attack": 15, "release": 90}
+    ],
+    "proc": {"style": "Punch", "threshold": -12, "ratio": 1.5, "attack": 20, "release": 120},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Overhead Mono",
+    "rationale": "HPF 300 (close mics own lows); de-box 450; air +1.5@10k; light glue; Pro-L catches +0.57dBTP.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 300, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 450, "gain": -1.5, "q": 1.2},
+      {"shape": "Bell", "frequency": 6300, "gain": 0.0, "q": 3.5, "dynamic": true, "dynamic_range": -3},
+      {"shape": "High Shelf", "frequency": 10000, "gain": 1.5, "q": 0.7}
+    ],
+    "promb_bands": [
+      {"low_crossover": 300, "high_crossover": 10000, "mode": "Compression", "threshold": -12, "range": -2, "ratio": 1.5, "attack": 20, "release": 100}
+    ],
+    "proc": {"style": "Clean", "threshold": -16, "ratio": 1.5, "attack": 25, "release": 150},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  },
+  {
+    "stem": "Stereo Drum Room",
+    "rationale": "HPF 90 boom/phase; de-mud 250; gentle bus glue; keep width; no makeup.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 90, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 250, "gain": -2.0, "q": 1.2}
+    ],
+    "promb_bands": [
+      {"low_crossover": 90, "high_crossover": 8000, "mode": "Compression", "threshold": -14, "range": -2, "ratio": 1.5, "attack": 25, "release": 120}
+    ],
+    "proc": {"style": "Bus", "threshold": -18, "ratio": 2.0, "attack": 30, "release": 150},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1.0}
+  }
+]

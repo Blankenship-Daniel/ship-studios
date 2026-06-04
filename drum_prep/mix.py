@@ -131,6 +131,18 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
         stems = [s for s in stems
                  if s.role not in (Role.OVERHEAD_L, Role.OVERHEAD_R)]
 
+    # FX/aux returns (role == FX: plate, reverb, send) are NOT kit mics — they are
+    # folded in as stereo returns below, never summed/panned as a mic, never the
+    # loudness anchor, and never a driver of the common bus length. Separate them
+    # out so the mic sum, anchor selection, and length all ignore them. (Before
+    # this, an fx stem sitting in the kit dir was summed as a stereo mic AND — if
+    # also passed via --plate — a second time as the return, a double-counted
+    # reverb; and a short fx stem truncated the whole bus to its length.)
+    fx_stems = [s for s in stems if s.role == Role.FX]
+    stems = [s for s in stems if s.role != Role.FX]
+    if not stems:
+        raise ValueError(f"no kit mic stems found in {stems_dir!r} (only FX/aux returns)")
+
     sr, frames = io.summarize_inputs([os.path.join(stems_dir, s.name) for s in stems])
     meter = pyln.Meter(sr)
 
@@ -190,22 +202,45 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
                      "offset_db": None if flat else offsets.get(s.role.value, _DEFAULT_OFFSET),
                      "gain_db": round(gain_db, 2), "place": place})
 
+    # Fold every FX return in as a stereo return. Sources: an explicit --plate AND
+    # any fx-role stem from the kit dir. Dedupe by resolved path so the same file
+    # passed both ways (the "everything in one folder" case) folds exactly once
+    # instead of double-counting; the explicit --plate wins the offset, while an
+    # auto-detected fx stem uses the feel's fx offset (so feel shapes it too).
+    return_specs: list[tuple[str, float, bool]] = []  # (path, offset_db, is_plate)
+    seen: set[str] = set()
+    if not flat:
+        if plate:
+            return_specs.append((plate, plate_offset, True))
+            seen.add(os.path.realpath(plate))
+        for s in fx_stems:
+            sp = os.path.join(stems_dir, s.name)
+            if os.path.realpath(sp) in seen:
+                continue  # already folded via the explicit --plate
+            seen.add(os.path.realpath(sp))
+            return_specs.append((sp, offsets.get(Role.FX.value, _DEFAULT_OFFSET), False))
+
     plate_row: dict[str, Any] | None = None
-    if plate and not flat:
-        px, psr = io.read(plate)
+    return_rows: list[dict[str, Any]] = []
+    for rpath, roff, is_plate in return_specs:
+        px, psr = io.read(rpath)
         if psr != sr:
-            raise ValueError(f"plate sr {psr} != kit sr {sr}")
+            label = "plate" if is_plate else f"fx return {os.path.basename(rpath)}"
+            raise ValueError(f"{label} sr {psr} != kit sr {sr}")
         lufs_p = meter.integrated_loudness(io.to_stereo(px))
-        gp = 10 ** ((lufs_anchor + plate_offset - lufs_p) / 20.0) if np.isfinite(lufs_p) else 1.0
+        gp = 10 ** ((lufs_anchor + roff - lufs_p) / 20.0) if np.isfinite(lufs_p) else 1.0
         ch = io.to_stereo(px)
         if flip:
             ch = ch[:, ::-1]
         m = min(n, len(ch))
         mix[:m] += ch[:m] * gp
-        plate_row = {"stem": os.path.basename(plate), "role": "fx (return)",
-                     "offset_db": plate_offset, "gain_db": round(_db(gp), 2),
-                     "place": f"stereo{' (flipped)' if flip else ''}"}
-        rows.append(plate_row)
+        row = {"stem": os.path.basename(rpath), "role": "fx (return)",
+               "offset_db": roff, "gain_db": round(_db(gp), 2),
+               "place": f"stereo{' (flipped)' if flip else ''}"}
+        rows.append(row)
+        return_rows.append(row)
+        if is_plate:
+            plate_row = row
 
     raw_peak = float(np.max(np.abs(mix)))
     ceil_lin = 10 ** (ceil_dbfs / 20.0)
@@ -233,5 +268,5 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
         "channels": 2, "duration_s": round(n / sr, 2),
         "truncation_note": trunc_note,
         "excluded_overhead_sides": excluded_oh_sides or None,
-        "plate": plate_row, "balance": rows,
+        "plate": plate_row, "returns": return_rows or None, "balance": rows,
     }

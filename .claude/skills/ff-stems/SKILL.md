@@ -132,6 +132,10 @@ a time. Coherence verify (step 7) is one pass over the kit.
 
 - [[drum-prep]] / [[drum-phase-align]] — align the kit first (the foundation) · [[stem-process]] — the
   pure-DSP/console per-stem cousin (this one is the FabFilter chain + phase-coherence guarantee)
+- [[drum-stems-character]] — the **align-AFTER** variant: when per-stem chains have *varying* latency (different
+  UADx character per stem) you can't preserve a prior alignment, so re-align the processed stems instead (ff-stems
+  aligns FIRST because its linear-phase chains are uniform-latency) · [[stem-master]] / [[unmask-stems]] — sibling
+  per-stem stages that now carry the same align-first + zero-phase coherence rule
 - [[fabfilter-pro-q-4]] / [[fabfilter-pro-mb]] / [[fabfilter-pro-l-2]] / [[vst-compress]] — the four plugins,
   measured · [[vst-chain]] — the generic headless chain · [[vst-preset]] — the harness for enum/gain params
 - [[unmask-stems]] — cross-stem complementary carving · [[mix-balance]] / [[drum-mix]] / [[warm-drum-bus]] —

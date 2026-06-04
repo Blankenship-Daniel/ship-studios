@@ -132,6 +132,14 @@ diagnosis options.
   actually contains a `LIST` chunk** (e.g. grep the header for `LIST`) — don't
   trust the success return.
 
+## Fan-out
+
+Extraction (step 1) is the barrier; **after it, each loop is independent** — the
+per-loop chain (clean → seam → master → tag → export, steps 2–6) reads/writes its
+own files with no cross-loop dependency. For many loops, fan out one agent per loop
+(each runs its whole ordered chain), then the optional `describe-loops` (step 7)
+runs once over the set. Don't split a single loop's own chain — the order matters.
+
 ## Related
 
 - [[understand-audio]] — recon the source (events, structure) before slicing

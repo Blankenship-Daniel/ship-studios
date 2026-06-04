@@ -33,8 +33,9 @@ Studer via the stemmy-loops **`vst` venv**. Executor: [`scripts/mix/process_stem
 2. **Diagnose each stem** — measure loudness / spectrum (third-octave) / stereo / microdynamics per stem and
    decide a **role-aware** plan: kick (tighten sub, cut 250–500 box, modest click), snare (de-box, de-harsh
    the ring, transient snap), hat (de-whoosh 160–500 + air, de-harsh 5–7 k), overhead (HPF mud, de-harsh,
-   gentle air), room (HPF/denoise the hiss, glue). For breadth, fan this out one-agent-per-stem (a workflow),
-   but it's optional — direct measurement works. Emit a typed plan list (see
+   gentle air), room (HPF/denoise the hiss, glue). For breadth, fan the diagnosis out one-agent-per-stem with
+   the `stem-process` workflow (parallel reads + per-stem plan authoring; the executor then runs as ONE serial
+   UADx-safe pass) — optional, direct measurement works too. Emit a typed plan list (see
    `presets/mix/drums-stem-process.plans.json` for the schema).
 3. **Process** — `scripts/mix/process_stems.py <plans.json> <src_dir> <out_dir> [duration_s]`. Per stem it
    runs: clean (declick off) → apply_eq (zero-phase) → suppress_resonances (de-harsh) → apply_dynamic_eq →
@@ -66,8 +67,17 @@ brighter than wanted (route to [[warm-drum-bus]] to warm the bus).
 - **`apply-dynamic-eq` / `suppress-resonances` are newer/less-aged** — use conservatively and verify the
   measured effect; fall back to static `apply-eq` if a result looks off.
 
+## Fan-out
+
+The **per-stem diagnosis is the parallel win** (step 2): each stem's measure →
+role-aware plan is independent, so the `stem-process` workflow fans it out one agent
+per stem. The executor (step 3) then runs ONCE, serially — `process_stems.py` loads
+the API Vision `uaudio_*` plugin per stem, and concurrent UADx hosts render
+non-deterministically, so the processing pass is intentionally NOT parallelized.
+
 ## Related
 
+- `stem-process` (workflow) — fans the per-stem diagnosis out (one agent per stem); the executor then runs as one serial UADx-safe pass
 - [[drum-prep]] — align the kit first · [[stem-master]] — the corrective→sum→master cousin (this is the standalone per-stem stage)
 - [[warm-drum-bus]] — warm/tight bus from the processed stems · [[drum-mix]] — role-aware kit sum · [[mix-balance]] — measured balance
 - [[api-vision-channel-strip]] / [[studer-a800]] — the color engines (console / tape), measured

@@ -81,6 +81,15 @@ masking-overlap read, the summed-bus path, and an explicit "now run
 - **Cuts → all, boosts → owners.** Resolve masking with complementary cuts
   (the drum-prep guardrail), not by boosting the dominant stem.
 
+## Fan-out
+
+The per-stem stages are independent files — **baseline (step 1) and the
+per-losing-stem corrective EQ (steps 3–5) fan out one agent per stem**. The
+`stem-process` workflow fans out the per-stem diagnosis specifically (and runs its
+executor as one UADx-safe pass); reach for it when treating a full kit. The sum
+(step 6) is the barrier; loudness/limiting is the separate [[master-track]]
+hand-off (step 8), not parallelized here.
+
 ## Related
 
 - [[unmask-stems]] — the masking-only subset, when that's all you need

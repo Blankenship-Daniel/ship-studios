@@ -162,6 +162,15 @@ List what's quarantined (recoverable) vs deleted, and the open questions
 - **Clipping is baked in.** Declip smooths, it doesn't restore. Be honest.
 - **Never touch the DAW project / the Logic package.** Triage works on the copy.
 
+## Fan-out
+
+The **read-only per-channel measurement passes are parallel** — step 1's
+`scan-channels` / `check-clipping` and step 8's per-channel `measure-spectrum` +
+per-pair `measure-stereo` are independent across a 10–24-channel session. Fan them
+out one agent per channel/chunk, then reconcile into the role map. The
+human-confirmed mutate chain (quarantine → split → song-group → pick-best → declip
+→ `kit.json`) stays the sequential skill body — don't fan it out.
+
 ## Related
 
 - [[logic-extract]] — the upstream step that produces the raw dump

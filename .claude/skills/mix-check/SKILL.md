@@ -106,6 +106,16 @@ route to [[master-track]] once the mix is clean.
 - **One move at a time on the chain.** EQ then re-measure conceptually before
   piling compression on top, so the report stays attributable.
 
+## Fan-out
+
+The **diagnosis is read-only and parallel** — steps 1–8 (`detect-mix-issues`,
+`analyze-mix-balance`, `measure-loudness` / `measure-spectrum` / `measure-stereo`,
+`find-resonances`, `find-sibilance`, `analyze-phase-mono`) all read the *same*
+file with no dependency between them (several are Gemini round-trips). Issue them
+as concurrent Agent calls to cut wall-clock, then reconcile (step 9). The
+corrective half (steps 10–12) mutates the file in sequence and **stays serial** —
+don't fan it out.
+
 ## Related
 
 - [[master-track]] — the downstream stage once the mix passes

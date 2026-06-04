@@ -84,6 +84,14 @@ them what to listen for.
 - **`compare-tonality` takes `loop_path`** (its param name), but it works on
   any WAV — pass the full mix there. The reference goes in `reference_path`.
 
+## Fan-out
+
+The **three delta reads are independent** — steps 1–3
+(`match-reference-numeric`, `compare-to-reference`, `compare-tonality`) all read
+the same mix + reference pair with no dependency. Issue them concurrently, then
+reconcile (step 4); the EQ → render tail (steps 5–6) stays serial. For a whole
+EP against ONE shared target, use the `house-curve` workflow (per-mix fan-out).
+
 ## Related
 
 - [[house-curve]] — match a whole EP/album to ONE shared target (this is single mix ↔ single ref)

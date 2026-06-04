@@ -59,6 +59,14 @@ reach here when the user specifically wants their own mastering plugins.
 - **Demo-mode** — an unlicensed mastering plugin can pass silent/limited; re-measure (step 4) and flag.
 - Don't master a broken mix — fix with `[[mix-check]]` first.
 
+## Fan-out
+
+The **baseline (step 1: `measure-loudness` / `measure-spectrum` / `measure-stereo` /
+`check-clipping`) and the post-render verify (step 4) are independent reads** —
+issue each cluster as concurrent Agent calls. The chain build (step 3, one
+`apply-vst-chain`) is a single serial UADx render — do **not** run concurrent VST
+renders (UADx hosts contend → non-deterministic output).
+
 ## Related
 
 - `[[master-track]]` (pure-DSP default) · `[[finalize-mix]]` (glue before this) · `[[delivery-qc]]` / `[[batch-master]]`

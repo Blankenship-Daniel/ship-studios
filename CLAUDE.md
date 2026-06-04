@@ -299,6 +299,8 @@ script returns a structured object the session writes out.
 | `warm-bus-shootout` | a warm-drum-bus preset over `audio-shootout` (warmth/tightness/life) | the warm-bus variants (e.g. via `scripts/mix/warm_bus.py`) |
 | `vst-probe-inventory` | chunked parallel `presets/vst/probe_plugin.py` → render-verified inventory | the plugin list (`list-vst-plugins` / `demo/headless-safe-titles.txt`) |
 | `batch-master` | one agent per track runs the master chain → cross-track consistency table | the folder + the ONE shared `target_lufs` / `ceiling_dbtp` |
+| `house-curve` | one agent per mix → match-to-profile → match-eq → re-measure; cross-track spread reduce (tonal companion to `batch-master`) | the references (or a prebuilt profile JSON) + the mix list |
+| `stem-process` | one agent per stem diagnoses + authors a corrective plan (parallel reads); the executor then runs as ONE serial UADx-safe pass | the kit's stem dir (`srcDir`/`outDir`); a prebuilt plans list is optional |
 | `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / frontmatter drift | the skill-dir list + valid-target sets |
 | `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift | (agents read the files themselves) |
 

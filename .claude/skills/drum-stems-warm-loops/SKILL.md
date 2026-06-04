@@ -41,7 +41,7 @@ Diagnose from the Stage-0 spectra, then author `presets/mix/<slug>-stem-process.
 
 - **HPF every stem** to clear rumble/bleed (kick ~30; snare ~70; **overheads ~110 to kill kick bleed**; room ~120). De-box **only where there's a real peak** (e.g. an OH/room ~400 Hz honk) — don't cut a region that's already 10 dB down (that just brightens it; see the Watercolors snare).
 - `suppress_resonances` (de_harsh) only catches **narrow** resonances — it's a no-op on broadband presence; don't add it as a top-tamer.
-- Run: `$VENV scripts/mix/process_stems.py presets/mix/<slug>-stem-process.plans.json <phase-aligned-dir> <processed-dir>`. **GOTCHA:** `process_stems.py` **always** runs the API Vision strip (near-passthrough at `line_gain 0`) **and peak-normalizes each stem to −1 dBFS** — harmless because Stage 3 re-levels by LUFS. declick stays OFF (percussive). See `[[stem-process]]`.
+- Run: `$VENV scripts/mix/process_stems.py presets/mix/<slug>-stem-process.plans.json <phase-aligned-dir> <processed-dir>`. **GOTCHA:** `process_stems.py` **always** runs the API Vision strip (near-passthrough at `line_gain 0`) **and peak-normalizes each stem to −1 dBFS** — harmless because Stage 3 re-levels by LUFS. declick stays OFF (percussive). See `[[stem-process]]` — for a big kit, the `stem-process` workflow fans the per-stem diagnosis out one-agent-per-stem (the executor still runs as one serial UADx-safe pass).
 
 ## Stage 3 — warm balance (volume-adjust) + sum
 

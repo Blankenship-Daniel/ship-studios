@@ -288,11 +288,12 @@ def _resolve_main_root(root: Path) -> Path:
         # ``root`` on anything that isn't the canonical ``.git`` directory.
         if not (cg.is_dir() and cg.name == ".git"):
             return root
-        # Round-trip: the canonical .git must actually register THIS worktree —
+        # Round-trip containment check (the bare name check above is necessary but
+        # not sufficient): the canonical .git must actually register THIS worktree —
         # its ``worktrees/<name>`` entry must resolve back to ``gitdir``. A decoy
         # tree that merely contains a ``.git/`` dir (passing the name check) but
         # does not register this worktree fails here, so we degrade to ``root``
-        # rather than launch from the decoy.
+        # rather than launch a ``uv run`` from the decoy.
         if (cg / "worktrees" / gitdir.name).resolve() != gitdir.resolve():
             return root
         return cg.parent  # parent of the canonical .git dir

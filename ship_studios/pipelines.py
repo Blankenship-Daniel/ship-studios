@@ -923,10 +923,15 @@ async def loops_to_deliverables(
     loop_paths = parsed if parsed is not None else []
     if max_total_loops is not None:
         loop_paths = loop_paths[:max_total_loops]
-    fell_back = False
-    if parsed is None or not loop_paths:
+    # Surface the fallback so a 1-loop run on the SOURCE isn't mistaken for a real
+    # 1-loop find. ``loops_found`` = loops parsed from the manifest (0 on fallback,
+    # captured before the mutation below); ``fell_back`` (with the
+    # ``fell_back_to_input`` alias) flags both the unparseable-shape and empty cases.
+    loops_found = len(loop_paths)
+    fell_back = parsed is None or not loop_paths
+    fell_back_to_input = fell_back
+    if fell_back:
         loop_paths = [input_path]
-        fell_back = True
     manifest_out = manifest.get("out_dir") if isinstance(manifest, dict) else None
 
     deliverables: list[dict[str, Any]] = []
@@ -987,6 +992,8 @@ async def loops_to_deliverables(
         "pipeline": "loops-to-deliverables",
         "input": input_path,
         "bpm": bpm,
+        "loops_found": loops_found,  # loops parsed from the manifest (0 on fallback)
+        "fell_back_to_input": fell_back_to_input,  # True == processed the source, not loops
         "loops": deliverables,
         "fell_back": fell_back,
         "loop_count": len(loop_paths),

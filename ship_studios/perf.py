@@ -34,10 +34,15 @@ import json
 import os
 import time
 import uuid
+import warnings
 from typing import Any
 
 #: File path to append the JSONL perf trace to; unset/empty disables the sink.
 PERF_LOG_ENV = "SHIP_STUDIOS_PERF_LOG"
+
+#: Set once after the first sink write/makedirs failure so a misconfigured (but
+#: explicitly enabled) log warns exactly once and then stays a silent no-op.
+_warned = False
 
 
 def perf_log_path() -> str | None:
@@ -102,7 +107,10 @@ def record(event: dict[str, Any]) -> None:
 
     Adds a wall-clock ``at`` timestamp for human-readable ordering. Any IO or
     serialization failure is swallowed: perf tracing is best-effort and must
-    never turn a logging problem into a pipeline error.
+    never turn a logging problem into a pipeline error — but since the sink was
+    *explicitly* enabled, the first such failure warns once (mirroring
+    config._timeout's warn-and-degrade) so a misconfigured path isn't a silent
+    black hole.
     """
     path = perf_log_path()
     if path is None:
@@ -117,7 +125,17 @@ def record(event: dict[str, Any]) -> None:
         line = json.dumps(payload, default=str)
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(line + "\n")
-    except Exception:
+    except Exception as exc:
         # Intentional broad catch (documented in the module docstring): a telemetry
-        # sink must degrade to a no-op rather than break the observed pipeline.
+        # sink must degrade to a no-op rather than break the observed pipeline. Warn
+        # ONCE so an enabled-but-broken sink is visible, then stay quiet (and never
+        # raise).
+        global _warned
+        if not _warned:
+            _warned = True
+            warnings.warn(
+                f"{PERF_LOG_ENV}={path!r} could not be written ({exc!r}); "
+                f"perf tracing disabled for this run",
+                stacklevel=2,
+            )
         return

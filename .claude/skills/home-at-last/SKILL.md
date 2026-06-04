@@ -1,6 +1,6 @@
 ---
 name: home-at-last
-description: "Use when the user wants the Steely Dan 'Home at Last' / Aja / Bernard Purdie shuffle drum sound from a FOLDER of multi-mic drum stems — 'Home at Last drums', 'Aja drum sound', 'Purdie shuffle drum tone', 'Steely Dan drums', 'clean hi-fi studio drums', 'preserve the ghost-note dynamics'. CLEAN/hi-fi, DYNAMIC (crest preserved), tight-round low, silky top, natural width — the third axis vs [[fool-in-the-rain]] (room/warm-dark) and [[tomorrow-never-knows]] (crush/dark/mono), and unlike Bonham it does NOT need room mics. Local DSP + the stemmy MCP servers; needs the `vst` extra (Pultec/Manley/Studer) + optional GEMINI_API_KEY."
+description: "Use when the user wants the Steely Dan 'Home at Last' / Aja / Bernard Purdie shuffle drum sound from a FOLDER of multi-mic drum stems — 'Aja drum sound', 'Purdie shuffle drum tone', 'clean hi-fi studio drums', 'preserve the ghost-note dynamics'. CLEAN/hi-fi, DYNAMIC (crest preserved), silky top — the third axis vs [[fool-in-the-rain]] (room/warm-dark) and [[tomorrow-never-knows]] (crush/dark/mono), and unlike Bonham it does NOT need room mics."
 argument-hint: <stems-folder> [slug] [bpm]
 ---
 

@@ -13,11 +13,9 @@ let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch (e) { A = {} } }
 A = A || {}
 
-const REPO = '/Users/ship/Documents/code/ship-studios'
-const WORKTREE = `${REPO}/.claude/worktrees/temporal-stirring-pretzel`
+const REPO = A.repo || '/Users/ship/Documents/code/ship-studios'   // canonical checkout (artifacts/projects live here, not in a worktree)
 const venv = A.venv || `${REPO}/../stemmy-loops-mcp/.venv/bin/python`
-// default to the worktree script (pre-merge); pass A.script to override (e.g. the merged REPO path)
-const script = A.script || `${WORKTREE}/scripts/mix/tomorrow_never_knows_bus.py`
+const script = A.script || `${REPO}/scripts/mix/tomorrow_never_knows_bus.py`
 const preBus = A.pre_bus
 const outDir = A.out_dir
 const genre = A.genre || 'rock'

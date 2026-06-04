@@ -3,8 +3,7 @@ export const meta = {
   description: 'In-depth CODE + DOCUMENTATION review of the ship-studios repo. Fans out read-only review agents by dimension (DSP numerics, async safety, silent failures, security, tests; CLAUDE.md contract drift, wikilink/twin integrity, pipeline-order drift, vst/gemini/skill consistency), adversarially verifies each finding, then synthesizes a prioritized markdown report. args = { scope?: "all"|"code"|"docs" (default all), focus?: string[] (unit-id/area substrings), out?: string (default "reviews/REPO-REVIEW.md"), fix?: boolean (default false — opt-in safe mechanical auto-fixes) }.',
   phases: [
     { title: 'Scout', detail: 'inventory the repo (git ls-files + wc -l)' },
-    { title: 'Review', detail: 'one read-only agent per (dimension × area) unit' },
-    { title: 'Verify', detail: 'adversarial refuters per finding, tiered by severity' },
+    { title: 'Review', detail: 'one read-only agent per (dimension × area) unit, then adversarial refuters per finding (tiered by severity)' },
     { title: 'Synthesize', detail: 'dedupe, coverage-critic, write the prioritized report' },
     { title: 'Fix', detail: 'opt-in: apply only safe mechanical fixes' },
   ],

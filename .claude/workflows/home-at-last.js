@@ -14,7 +14,7 @@ let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch (e) { A = {} } }
 A = A || {}
 
-const REPO = '/Users/ship/Documents/code/ship-studios'   // canonical checkout (artifacts/projects live here, not in a worktree)
+const REPO = A.repo || '/Users/ship/Documents/code/ship-studios'   // canonical checkout (artifacts/projects live here, not in a worktree)
 const venv = A.venv || `${REPO}/../stemmy-loops-mcp/.venv/bin/python`
 const script = A.script || `${REPO}/scripts/mix/home_at_last_bus.py`
 const preBus = A.pre_bus

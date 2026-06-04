@@ -15,6 +15,11 @@ import numpy as np
 from drum_prep import dsp, io
 from drum_prep.kit import Kit, KitError, overhead_lr, overhead_reference
 
+#: Basename written for a merged L/R overhead pair (no pre-merged stereo OH). The
+#: ref-match/audition coherent-sum keep-sets match on this exact name, so a rename
+#: here would silently drop the merged OH from the sum — keep it the single source.
+MERGED_OH_NAME = "overheads-merged.aif"
+
 
 def resolve_overhead(kit: Kit, align: bool = False, max_lag: int = 200
                      ) -> tuple[np.ndarray, int, str]:
@@ -40,7 +45,7 @@ def resolve_overhead(kit: Kit, align: bool = False, max_lag: int = 200
     if align:  # opt-in: phase-lock R to L (collapses a spaced-pair image)
         d, pol, _, _ = dsp.align_to(rgt, lft, max_lag, sr)
         rgt = dsp.fractional_delay(rgt, d) * pol
-    return np.column_stack([lft, rgt]), sr, "overheads-merged.aif"
+    return np.column_stack([lft, rgt]), sr, MERGED_OH_NAME
 
 
 def merge_overheads(kit: Kit, out_path: str | None = None, align: bool = False) -> dict:

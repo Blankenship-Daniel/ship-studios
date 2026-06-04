@@ -46,3 +46,43 @@ A contrasting flavor off the **same `stems/processed/`** source. Where the warm 
 - `mix/bus_warm_dry.wav` (full untrimmed) · `mix/bus_warm_withfx.wav` + `mix/ab_*_m.wav` (the A/B that chose dry).
 - `mix/bus_punchy.wav` — FINAL **dry/tight/punchy** variant (mix bus, peak −1; not mastered). `mix/bus_punchy_pre.wav` = its dry balance pre-tone. Recipe: `scripts/mix/punchy_bus.py` + `mix/balance_punchy.spec.json`.
 - `loops/` (8 raw) · `deliverables/` (24 = 8 × {44.1/16, 48/24, 96/24}) — **warm-bus** loops. (Punchy loop pack not yet cut — say the word.)
+
+## Per-stem Pro-Q 4 EQ + Pro-L 2 (2026-06-03) — from the RAW desktop stems
+
+User asked to EQ each raw stem with **Pro-Q 4** then limit each with **Pro-L 2** (goal: cleanup +
+sweeten). Operated on the original `~/Desktop/Watercolors - Drum Stems/` AIFFs (NOT the warm/punchy
+busses above). Both stages **faithful** (EQ balance-preserving / no peak-norm; limiter owns the −1 dBTP
+ceiling). Ran headless via the loops `vst` venv (`apply-vst-chain` MCP not connected in this worktree).
+
+- **Pro-Q 4** (Natural Phase, Clean) — presets `presets/vst/watercolors-<stem>-proq4.json`
+  (flatten-first, every band explicit): Kick HPF 35 / −3 box @350 / +3.5 click @3.8k · Snare HPF 90 /
+  +body @200 / −3 box @350 / +crack @4k / +sheen @10k · Overheads HPF 150 / de-box 250+400 / +2.5 air @9k
+  / **dynamic** (not spectral — pre-ring) de-harsh @6k, **−5 dB out trim** (air lifts cymbal peaks to
+  +3.4 dBFS) · Room HPF 100 / −box @400 / +top @8k / spectral de-harsh @5.5k · Snare Reverb HPF 200 /
+  −box @250 / +sheen @8k / HC 16k.
+- **Pro-L 2** (Transparent / −1.0 dBTP / TP on / 4× / dither off, `gain +4`) via
+  `presets/vst/fabfilter-prol2-streaming-master.state` + `artifacts/watercolors-eq/faithful_prol2.py`.
+  Gentle: loud stems ~1–2 dB GR, ambience returns pass through. All ≤ −1.02 dBTP.
+
+| Stem | source LUFS/TP | EQ'd | EQ+limited |
+|---|---|---|---|
+| Kick | −19.3 / −1.7 | −19.5 / −3.1 | **−16.5 / −1.02** |
+| Snare | −23.2 / −2.6 | −22.7 / −2.5 | **−19.7 / −1.02** |
+| Overheads | −18.7 / −0.1 | −26.2 / −1.6 | **−23.8 / −1.02** |
+| Room | −32.5 / −9.4 | −34.2 / −11.7 | **−31.3 / −8.7** |
+| Snare Reverb | −33.3 / −15.7 | −36.9 / −19.3 | **−33.9 / −16.3** |
+
+Outputs: `mix/<stem>_proq4.wav` (EQ only) + `mix/<stem>_proq4_prol2.wav` (EQ + limited). OH trimmed −5 dB
+for the air boost → sits lower in the kit now; rebalance to taste. (LUFS-I is pulled down by the silent
+60 s+ tail — the active 0–58 s section reads hotter.)
+
+### Mix → master of the EQ+limited stems
+
+- **Mix** (`drum-prep mix`, **punchy / audience / subtle verb**): kick 0 · snare −1 · OH −2 (anchor) ·
+  room −12 · snare-reverb FX −19 (vs OH). Bus `mix/drums-mix-punchy-audience.wav` — peak −1.00 / −0.99 dBTP,
+  LUFS −21.4, crest 24.5, tilt −3.76. Flat unity sum (no glue/limiting).
+- **Master** (user: **loud / hard-hitting ~−11 LUFS**): light master EQ (`presets/vst/watercolors-drumbus-mastereq.json`
+  — HPF 28 + 1.5 dB air @12k) → **Pro-L 2 Punchy, −1.0 dBTP, TP on, 16× OS, gain +19** (via
+  `artifacts/watercolors-eq/faithful_prol2.py`, faithful). Result `masters/drums-master-loud.wav`:
+  **−10.88 LUFS-I / −1.01 dBTP**, crest 24.5→**13.3** (heavy limiting, accepted), tilt −3.29, 48k/24-bit, dither off.
+  (Gain→loudness flattened hard: +13→−13.3, +16→−12.05, +19→−10.88.) For 44.1/16 distribution, dither at export.

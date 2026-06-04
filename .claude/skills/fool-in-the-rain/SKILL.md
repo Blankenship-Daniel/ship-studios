@@ -138,4 +138,4 @@ loop counts + `all_tagged`. It's a **MIX bus** (peak −1, not mastered) → han
 standalone master.
 
 ## Related
-[[format-fix]] · [[drum-phase-align]] · [[stem-process]] · [[mix-balance]] · [[warm-drum-bus]] · [[drum-stems-warm-loops]] · [[helios-type-69]] · [[studer-a800]] · [[ssl-bus-compressor-2]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-audio-understanding]] · [[master-track]]
+[[format-fix]] · [[drum-phase-align]] · [[stem-process]] · [[mix-balance]] · [[warm-drum-bus]] · [[drum-stems-warm-loops]] · [[helios-type-69]] · [[studer-a800]] · [[ssl-bus-compressor-2]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-audio-understanding]] · [[master-track]] · [[drum-stems-character]] — reach this tone as the **Bonham** character in the per-stem→bus character pipeline

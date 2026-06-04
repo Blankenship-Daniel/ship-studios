@@ -101,6 +101,6 @@ A/B with `[L] render-ab` (loudness-matched) so taste isn't a level illusion.
 - [`docs/vst/studer-a800.md`](../../../docs/vst/studer-a800.md) — the full measured field guide (levers, theory, decision table, **§8 panel→param control-map + UADx/UAD-2 build notes**)
 - [[vst-saturate]] — the generic tape/harmonic-color skill this specializes · [[vst-preset]] — apply enum/gain-staged chains
 - [[vst-verify]] — prove the build renders (responds to params) before trusting it · [[vst-chain]] — the backbone recipe
-- [[vst-shootout]] — render A800 setting variants & judge to a winner · [[ampex-atr-102]] — the smoother Ampex ATR-102 *master* tape sibling for the 2-bus / mastering (UADx native, no iLok) · [[vst-master]] — the mastering-tape stage it lives in
+- [[vst-shootout]] — render A800 setting variants & judge to a winner · [[ampex-atr-102]] — the smoother Ampex ATR-102 *master* tape sibling for the 2-bus / mastering (UADx native, no iLok) · [[softube-tape]] — Softube's own subtler, CPU-light tape (the third tape option, same insert stage; distinct engine) · [[vst-master]] — the mastering-tape stage it lives in
 - [[finalize-mix]] — the pure-DSP glue stage a tape insert lives in · [[drum-mix]] — balance the kit (by measured loudness) before tape
 - [[gemini-audio-understanding]] — why meters (not Gemini) own loudness/peak/stereo for tape moves

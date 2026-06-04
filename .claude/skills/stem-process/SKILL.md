@@ -28,6 +28,12 @@ sibling lives next to the **main** checkout. Resolve it there and pass the **abs
   intended change landed (de-harsh actually ducked the ring, transient actually raised crest).
 - **Mono stays mono** — the executor collapses the stereo VST output back to mono for mono inputs so panning
   survives the re-sum.
+- **Keep the kit phase-coherent.** Corrective EQ is zero-phase (alignment survives). The console/tape **color**
+  stage is min-phase + adds latency — but because the executor runs the **same** color plugin + settings on
+  every stem, that latency is **uniform across the kit** → coherence is preserved (verify once with
+  `scripts/mix/latency_check.py`). If you ever color stems with *different* chains/latencies, re-align the
+  processed stems afterward (the [[drum-stems-character]] / [[ff-stems]] way) and check
+  `scripts/mix/check_phase_coherence.py` before summing.
 
 ## Recipe (ordered)
 

@@ -14,9 +14,11 @@ and crest: density rose where you wanted it, not everywhere.
 
 The overlap traps: this is per-band **level** control. It is NOT `shape-bands`
 (per-band *transient* design → punch; `[[drum-punch]]`), NOT `compress-loop`
-(a single broadband compressor; `[[finalize-mix]]`'s glue step), and NOT
-`apply-eq` (static tone). Reach for it specifically when one band's dynamics
-misbehave while another band's are fine.
+(a single broadband compressor; `[[finalize-mix]]`'s glue step), NOT
+`apply-eq` (static tone), and NOT `[[dynamic-eq]]` (per-band EQ *gain* that fires
+at a level — a level-dependent **tone** fix; this is per-band **level**/density).
+Reach for it specifically when one band's dynamics misbehave while another band's
+are fine.
 
 ## Prerequisites
 
@@ -65,6 +67,7 @@ file.
 ## Related
 
 - [[drum-punch]] — per-band transient design (punch), the sibling lever
+- [[dynamic-eq]] — threshold-gated per-band EQ (fixes a band's *tone* at a level); this controls a band's *level*/density
 - [[finalize-mix]] — single-band bus glue compression
 - [[vst-compress]] — the plugin form (incl. multiband plugins)
 - [[mix-check]] — diagnose which band's dynamics are the problem

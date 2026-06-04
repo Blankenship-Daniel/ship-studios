@@ -16,6 +16,17 @@ This skill does the per-stem **corrective mix** + masking resolution + sum.
 The actual loudness/limiting/compliance/export is **not** done here — it is
 [[master-track]]'s job, run on the summed bus. Don't duplicate it.
 
+**Phase coherence — only for a multi-mic capture of ONE source (a drum kit).**
+Multiple mics of the same kit are *correlated*, so they comb-filter on the sum if
+their timing/phase drifts. (1) **Phase-align the kit FIRST** ([[drum-phase-align]],
+full-band, before any EQ) and run the per-stem cuts **zero-phase** (`apply-eq
+phase=zero`) so the alignment survives the carve. (2) **Verify coherence before you
+sum** — `scripts/mix/check_phase_coherence.py` (plus `scripts/mix/latency_check.py`
+if any per-stem VST/console processing was used). This does **not** apply to
+independent-source stems (bass / vocal / music) — those are uncorrelated, so only
+their *masking* matters, not phase. The kit-aware reference is [[ff-stems]];
+[[drum-stems-character]] shows the align-AFTER variant for varying-latency chains.
+
 ## Prerequisites
 
 - Both `stemmy-loops` and `stemmy-gemini` registered and up.
@@ -41,7 +52,9 @@ The actual loudness/limiting/compliance/export is **not** done here — it is
    on the offending stems for precise notch / de-ess settings.
 4. **Corrective EQ per losing stem** — `[L] apply-eq`, one call per stem,
    complementary cuts from steps 2–3 (carve bass under kick, tame vocal mud).
-   Cut the loser; boost owners only when a band is genuinely thin. For
+   Cut the loser; boost owners only when a band is genuinely thin. On a
+   **multi-mic kit pass `phase=zero`** so the carve stays phase-transparent and
+   the alignment survives. For
    problems a static cut can't handle: `[[de-ess]]` (sibilant stems, from the
    `find-sibilance` settings), `[[de-harsh]]` (ringing/harsh stems), and
    `[[dynamic-eq]]` for level-dependent collisions (carve only when the kick
@@ -54,7 +67,9 @@ The actual loudness/limiting/compliance/export is **not** done here — it is
    (loudness-offset sum with per-stem spec). Local DSP.
 7. **Verify the carve worked** — re-run `[G] analyze-stem-masking` +
    `[L] measure-spectrum` on the corrected stems/sum; confirm overlaps shrank
-   and nothing was hollowed.
+   and nothing was hollowed. **Multi-mic kit:** also confirm coherence held
+   *before* the sum — `scripts/mix/check_phase_coherence.py <aligned> <corrected>`
+   (strong shared-content pairs preserved).
 8. **Hand off to mastering** — route the summed bus to [[master-track]] for
    loudness, limiting, streaming compliance, and the export matrix. **Do not
    limit here.**
@@ -80,6 +95,10 @@ masking-overlap read, the summed-bus path, and an explicit "now run
   set, so don't try to `render-ab` a sum.
 - **Cuts → all, boosts → owners.** Resolve masking with complementary cuts
   (the drum-prep guardrail), not by boosting the dominant stem.
+- **A multi-mic kit must be phase-aligned BEFORE the corrective EQ and summed
+  coherent.** Skipping the align (or cutting non-zero-phase) bakes comb-filtering
+  into the sum — the mics cancel instead of reinforce. Independent-source stems
+  (bass/vox/music) are exempt (uncorrelated). See the coherence note above.
 
 ## Fan-out
 
@@ -94,6 +113,7 @@ hand-off (step 8), not parallelized here.
 
 - [[unmask-stems]] — the masking-only subset, when that's all you need
 - [[stem-process]] — batch per-stem corrective + console/tape COLOR (with a reusable executor + re-sum A/B); this skill is the MCP corrective→sum→master path, stem-process is the standalone per-stem treatment stage
+- [[drum-phase-align]] — align a multi-mic kit FIRST (before the corrective EQ) · [[ff-stems]] — the kit-aware FabFilter channel-finalize (phase-coherent by construction) · [[drum-stems-character]] — align-AFTER variant for varying-latency per-stem chains
 - [[de-ess]] / [[de-harsh]] / [[dynamic-eq]] / [[multiband-compress]] — the per-stem corrective skills step 4–5 hand off to
 - [[master-track]] — the downstream stage that masters the summed bus
 - [[song-mix]] / [[drum-mix]] — balance-and-sum stems (no correction)

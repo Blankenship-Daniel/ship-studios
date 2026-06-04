@@ -39,7 +39,9 @@ use [[stem-master]]; this is the lighter standalone carve.
    so use it to confirm the worst collisions, not to decide the move.
 3. **Cut the loser** — `[L] apply-eq` on each stem-to-cut, one call per stem,
    with a bell at the prescribed center Hz / cut dB / Q. **Boost nothing** —
-   masking is resolved by cutting the loser, not boosting the winner.
+   masking is resolved by cutting the loser, not boosting the winner. On a
+   **multi-mic kit** (mics of one source) pass **`phase=zero`** so the carve is
+   phase-transparent and doesn't shift the mics out of alignment.
 4. **Prove it** — re-run `[G] analyze-stem-masking` + `[L] measure-spectrum`
    on the corrected stems. Confirm the overlap dropped *and* the cut didn't
    hollow out the stem (spectrum sanity).
@@ -68,6 +70,11 @@ was gutted. If you summed an A/B, give its path.
   comes from `analyze-stem-masking`.
 - **Cut, don't boost.** Carve the loser; piling gain on the winner just
   re-creates the collision louder.
+- **Multi-mic kit: align first + cut zero-phase.** If the stems are mics of ONE
+  source (a drum kit), they're correlated — phase-align them first
+  ([[drum-phase-align]]) and use `apply-eq phase=zero`, or the carve smears the
+  inter-mic phase and the kit comb-filters on the sum. Independent-source stems
+  (kick vs bass vs vox) are exempt — only their masking matters, not phase.
 
 ## Fan-out
 
@@ -83,3 +90,4 @@ fan-out parallelizes the stems, it doesn't batch them into one call.)
 - [[mix-check]] — single-bounce diagnosis when you don't have stems
 - [[song-mix]] — balance the carved stems to a bus
 - [[drum-reference-match]] — tonal-match a kit rather than carve collisions
+- [[drum-phase-align]] — align a multi-mic kit before carving · [[ff-stems]] — kit-aware per-stem FabFilter chain (phase-coherent)

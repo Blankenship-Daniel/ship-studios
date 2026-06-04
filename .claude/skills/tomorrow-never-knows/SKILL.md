@@ -122,4 +122,4 @@ the tom-forward balance table (or the no-toms note); confirmed BPM; loop counts 
 - The Fairchild-only pump is **gentle** (it colors, holds crest) — use `--la3a` for the heavy 1966 crush.
 
 ## Related
-[[fool-in-the-rain]] · [[fairchild-660]] · [[la-3a]] · [[studer-a800]] · [[vibe-analog-machines]] · [[tape-j-37]] · [[drum-prep]] · [[stem-process]] · [[mix-balance]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-audio-understanding]] · [[master-track]]
+[[fool-in-the-rain]] · [[fairchild-660]] · [[la-3a]] · [[studer-a800]] · [[vibe-analog-machines]] · [[tape-j-37]] · [[drum-prep]] · [[stem-process]] · [[mix-balance]] · [[loops-to-deliverables]] · [[delivery-qc]] · [[gemini-audio-understanding]] · [[master-track]] · [[drum-stems-character]] — reach this tone as the **TNK/Crushed** character in the per-stem→bus character pipeline

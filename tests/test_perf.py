@@ -56,7 +56,8 @@ def test_perf_record_writes_jsonl_when_enabled(
 
 def test_perf_record_swallows_bad_path(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(perf.PERF_LOG_ENV, "/no/such/dir/deeply/nested/perf.jsonl")
-    perf.record({"tool": "x"})  # best-effort sink must not raise
+    # best-effort sink: must not raise, and degrades to a silent no-op (returns None).
+    assert perf.record({"tool": "x"}) is None
 
 
 def test_sample_rss_shape() -> None:

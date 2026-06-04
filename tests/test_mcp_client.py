@@ -28,6 +28,8 @@ async def test_hub_opens_both_sessions_and_initializes(fake_hub) -> None:
     hub = fake_hub()
     async with hub:
         assert set(hub.fake_sessions) == {LOOPS_SERVER, GEMINI_SERVER}
+        # Exactly the requested servers — no extra sessions opened on the side.
+        assert len(hub.fake_sessions) == len(hub.server_keys)
         for sess in hub.fake_sessions.values():
             assert sess.initialized is True
 

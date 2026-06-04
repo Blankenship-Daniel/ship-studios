@@ -1,6 +1,7 @@
 """Config resolves sibling paths, console scripts, server keys, and env."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -10,8 +11,14 @@ from ship_studios import config
 
 @pytest.fixture(autouse=True)
 def _clear_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Clear behaviour-override + timeout env so exact-env assertions are stable
-    regardless of the shell that runs the suite."""
+    """Clear behaviour-override + timeout + path-override env so exact-env assertions
+    are stable regardless of the shell that runs the suite.
+
+    Clears every ``SHIP_STUDIOS_*`` / ``STEMMY_*`` var by prefix (so a newly-added
+    config override is covered automatically — no need to list each one here) plus the
+    explicit override tuples. Each test sets the vars it needs via ``monkeypatch.setenv``
+    AFTER this autouse fixture runs, so clearing by prefix does not disturb them.
+    """
     for var in (
         *config.GEMINI_OVERRIDE_ENV,
         *config.LOOPS_OVERRIDE_ENV,
@@ -19,6 +26,9 @@ def _clear_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
         config.CALL_TIMEOUT_ENV,
     ):
         monkeypatch.delenv(var, raising=False)
+    for name in list(os.environ):
+        if name.startswith(("SHIP_STUDIOS_", "STEMMY_")):
+            monkeypatch.delenv(name, raising=False)
 
 
 def test_server_keys_are_the_blueprint_keys() -> None:

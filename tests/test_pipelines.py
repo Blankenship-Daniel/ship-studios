@@ -768,18 +768,19 @@ async def test_loops_to_deliverables_tag_uses_verified_keys(recording_hub) -> No
     assert args["root_note"] == 43
 
 
-async def test_loops_to_deliverables_describe_optional(recording_hub) -> None:
+async def test_loops_to_deliverables_describe_false_skips_describe(recording_hub) -> None:
     await pipelines.loops_to_deliverables(
         recording_hub, "drums.wav", 100.0, describe=False
     )
     assert "describe-loops" not in recording_hub.tool_sequence
 
-    hub2 = type(recording_hub)()  # fresh hub for the describe=True case
+
+async def test_loops_to_deliverables_describe_true_runs_describe_last(recording_hub) -> None:
     await pipelines.loops_to_deliverables(
-        hub2, "drums.wav", 100.0, out_dir="out", describe=True
+        recording_hub, "drums.wav", 100.0, out_dir="out", describe=True
     )
-    assert hub2.tool_sequence[-1] == "describe-loops"
-    assert hub2.args_for("describe-loops") == {"out_dir": "out"}
+    assert recording_hub.tool_sequence[-1] == "describe-loops"
+    assert recording_hub.args_for("describe-loops") == {"out_dir": "out"}
 
 
 async def test_loops_to_deliverables_describe_target_falls_back_to_parent(recording_hub) -> None:

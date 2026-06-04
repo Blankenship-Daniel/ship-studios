@@ -1,0 +1,87 @@
+[
+ {
+  "_run_note": "CONCRETE TNK per-stem plans for the Desktop 'Drum STEMS' kit (262s full performance): kick in/beater, snare top/bottom, hi-hat, overheads (stereo), drum room (stereo). NO toms -> tom entries dropped; a hi-hat entry added (the committed tomorrow-never-knows-stem-process.plans.json template has none). Basenames match projects/tomorrow-never-knows/stems/phase-aligned/. DARK + gentle; the bus does the crush/color. declick forced OFF.",
+  "stem": "kick in.wav",
+  "role": "kick — deep, DAMPED thud (sweater-in-the-kick). Keep sub, kill ring, no click.",
+  "clean": {"hpf_hz": 30, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 30, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3, "q": 1.1}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 35, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -4, "attack": "Medium", "release_s": 0.2},
+   "eq": {"lf_freq": 60, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 4000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -2},
+  "rationale": "Damped thud: keep the 50-70 sub, -3 @350 to de-box/de-ring, NO beater-click boost (TNK kick is dull/damped). 550 flat. Measured centroid 2358 / tilt -5.12 (already a dark LF kick)."
+ },
+ {
+  "stem": "kick beater.wav",
+  "role": "kick beater/click — minimal (TNK kick is damped, not clicky).",
+  "clean": {"hpf_hz": 60, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 60, "gain_db": 0, "q": 0.707}, {"type": "bell", "freq_hz": 350, "gain_db": -2.5, "q": 1.2}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.12},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 350, "lmf_gain": 0, "hmf_freq": 3000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -3},
+  "rationale": "De-box + de-harsh, no click boost. Way down in the balance (TNK kick is the damped 'in' thud, not the beater). Measured centroid 3738 / tilt -1.71."
+ },
+ {
+  "stem": "snare top.wav",
+  "role": "snare — thuddy, dark, present. No crack/air.",
+  "clean": {"hpf_hz": 80, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 80, "gain_db": 0, "q": 0.707}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4500, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -10, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -4},
+  "rationale": "Keep the body, tame the bright edge with a gentle 4.5-7k dynamic de-harsh (TNK snare is dark/thuddy). NO air, NO transient snap, NO de-box (keep weight). 550 flat. Measured centroid 5339 / tilt -0.46 -> brightish, the de-harsh earns its keep here."
+ },
+ {
+  "stem": "snare bottom.wav",
+  "role": "snare bottom (wires) — a touch, dark.",
+  "clean": {"hpf_hz": 150, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 4500, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 80, "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 400, "lmf_gain": 0, "hmf_freq": 7000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -6},
+  "rationale": "Just a hint of wires under the top: HPF 150, dynamic de-harsh on the buzz, NO air. Far down in the balance."
+ },
+ {
+  "stem": "hi-hat.wav",
+  "role": "hi-hat — dark, pulled back; TNK is not cymbal/hat-forward. Tame the spit, no air.",
+  "clean": {"hpf_hz": 250, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 250, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 450, "gain_db": -2, "q": 1.1}
+  ],
+  "de_harsh": {"depth": 0.5, "max_reduction_db": 5, "focus_lo_hz": 5000, "focus_hi_hz": 9000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 200, "comp": {"on": true, "type": "Old (FB)", "ratio": 2, "thresh": -8, "attack": "Medium", "release_s": 0.2},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 450, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -3},
+  "rationale": "Dark hat (NEW entry, not in the template): HPF 250 cleans bleed/rumble, -2 @450 de-box, firm 5-9k de-harsh kills the spit and keeps it dark, NO air. Folded well back in the balance (the OH carry the cymbals). Measured centroid 4870 / tilt +0.82 -> bright, so the de-harsh matters."
+ },
+ {
+  "stem": "overheads.wav",
+  "role": "overheads (stereo) — DARK, cymbals back (TNK is not cymbal-forward).",
+  "clean": {"hpf_hz": 120, "denoise": false},
+  "eq_bands": [{"type": "bell", "freq_hz": 200, "gain_db": -2, "q": 1.1}],
+  "de_harsh": {"depth": 0.5, "max_reduction_db": 5, "focus_lo_hz": 3000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 100, "comp": {"on": true, "type": "Old (FB)", "ratio": 2.5, "thresh": -8, "attack": "Medium", "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 200, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -1},
+  "rationale": "HPF 120 + -2 @200 de-mud; a firmer 3-7k de-harsh keeps the cymbals dark/back. NO air. Pulled down in the balance. Measured centroid ~4000 / tilt ~-0.6. Renamed from the template 'overhead' to this kit's 'overheads.wav'."
+ },
+ {
+  "stem": "drum room.wav",
+  "role": "room (stereo) — feeds the PUMP; keep low weight, dark.",
+  "clean": {"hpf_hz": 60, "denoise": false},
+  "eq_bands": [{"type": "high_pass", "freq_hz": 60, "gain_db": 0, "q": 0.707}, {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.2}],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 4, "focus_lo_hz": 3000, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {"hp_filter_hz": 60, "comp": {"on": true, "type": "Old (FB)", "ratio": 2, "thresh": -6, "attack": "Medium", "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0}, "line_gain_db": 0, "output_peak_dbfs": -1},
+  "rationale": "Keep the room's low weight (HPF only 60) for the Fairchild to swell into the pump; dark, no air. Unlike Bonham, the room is NOT the loudest layer here — it's the pump fuel. Measured centroid 3895 / tilt -0.58."
+ }
+]

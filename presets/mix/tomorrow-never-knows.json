@@ -40,6 +40,18 @@
     "_measured_on": "the Fairchild-only DEFAULT on a 60 s active window (240-300 s) of the Ship Studios kit (NO toms -> kick+snare-forward fallback balance). Pre-bus was centroid 2271 / tilt -3.18 / crest 20.9 / corr 0.908.",
     "_what_to_check": "the DIRECTION: centroid DOWN hard (warm/dark, ~-770 here), tilt more negative (dark), crest DOWN (the pump — gentler with Fairchild-only, ~17 with --la3a), correlation UP toward ~0.99 (NARROW/mono — the defining TNK image). Crest/centroid are content-dependent; this section was already dark (tilt -3.18) so it landed very dark (1498). On a brighter/tom kit expect higher."
   },
+  "approved_signature_desktop_kit": {
+    "centroid_hz": 1481,
+    "tilt_db_per_oct": -4.36,
+    "crest_db": 17.7,
+    "correlation": 0.980,
+    "lufs_i": -16.2,
+    "flags": "--la3a --vibe --repro-hf 0.5 --tape-in 4 --dark -8",
+    "_measured_on": "the FULL 262 s Desktop 'Drum STEMS' kit (a separate, BRIGHTER no-toms kick+snare-forward source: pre-bus centroid 4140 / tilt -1.94 / crest 26.1 / corr 0.917). Rendered SEQUENTIALLY (deterministic) via tomorrow_never_knows_bus.py. 2026-06-03.",
+    "_winning_chain": "Fairchild (default colour) -> LA-3A (opto LIMIT pr6) -> Studer A800 15 IPS repro_hf 0.5 + tape_in 4 (darker/hotter) -> Vibe VINTAGIZE (the key lo-fi DARKENER: band-limits centroid ~2855 -> ~1480 and adds 1966 grit) -> dark EQ high-shelf -8 @ 8k -> width 0.35 mono. Gemini perceptual confirm: 'perfectly hits the TNK brief — dark, fat, lo-fi, not a murky blur; kick+snare legible; perfect mono image'.",
+    "_what_to_check": "centroid landed ~1481 (== the dev kit's 1498) DESPITE a far brighter source (4140 vs 2271) — Vibe VINTAGIZE did the darkening, not the source. crest 17.7 is the headless mix-bus PUMP CEILING (matches the recipe's documented '~17 with --la3a'); the full 1966 squash/breathing is an aggressive MASTERING step, not a mix-bus move.",
+    "_caveat_workflow_nondeterminism": "The tuning workflow renders variants CONCURRENTLY; UADx plugins share global symbols (DiskChangeNotifier etc.) so concurrent renders are NONDETERMINISTIC and 2/7 (the Vibe combos) failed to render. The workflow reported la3a_dark as 1486/13.8 but that does NOT reproduce — a SEQUENTIAL re-render of identical flags gives 2855/17.7. ALWAYS trust a sequential re-render for the locked meters; the workflow's value is the qualitative ranking (LA-3A + Vibe + dark + mono beats Fairchild-only / bright), not its exact render meters."
+  },
   "notes": [
     "Needs TOM mics for the tom-FORWARD balance; without them you get the TNK tone (crush/dark/mono) but kick+snare lead.",
     "This is the TONE, not Ringo's hypnotic tom GROOVE — that lives in the source performance.",

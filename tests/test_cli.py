@@ -139,6 +139,51 @@ def test_master_default_out_falls_back_to_masters_sibling(
     assert args == ("song/bounce.wav", "song/masters/bounce.master.wav")
 
 
+def test_master_default_out_parity_with_master_out_helper(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    # The deleted cli._default_master_out is now pipelines._master_out(mix, None).
+    # The resolved default master path must be identical for both a mix/ layout
+    # and a flat layout (the behavior the old helper guaranteed).
+    from ship_studios.pipelines import _master_out
+
+    for mix in ("projects/song/mix/final.wav", "song/bounce.wav"):
+        result = runner.invoke(cli.main, ["master", mix])
+        assert result.exit_code == 0, result.output
+        _, args, _ = patched_pipelines[-1]
+        assert args == (mix, _master_out(mix, None))
+
+
+def test_master_threads_parsed_presets(runner: CliRunner, patched_pipelines) -> None:
+    # --presets is parsed (same allow-list as `loops`) and threaded into the
+    # pipeline as the validated list, not the raw string.
+    result = runner.invoke(
+        cli.main,
+        ["master", "mix.wav", "--presets", "distribution_44k_16,master_96k_24"],
+    )
+    assert result.exit_code == 0, result.output
+    name, _, kwargs = patched_pipelines[0]
+    assert name == "master_track"
+    assert kwargs["presets"] == ["distribution_44k_16", "master_96k_24"]
+
+
+def test_master_rejects_unknown_preset(runner: CliRunner, patched_pipelines) -> None:
+    # Parity with the `loops` command: an unknown preset is rejected up front.
+    result = runner.invoke(
+        cli.main, ["master", "mix.wav", "--presets", "44.1/16"]
+    )
+    assert result.exit_code == 2
+    assert "unknown preset" in result.output
+
+
+def test_master_default_presets_is_none(runner: CliRunner, patched_pipelines) -> None:
+    # No --presets => None passed through (pipeline applies DEFAULT_PRESETS).
+    result = runner.invoke(cli.main, ["master", "mix.wav"])
+    assert result.exit_code == 0, result.output
+    _, _, kwargs = patched_pipelines[0]
+    assert kwargs["presets"] is None
+
+
 def test_master_rejects_missing_input(patched_pipelines) -> None:
     # The input path is validated up front (click.Path(exists=True)): a missing
     # file is a usage error (exit 2) BEFORE any server is spawned, not a late

@@ -12,14 +12,35 @@ and perceptual work lives in the two sibling servers.
 The ``hub`` argument is any object exposing
 ``async call_tool(server_key, name, args) -> result`` — the real
 :class:`ship_studios.mcp_client.Hub` in production, a fake in tests.
+
+Result contract
+---------------
+Every pipeline returns a ``dict[str, Any]`` carrying at least ``"pipeline"``
+(the pipeline's hyphenated name) and ``"steps"`` (the ordered list of
+:class:`Step` records — one per tool call, on success AND failure). Most also
+carry ``"input"`` plus a pipeline-specific result key:
+
+* ``master_track`` — ``input`` + ``streaming_compliant`` (``True``/``False``/``None``).
+* ``batch_master`` — ``inputs`` + ``masters`` (the SUCCEEDED master paths) +
+  ``tracks`` (per-track ``{input, master, streaming_compliant[, error]}``) +
+  ``album`` (a ``{ok, failed, compliant, noncompliant, unknown}`` tally).
+* ``mix_check`` — ``input`` + ``output`` (the final corrected WAV; ``== input``
+  when no corrective move ran).
+* ``reference_match`` — ``input`` + ``reference``.
+* ``house_curve`` — ``input`` + ``profile`` + ``output`` + ``matched`` (bool).
+* ``stem_master`` / ``unmask_stems`` — ``stems`` + ``corrected`` (name->path).
+* ``loops_to_deliverables`` — ``input`` + ``bpm`` + ``loops`` + ``fell_back``
+  (bool; processed ``input`` itself because no loops were parseable) +
+  ``loop_count``.
+* ``understand_audio`` — ``input``.
 """
 from __future__ import annotations
 
 from pathlib import PurePosixPath
-from typing import Any, Protocol
+from typing import Any, Protocol, TypedDict
 
 from ship_studios import perf
-from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER
+from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER, GeminiTool, LoopsTool
 
 #: Verified ``export-deliverables`` preset names (stemmy-loops ``_dsp/deliverables.py``
 #: ``_PRESETS``). The server raises ``ValueError("unknown preset")`` for anything
@@ -51,6 +72,16 @@ _STREAMING_SERVICES: dict[str, str] = {
 }
 #: The full set the CLI ``--platform`` choice accepts (services + critique moods).
 PLATFORM_CHOICES: list[str] = sorted(_STREAMING_SERVICES) + sorted(_FEEDBACK_MOODS)
+
+#: Centralized CLI choice constants mirroring the sibling servers' Literals — the
+#: same single-source-of-truth pattern as ``PLATFORM_CHOICES``. The CLI imports
+#: these instead of re-listing them inline.
+#:   * ``INTENT_CHOICES`` — ``master-assistant`` ``intent``.
+#:   * ``INTENSITY_CHOICES`` — ``master-assistant`` ``intensity``.
+#:   * ``MATCH_PHASE_CHOICES`` — ``match-eq`` ``phase`` (reference-match / house-curve).
+INTENT_CHOICES: list[str] = ["loud", "dynamic", "warm", "bright", "balanced", "punchy"]
+INTENSITY_CHOICES: list[str] = ["subtle", "medium", "strong"]
+MATCH_PHASE_CHOICES: list[str] = ["minimum", "linear", "tilt_only"]
 
 
 def _feedback_mood(target_platform: str) -> str:
@@ -131,12 +162,29 @@ class SupportsCallTool(Protocol):
     ) -> Any: ...
 
 
+class Step(TypedDict):
+    """One recorded tool call in a pipeline's ``"steps"`` list.
+
+    ``server``/``tool``/``args`` say what was invoked, ``result`` is the tool's
+    return (``None`` if it raised), ``elapsed_s`` the wall time, and ``ok``
+    whether it succeeded. A failed step is still recorded — it is the one you
+    most want in the trace.
+    """
+
+    server: str
+    tool: str
+    args: dict[str, Any]
+    result: Any
+    elapsed_s: float
+    ok: bool
+
+
 class _Recorder:
     """Calls a tool through the hub and records the step for the result dict."""
 
     def __init__(self, hub: SupportsCallTool) -> None:
         self._hub = hub
-        self.steps: list[dict[str, Any]] = []
+        self.steps: list[Step] = []
 
     async def run(
         self, server_key: str, tool: str, args: dict[str, Any]
@@ -199,11 +247,11 @@ async def master_track(
     """
     rec = _Recorder(hub)
 
-    await rec.run(LOOPS_SERVER, "measure-loudness", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "measure-spectrum", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "measure-stereo", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "check-clipping", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "measure-distortion", {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_LOUDNESS, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_SPECTRUM, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_STEREO, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.CHECK_CLIPPING, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_DISTORTION, {"path": mix_path})
 
     mood = _feedback_mood(target_platform)
     if assistant:
@@ -215,11 +263,11 @@ async def master_track(
         }
         if style is not None:
             plan_args["style"] = style
-        await rec.run(GEMINI_SERVER, "master-assistant", plan_args)
+        await rec.run(GEMINI_SERVER, GeminiTool.MASTER_ASSISTANT, plan_args)
     else:
         await rec.run(
             GEMINI_SERVER,
-            "mastering-feedback",
+            GeminiTool.MASTERING_FEEDBACK,
             {"path": mix_path, "target_platform": mood},
         )
 
@@ -237,7 +285,7 @@ async def master_track(
         render_args["bit_depth"] = bit_depth
     if sample_rate is not None:
         render_args["sample_rate"] = sample_rate
-    await rec.run(LOOPS_SERVER, "render-mastered", render_args)
+    await rec.run(LOOPS_SERVER, LoopsTool.RENDER_MASTERED, render_args)
 
     streaming_args: dict[str, Any] = {"path": out_path}
     service = _streaming_service(target_platform)
@@ -245,7 +293,9 @@ async def master_track(
         # Limit the compliance report to the actual release service; without a
         # service (a critique-mood target like "club") check every default.
         streaming_args["platforms"] = [service]
-    streaming = await rec.run(GEMINI_SERVER, "check-streaming-targets", streaming_args)
+    streaming = await rec.run(
+        GEMINI_SERVER, GeminiTool.CHECK_STREAMING_TARGETS, streaming_args
+    )
     compliant = _streaming_compliant(streaming)
 
     export_args: dict[str, Any] = {
@@ -254,7 +304,7 @@ async def master_track(
         "presets": presets or DEFAULT_PRESETS,
         "tag": True,
     }
-    await rec.run(LOOPS_SERVER, "export-deliverables", export_args)
+    await rec.run(LOOPS_SERVER, LoopsTool.EXPORT_DELIVERABLES, export_args)
 
     return {
         "pipeline": "master-track",
@@ -278,6 +328,7 @@ async def batch_master(
     masters_dir: str | None = None,
     deliverables_dir: str | None = None,
     presets: list[str] | None = None,
+    continue_on_error: bool = True,
 ) -> dict[str, Any]:
     """Pipeline 6 — master a folder of mixes to ONE shared target + album pass.
 
@@ -287,29 +338,50 @@ async def batch_master(
     measure-loudness over every master + analyze-album-normalization (the shared
     album gain a platform will actually apply). The consistency read is the
     headline; hand any not-release-ready track to mix-check first.
+
+    One bad track does not sink the batch: by default
+    (``continue_on_error=True``) a track whose master chain raises is recorded
+    in ``tracks`` with its ``error`` and ``streaming_compliant=None`` and the
+    run continues; the album pass then runs over only the masters that
+    SUCCEEDED. Pass ``continue_on_error=False`` to re-raise on the first
+    failure. The returned ``album`` summary tallies the outcome
+    (``{ok, failed, compliant, noncompliant, unknown}``).
     """
     if not mix_paths:
         raise ValueError("batch_master needs at least one mix path")
 
     tracks: list[dict[str, Any]] = []
     masters: list[str] = []
-    steps: list[dict[str, Any]] = []
+    steps: list[Step] = []
     for mix in mix_paths:
         out = _master_out(mix, masters_dir)
-        res = await master_track(
-            hub,
-            mix,
-            out,
-            target_lufs=target_lufs,
-            ceiling_dbtp=ceiling_dbtp,
-            target_platform=target_platform,
-            high_pass_hz=high_pass_hz,
-            transient_shape=transient_shape,
-            bit_depth=bit_depth,
-            sample_rate=sample_rate,
-            deliverables_dir=deliverables_dir,
-            presets=presets,
-        )
+        try:
+            res = await master_track(
+                hub,
+                mix,
+                out,
+                target_lufs=target_lufs,
+                ceiling_dbtp=ceiling_dbtp,
+                target_platform=target_platform,
+                high_pass_hz=high_pass_hz,
+                transient_shape=transient_shape,
+                bit_depth=bit_depth,
+                sample_rate=sample_rate,
+                deliverables_dir=deliverables_dir,
+                presets=presets,
+            )
+        except Exception as exc:
+            if not continue_on_error:
+                raise
+            tracks.append(
+                {
+                    "input": mix,
+                    "master": out,
+                    "error": str(exc),
+                    "streaming_compliant": None,
+                }
+            )
+            continue
         tracks.append(
             {
                 "input": mix,
@@ -320,22 +392,34 @@ async def batch_master(
         masters.append(out)
         steps.extend(res.get("steps", []))
 
-    # Cross-track album pass — consistency table + shared album-gain projection.
-    rec = _Recorder(hub)
-    for master in masters:
-        await rec.run(LOOPS_SERVER, "measure-loudness", {"path": master})
-    await rec.run(
-        LOOPS_SERVER,
-        "analyze-album-normalization",
-        {"paths": masters, "target_lufs": target_lufs, "ceiling_dbtp": ceiling_dbtp},
-    )
-    steps.extend(rec.steps)
+    # Cross-track album pass over the masters that SUCCEEDED — consistency table
+    # + shared album-gain projection. Skip cleanly if every track failed.
+    if masters:
+        rec = _Recorder(hub)
+        for master in masters:
+            await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_LOUDNESS, {"path": master})
+        await rec.run(
+            LOOPS_SERVER,
+            LoopsTool.ANALYZE_ALBUM_NORMALIZATION,
+            {"paths": masters, "target_lufs": target_lufs, "ceiling_dbtp": ceiling_dbtp},
+        )
+        steps.extend(rec.steps)
+
+    compliants = [t.get("streaming_compliant") for t in tracks]
+    album = {
+        "ok": len(masters),
+        "failed": sum(1 for t in tracks if "error" in t),
+        "compliant": sum(1 for c in compliants if c is True),
+        "noncompliant": sum(1 for c in compliants if c is False),
+        "unknown": sum(1 for c in compliants if c is None),
+    }
 
     return {
         "pipeline": "batch-master",
         "inputs": list(mix_paths),
         "masters": masters,
         "tracks": tracks,
+        "album": album,
         "steps": steps,
     }
 
@@ -343,6 +427,93 @@ async def batch_master(
 #: Valid ``detect-mix-issues`` severity floors (the server's Literal). "minor"
 #: is NOT one of them — it raises ValueError server-side.
 SEVERITY_CHOICES: list[str] = ["any", "moderate", "serious"]
+
+
+async def _run_corrective_chain(
+    rec: _Recorder,
+    path: str,
+    spec: dict[str, Any],
+    *,
+    base_path: str | None = None,
+    include_excite: bool,
+    include_shape: bool,
+    eq_out_path: str | None = None,
+    compress_out_path: str | None = None,
+) -> str:
+    """Apply the shared opt-in per-stem corrective chain; return the final path.
+
+    The ONE ordered chain ``mix_check`` and ``_apply_stem_corrections`` share:
+    ``apply-eq -> de-ess -> suppress-resonances -> apply-dynamic-eq ->
+    [excite-loop] -> compress-loop -> multiband-compress -> [shape-bands]``.
+    ``excite-loop`` runs only when ``include_excite`` (mix-check), ``shape-bands``
+    only when ``include_shape`` (the stem helper) — every other step is gated
+    purely on a supplied move in ``spec``. Each step reads the prior step's
+    output (``cur``) and writes a fresh suffixed file; the suffix is derived from
+    ``base_path`` (defaults to ``path``, so a stem suffixes off its own name and
+    mix-check off the mix). ``path``/``out_path`` are injected LAST so a spec dict
+    can't hijack the chain. ``eq_out_path`` / ``compress_out_path`` override the
+    default suffix for those two steps (the mix-check custom-out flags).
+
+    ``spec`` keys: ``eq_bands`` / ``dynamic_eq_bands`` (EQ move lists),
+    ``deess`` / ``suppress`` / ``excite`` / ``multiband`` / ``shape_bands``
+    (tuning-kwarg dicts; ``{}`` = tool defaults), ``compress`` (bool).
+    """
+    base = base_path if base_path is not None else path
+    cur = path
+    eq_bands = spec.get("eq_bands")
+    if eq_bands is not None:
+        out = eq_out_path or _suffix_path(base, "eq")
+        await rec.run(
+            LOOPS_SERVER, LoopsTool.APPLY_EQ, {"path": cur, "out_path": out, "bands": eq_bands}
+        )
+        cur = out
+    deess = spec.get("deess")
+    if deess is not None:
+        out = _suffix_path(base, "deess")
+        await rec.run(LOOPS_SERVER, LoopsTool.DE_ESS, {**deess, "path": cur, "out_path": out})
+        cur = out
+    suppress = spec.get("suppress")
+    if suppress is not None:
+        out = _suffix_path(base, "deharsh")
+        await rec.run(
+            LOOPS_SERVER, LoopsTool.SUPPRESS_RESONANCES, {**suppress, "path": cur, "out_path": out}
+        )
+        cur = out
+    dyn = spec.get("dynamic_eq_bands")
+    if dyn is not None:
+        out = _suffix_path(base, "dyneq")
+        await rec.run(
+            LOOPS_SERVER, LoopsTool.APPLY_DYNAMIC_EQ, {"path": cur, "out_path": out, "bands": dyn}
+        )
+        cur = out
+    if include_excite:
+        excite = spec.get("excite")
+        if excite is not None:
+            out = _suffix_path(base, "excite")
+            await rec.run(
+                LOOPS_SERVER, LoopsTool.EXCITE_LOOP, {**excite, "path": cur, "out_path": out}
+            )
+            cur = out
+    if spec.get("compress"):
+        out = compress_out_path or _suffix_path(base, "comp")
+        await rec.run(LOOPS_SERVER, LoopsTool.COMPRESS_LOOP, {"path": cur, "out_path": out})
+        cur = out
+    multiband = spec.get("multiband")
+    if multiband is not None:
+        out = _suffix_path(base, "mbcomp")
+        await rec.run(
+            LOOPS_SERVER, LoopsTool.MULTIBAND_COMPRESS, {**multiband, "path": cur, "out_path": out}
+        )
+        cur = out
+    if include_shape:
+        shape = spec.get("shape_bands")
+        if shape is not None:
+            out = _suffix_path(base, "shaped")
+            await rec.run(
+                LOOPS_SERVER, LoopsTool.SHAPE_BANDS, {**shape, "path": cur, "out_path": out}
+            )
+            cur = out
+    return cur
 
 
 async def mix_check(
@@ -378,60 +549,40 @@ async def mix_check(
 
     await rec.run(
         GEMINI_SERVER,
-        "detect-mix-issues",
+        GeminiTool.DETECT_MIX_ISSUES,
         {"path": mix_path, "severity_threshold": severity_threshold},
     )
-    await rec.run(GEMINI_SERVER, "analyze-mix-balance", {"path": mix_path})
+    await rec.run(GEMINI_SERVER, GeminiTool.ANALYZE_MIX_BALANCE, {"path": mix_path})
 
-    await rec.run(LOOPS_SERVER, "measure-loudness", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "measure-spectrum", {"path": mix_path})
-    await rec.run(LOOPS_SERVER, "measure-stereo", {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_LOUDNESS, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_SPECTRUM, {"path": mix_path})
+    await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_STEREO, {"path": mix_path})
 
-    await rec.run(GEMINI_SERVER, "find-resonances", {"path": mix_path})
-    await rec.run(GEMINI_SERVER, "find-sibilance", {"path": mix_path})
-    await rec.run(GEMINI_SERVER, "analyze-phase-mono", {"path": mix_path})
+    await rec.run(GEMINI_SERVER, GeminiTool.FIND_RESONANCES, {"path": mix_path})
+    await rec.run(GEMINI_SERVER, GeminiTool.FIND_SIBILANCE, {"path": mix_path})
+    await rec.run(GEMINI_SERVER, GeminiTool.ANALYZE_PHASE_MONO, {"path": mix_path})
 
-    # Corrective chain — each step reads the running ``cur`` (the prior step's
-    # output) and writes a fresh suffixed file, so order matches the doc recipe.
-    cur = mix_path
-    if eq_bands is not None:
-        out = eq_out_path or _suffix_path(mix_path, "eq")
-        await rec.run(
-            LOOPS_SERVER, "apply-eq", {"path": cur, "out_path": out, "bands": eq_bands}
-        )
-        cur = out
-    if deess is not None:
-        out = _suffix_path(mix_path, "deess")
-        await rec.run(LOOPS_SERVER, "de-ess", {**deess, "path": cur, "out_path": out})
-        cur = out
-    if suppress is not None:
-        out = _suffix_path(mix_path, "deharsh")
-        await rec.run(
-            LOOPS_SERVER, "suppress-resonances", {**suppress, "path": cur, "out_path": out}
-        )
-        cur = out
-    if dynamic_eq_bands is not None:
-        out = _suffix_path(mix_path, "dyneq")
-        await rec.run(
-            LOOPS_SERVER,
-            "apply-dynamic-eq",
-            {"path": cur, "out_path": out, "bands": dynamic_eq_bands},
-        )
-        cur = out
-    if excite is not None:
-        out = _suffix_path(mix_path, "excite")
-        await rec.run(LOOPS_SERVER, "excite-loop", {**excite, "path": cur, "out_path": out})
-        cur = out
-    if compress:
-        out = compress_out_path or _suffix_path(mix_path, "comp")
-        await rec.run(LOOPS_SERVER, "compress-loop", {"path": cur, "out_path": out})
-        cur = out
-    if multiband is not None:
-        out = _suffix_path(mix_path, "mbcomp")
-        await rec.run(
-            LOOPS_SERVER, "multiband-compress", {**multiband, "path": cur, "out_path": out}
-        )
-        cur = out
+    # Corrective chain — the shared opt-in chain (apply-eq -> de-ess ->
+    # suppress-resonances -> apply-dynamic-eq -> excite-loop -> compress-loop ->
+    # multiband-compress). mix-check includes excite-loop but NOT shape-bands.
+    spec: dict[str, Any] = {
+        "eq_bands": eq_bands,
+        "deess": deess,
+        "suppress": suppress,
+        "dynamic_eq_bands": dynamic_eq_bands,
+        "excite": excite,
+        "compress": compress,
+        "multiband": multiband,
+    }
+    cur = await _run_corrective_chain(
+        rec,
+        mix_path,
+        spec,
+        include_excite=True,
+        include_shape=False,
+        eq_out_path=eq_out_path,
+        compress_out_path=compress_out_path,
+    )
 
     return {
         "pipeline": "mix-check",
@@ -467,24 +618,24 @@ async def reference_match(
 
     await rec.run(
         GEMINI_SERVER,
-        "match-reference-numeric",
+        GeminiTool.MATCH_REFERENCE_NUMERIC,
         {"mix_path": mix_path, "reference_path": ref_path},
     )
     await rec.run(
         GEMINI_SERVER,
-        "compare-to-reference",
+        GeminiTool.COMPARE_TO_REFERENCE,
         {"mix_path": mix_path, "reference_path": ref_path, "goal": goal},
     )
     await rec.run(
         LOOPS_SERVER,
-        "compare-tonality",
+        LoopsTool.COMPARE_TONALITY,
         {"loop_path": mix_path, "reference_path": ref_path},
     )
 
     corrected = match_out_path or _suffix_path(mix_path, "matched")
     await rec.run(
         LOOPS_SERVER,
-        "match-eq",
+        LoopsTool.MATCH_EQ,
         {
             "source_path": mix_path,
             "reference_path": ref_path,
@@ -498,14 +649,14 @@ async def reference_match(
         residual = eq_out_path or _suffix_path(mix_path, "matched-eq")
         await rec.run(
             LOOPS_SERVER,
-            "apply-eq",
+            LoopsTool.APPLY_EQ,
             {"path": corrected, "out_path": residual, "bands": eq_bands},
         )
         corrected = residual
 
     await rec.run(
         LOOPS_SERVER,
-        "render-ab",
+        LoopsTool.RENDER_AB,
         {
             "processed": corrected,
             "reference": ref_path,
@@ -548,12 +699,12 @@ async def house_curve(
     profile = profile_json or _profile_json_path(mix_path)
     await rec.run(
         LOOPS_SERVER,
-        "build-target-profile",
+        LoopsTool.BUILD_TARGET_PROFILE,
         {"paths": list(reference_paths), "out_json": profile},
     )
     match = await rec.run(
         LOOPS_SERVER,
-        "match-to-profile",
+        LoopsTool.MATCH_TO_PROFILE,
         {"path": mix_path, "profile_json": profile},
     )
 
@@ -563,7 +714,7 @@ async def house_curve(
         output = out_path or _suffix_path(mix_path, "house-matched")
         await rec.run(
             LOOPS_SERVER,
-            "match-eq",
+            LoopsTool.MATCH_EQ,
             {
                 "source_path": mix_path,
                 "delta_db_curve": curve,
@@ -589,56 +740,17 @@ async def _apply_stem_corrections(
     """Apply one stem's opt-in corrective chain, returning the final output path.
 
     Order: apply-eq -> de-ess -> suppress-resonances -> apply-dynamic-eq ->
-    compress-loop -> multiband-compress -> shape-bands. Each step reads the prior
-    step's output; ``path``/``out_path`` are injected last so a spec dict can't
-    hijack the chain. ``deess`` / ``suppress`` / ``multiband`` / ``shape_bands``
-    are tuning-kwarg dicts, ``eq_bands`` / ``dynamic_eq_bands`` carry EQ moves,
-    and ``compress`` is a bool.
+    compress-loop -> multiband-compress -> shape-bands. The stem chain includes
+    shape-bands but NOT excite-loop — the only difference from the mix-check
+    chain; both run through the shared :func:`_run_corrective_chain`. Each step
+    reads the prior step's output; ``path``/``out_path`` are injected last so a
+    spec dict can't hijack the chain. ``deess`` / ``suppress`` / ``multiband`` /
+    ``shape_bands`` are tuning-kwarg dicts, ``eq_bands`` / ``dynamic_eq_bands``
+    carry EQ moves, and ``compress`` is a bool.
     """
-    cur = path
-    eq_bands = spec.get("eq_bands")
-    if eq_bands is not None:
-        out = _suffix_path(path, "eq")
-        await rec.run(
-            LOOPS_SERVER, "apply-eq", {"path": cur, "out_path": out, "bands": eq_bands}
-        )
-        cur = out
-    deess = spec.get("deess")
-    if deess is not None:
-        out = _suffix_path(path, "deess")
-        await rec.run(LOOPS_SERVER, "de-ess", {**deess, "path": cur, "out_path": out})
-        cur = out
-    suppress = spec.get("suppress")
-    if suppress is not None:
-        out = _suffix_path(path, "deharsh")
-        await rec.run(
-            LOOPS_SERVER, "suppress-resonances", {**suppress, "path": cur, "out_path": out}
-        )
-        cur = out
-    dyn = spec.get("dynamic_eq_bands")
-    if dyn is not None:
-        out = _suffix_path(path, "dyneq")
-        await rec.run(
-            LOOPS_SERVER, "apply-dynamic-eq", {"path": cur, "out_path": out, "bands": dyn}
-        )
-        cur = out
-    if spec.get("compress"):
-        out = _suffix_path(path, "comp")
-        await rec.run(LOOPS_SERVER, "compress-loop", {"path": cur, "out_path": out})
-        cur = out
-    multiband = spec.get("multiband")
-    if multiband is not None:
-        out = _suffix_path(path, "mbcomp")
-        await rec.run(
-            LOOPS_SERVER, "multiband-compress", {**multiband, "path": cur, "out_path": out}
-        )
-        cur = out
-    shape = spec.get("shape_bands")
-    if shape is not None:
-        out = _suffix_path(path, "shaped")
-        await rec.run(LOOPS_SERVER, "shape-bands", {**shape, "path": cur, "out_path": out})
-        cur = out
-    return cur
+    return await _run_corrective_chain(
+        rec, path, spec, include_excite=False, include_shape=True
+    )
 
 
 async def stem_master(
@@ -672,16 +784,16 @@ async def stem_master(
     corrections = corrections or {}
 
     for path in stems.values():
-        await rec.run(LOOPS_SERVER, "measure-loudness", {"path": path})
-        await rec.run(LOOPS_SERVER, "measure-spectrum", {"path": path})
+        await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_LOUDNESS, {"path": path})
+        await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_SPECTRUM, {"path": path})
 
     await rec.run(
         GEMINI_SERVER,
-        "analyze-stem-masking",
+        GeminiTool.ANALYZE_STEM_MASKING,
         {"stems": dict(stems), "max_conflicts": max_conflicts},
     )
     if cross_check:
-        await rec.run(LOOPS_SERVER, "detect-masking", {"paths": list(stems.values())})
+        await rec.run(LOOPS_SERVER, LoopsTool.DETECT_MASKING, {"paths": list(stems.values())})
 
     corrected: dict[str, str] = dict(stems)
     for name, path in stems.items():
@@ -691,7 +803,7 @@ async def stem_master(
 
     await rec.run(
         GEMINI_SERVER,
-        "analyze-stem-masking",
+        GeminiTool.ANALYZE_STEM_MASKING,
         {"stems": corrected, "max_conflicts": max_conflicts},
     )
 
@@ -729,11 +841,11 @@ async def unmask_stems(
 
     await rec.run(
         GEMINI_SERVER,
-        "analyze-stem-masking",
+        GeminiTool.ANALYZE_STEM_MASKING,
         {"stems": dict(stems), "max_conflicts": max_conflicts},
     )
     if cross_check:
-        await rec.run(LOOPS_SERVER, "detect-masking", {"paths": list(stems.values())})
+        await rec.run(LOOPS_SERVER, LoopsTool.DETECT_MASKING, {"paths": list(stems.values())})
 
     corrected: dict[str, str] = dict(stems)
     for name, path in stems.items():
@@ -743,7 +855,7 @@ async def unmask_stems(
 
     await rec.run(
         GEMINI_SERVER,
-        "analyze-stem-masking",
+        GeminiTool.ANALYZE_STEM_MASKING,
         {"stems": corrected, "max_conflicts": max_conflicts},
     )
 
@@ -781,13 +893,17 @@ async def loops_to_deliverables(
     -> export-deliverables. Optional describe-loops (gemini-backed via the loops
     server) annotates the whole set once at the end. If the manifest can't be
     parsed (e.g. a shape change) or is empty, the chain falls back to running
-    once on ``input_path``.
+    once on ``input_path`` and the returned dict reports ``fell_back=True``.
 
     ``top_n`` is forwarded to find-loops, where the server applies it PER bar
     length (so a 3-bar-length request can return up to 3*top_n diverse loops);
     the pipeline then processes exactly that set. ``max_total_loops`` is a
     SEPARATE optional cap on the *total* number of loops the per-loop chain
     runs over — only sliced when set, so the two never share a meaning.
+
+    The result carries ``fell_back`` (bool — the input itself was processed
+    because no loops were parseable/found) and ``loop_count`` (the number of
+    loops actually processed).
     """
     rec = _Recorder(hub)
 
@@ -798,20 +914,23 @@ async def loops_to_deliverables(
         find_args["top_n"] = top_n
     if out_dir is not None:
         find_args["out_dir"] = out_dir
-    manifest = await rec.run(LOOPS_SERVER, "find-loops", find_args)
+    manifest = await rec.run(LOOPS_SERVER, LoopsTool.FIND_LOOPS, find_args)
 
     # find-loops already applied top_n (per bar length); don't re-cap by it here
     # — that would silently discard the diverse loops selected across other bar
     # lengths. Slice only by the explicit, separate max_total_loops when set.
-    loop_paths = _loop_paths(manifest)
+    parsed = _loop_paths(manifest)  # None = unparseable, [] = parseable-but-empty
+    loop_paths = parsed if parsed is not None else []
     if max_total_loops is not None:
         loop_paths = loop_paths[:max_total_loops]
+    # Surface the fallback so a 1-loop run on the SOURCE isn't mistaken for a real
+    # 1-loop find. ``loops_found`` = loops parsed from the manifest (0 on fallback,
+    # captured before the mutation below); ``fell_back`` (with the
+    # ``fell_back_to_input`` alias) flags both the unparseable-shape and empty cases.
     loops_found = len(loop_paths)
-    # When the manifest parsed empty (a shape change, or genuinely no loops), the
-    # chain degrades to running once on the source — surface that so a 1-loop
-    # fallback isn't mistaken for a real 1-loop find.
-    fell_back_to_input = not loop_paths
-    if fell_back_to_input:
+    fell_back = parsed is None or not loop_paths
+    fell_back_to_input = fell_back
+    if fell_back:
         loop_paths = [input_path]
     manifest_out = manifest.get("out_dir") if isinstance(manifest, dict) else None
 
@@ -823,14 +942,14 @@ async def loops_to_deliverables(
         tagged = _suffix_path(loop_in, "tagged")
 
         await rec.run(
-            LOOPS_SERVER, "clean-loop", {"path": loop_in, "out_path": cleaned}
+            LOOPS_SERVER, LoopsTool.CLEAN_LOOP, {"path": loop_in, "out_path": cleaned}
         )
         await rec.run(
-            LOOPS_SERVER, "optimize-seam", {"path": cleaned, "out_path": seamed}
+            LOOPS_SERVER, LoopsTool.OPTIMIZE_SEAM, {"path": cleaned, "out_path": seamed}
         )
         await rec.run(
             LOOPS_SERVER,
-            "render-mastered",
+            LoopsTool.RENDER_MASTERED,
             {
                 "path": seamed,
                 "out_path": mastered,
@@ -851,11 +970,11 @@ async def loops_to_deliverables(
             tag_args["key"] = key
         if root_note is not None:
             tag_args["root_note"] = root_note
-        await rec.run(LOOPS_SERVER, "tag-deliverable", tag_args)
+        await rec.run(LOOPS_SERVER, LoopsTool.TAG_DELIVERABLE, tag_args)
 
         await rec.run(
             LOOPS_SERVER,
-            "export-deliverables",
+            LoopsTool.EXPORT_DELIVERABLES,
             {
                 "path": tagged,
                 "out_dir": deliverables_dir or _deliverables_dir(loop_in),
@@ -867,7 +986,7 @@ async def loops_to_deliverables(
 
     if describe:
         describe_target = out_dir or manifest_out or _parent_dir(loop_paths[0])
-        await rec.run(LOOPS_SERVER, "describe-loops", {"out_dir": describe_target})
+        await rec.run(LOOPS_SERVER, LoopsTool.DESCRIBE_LOOPS, {"out_dir": describe_target})
 
     return {
         "pipeline": "loops-to-deliverables",
@@ -876,6 +995,8 @@ async def loops_to_deliverables(
         "loops_found": loops_found,  # loops parsed from the manifest (0 on fallback)
         "fell_back_to_input": fell_back_to_input,  # True == processed the source, not loops
         "loops": deliverables,
+        "fell_back": fell_back,
+        "loop_count": len(loop_paths),
         "steps": rec.steps,
     }
 
@@ -908,26 +1029,26 @@ async def understand_audio(
     if transcribe:
         await rec.run(
             GEMINI_SERVER,
-            "transcribe-audio",
+            GeminiTool.TRANSCRIBE_AUDIO,
             {"path": path, "diarize": diarize},
         )
     if region is not None:
         start_s, end_s, prompt = region
         await rec.run(
             GEMINI_SERVER,
-            "describe-audio-region",
+            GeminiTool.DESCRIBE_AUDIO_REGION,
             {"path": path, "start_s": start_s, "end_s": end_s, "prompt": prompt},
         )
     if event_description is not None:
         await rec.run(
             GEMINI_SERVER,
-            "extract-audio-events",
+            GeminiTool.EXTRACT_AUDIO_EVENTS,
             {"path": path, "event_description": event_description},
         )
     if labels is not None:
         await rec.run(
             GEMINI_SERVER,
-            "classify-audio",
+            GeminiTool.CLASSIFY_AUDIO,
             {"path": path, "labels": labels, "multi_label": multi_label},
         )
     if compare_paths is not None:
@@ -936,11 +1057,11 @@ async def understand_audio(
             compare_args["prompt"] = compare_prompt
         if compare_schema is not None:
             compare_args["schema"] = compare_schema
-        await rec.run(GEMINI_SERVER, "compare-audio-files", compare_args)
+        await rec.run(GEMINI_SERVER, GeminiTool.COMPARE_AUDIO_FILES, compare_args)
     if json_schema is not None:
         await rec.run(
             GEMINI_SERVER,
-            "audio-to-json",
+            GeminiTool.AUDIO_TO_JSON,
             {
                 "path": path,
                 "prompt": json_prompt or "Extract structured data from this audio.",
@@ -999,23 +1120,29 @@ def _parent_dir(path: str) -> str:
     return str(PurePosixPath(path).parent)
 
 
-def _loop_paths(manifest: Any) -> list[str]:
+def _loop_paths(manifest: Any) -> list[str] | None:
     """All loop WAV paths from a find-loops result, best-effort.
 
     The real ``find-loops`` returns ``FindLoopsResponse`` →
     ``{"out_dir": str, "manifest": {"loops": [{"wav": <name relative to out_dir>,
     ...}], ...}}`` — the loop list is nested under ``manifest`` and each ``wav``
     is a *basename* that must be joined to ``out_dir``. A couple of alternate
-    shapes are probed too so a manifest change degrades gracefully (callers fall
-    back to ``input_path`` when this returns ``[]``); it never raises.
+    shapes are probed too so a manifest change degrades gracefully; it never
+    raises.
+
+    Returns ``None`` when the manifest shape is UNPARSEABLE (not a dict, or no
+    recognizable loops container) — the caller can't tell whether loops exist and
+    falls back. Returns ``[]`` when the manifest parses cleanly but finds zero
+    loops (a genuinely empty result). The caller treats both as "fall back to the
+    input", but the distinction lets observability/tests tell them apart.
     """
     if not isinstance(manifest, dict):
-        return []
+        return None
     out_dir = manifest.get("out_dir")
     inner = manifest.get("manifest")
     loops = inner.get("loops") if isinstance(inner, dict) else manifest.get("loops")
     if not isinstance(loops, list):
-        return []
+        return None
     paths: list[str] = []
     for loop in loops:
         if not isinstance(loop, dict):

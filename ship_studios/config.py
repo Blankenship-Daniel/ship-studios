@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 import warnings
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -51,6 +52,77 @@ GEMINI_DIR_NAME = "stemmy-gemini-mcp"
 #: doesn't hold.
 LOOPS_DIR_ENV = "SHIP_STUDIOS_LOOPS_DIR"
 GEMINI_DIR_ENV = "SHIP_STUDIOS_GEMINI_DIR"
+
+# --- Tool-name registry -----------------------------------------------------
+#
+# The verified tool names each sibling server exposes, as ``StrEnum``s the
+# pipelines reference by member instead of bare string literals (so a typo'd or
+# renamed tool fails at import/type-check, not silently over the wire). These
+# MIRROR the sibling servers' tool surface — the DSP-free hub cannot import the
+# real MCP schema, so the source of truth stays CLAUDE.md's "Combined tool
+# surface" + the live ``list_tools`` (see the live-contract test). Members cover
+# exactly the tools driven by ``ship_studios/pipelines.py``.
+#
+# Member rule: NAME = the tool name uppercased with every ``-`` -> ``_``;
+# value = the exact tool-name string. Because ``StrEnum`` IS a ``str`` subclass,
+# ``LoopsTool.MEASURE_LOUDNESS == "measure-loudness"`` and it serializes over MCP
+# as that string, so ``call_tool(server, tool: str, ...)`` and string-based test
+# assertions keep working unchanged.
+
+
+class LoopsTool(StrEnum):
+    """Verified ``stemmy-loops`` (``[L]``) tool names used by the pipelines."""
+
+    ANALYZE_ALBUM_NORMALIZATION = "analyze-album-normalization"
+    APPLY_DYNAMIC_EQ = "apply-dynamic-eq"
+    APPLY_EQ = "apply-eq"
+    BUILD_TARGET_PROFILE = "build-target-profile"
+    CHECK_CLIPPING = "check-clipping"
+    CLEAN_LOOP = "clean-loop"
+    COMPARE_TONALITY = "compare-tonality"
+    COMPRESS_LOOP = "compress-loop"
+    DE_ESS = "de-ess"
+    DESCRIBE_LOOPS = "describe-loops"
+    DETECT_MASKING = "detect-masking"
+    EXCITE_LOOP = "excite-loop"
+    EXPORT_DELIVERABLES = "export-deliverables"
+    FIND_LOOPS = "find-loops"
+    MATCH_EQ = "match-eq"
+    MATCH_TO_PROFILE = "match-to-profile"
+    MEASURE_DISTORTION = "measure-distortion"
+    MEASURE_LOUDNESS = "measure-loudness"
+    MEASURE_SPECTRUM = "measure-spectrum"
+    MEASURE_STEREO = "measure-stereo"
+    MULTIBAND_COMPRESS = "multiband-compress"
+    OPTIMIZE_SEAM = "optimize-seam"
+    RENDER_AB = "render-ab"
+    RENDER_MASTERED = "render-mastered"
+    SHAPE_BANDS = "shape-bands"
+    SUPPRESS_RESONANCES = "suppress-resonances"
+    TAG_DELIVERABLE = "tag-deliverable"
+
+
+class GeminiTool(StrEnum):
+    """Verified ``stemmy-gemini`` (``[G]``) tool names used by the pipelines."""
+
+    ANALYZE_MIX_BALANCE = "analyze-mix-balance"
+    ANALYZE_PHASE_MONO = "analyze-phase-mono"
+    ANALYZE_STEM_MASKING = "analyze-stem-masking"
+    AUDIO_TO_JSON = "audio-to-json"
+    CHECK_STREAMING_TARGETS = "check-streaming-targets"
+    CLASSIFY_AUDIO = "classify-audio"
+    COMPARE_AUDIO_FILES = "compare-audio-files"
+    COMPARE_TO_REFERENCE = "compare-to-reference"
+    DESCRIBE_AUDIO_REGION = "describe-audio-region"
+    DETECT_MIX_ISSUES = "detect-mix-issues"
+    EXTRACT_AUDIO_EVENTS = "extract-audio-events"
+    FIND_RESONANCES = "find-resonances"
+    FIND_SIBILANCE = "find-sibilance"
+    MASTER_ASSISTANT = "master-assistant"
+    MASTERING_FEEDBACK = "mastering-feedback"
+    MATCH_REFERENCE_NUMERIC = "match-reference-numeric"
+    TRANSCRIBE_AUDIO = "transcribe-audio"
+
 
 # --- Secrets / passthrough env ---------------------------------------------
 
@@ -176,6 +248,14 @@ def _resolve_main_root(root: Path) -> Path:
     — is the parent of the shared ``.git`` dir, found via the worktree's
     ``commondir``. A normal checkout (or any IO/parse problem) returns ``root``
     unchanged, so resolution degrades safely.
+
+    SECURITY: the resolved root drives ``uv --directory <root>/../stemmy-*-mcp run``,
+    so a tampered ``commondir`` could otherwise redirect a launch to an
+    attacker-controlled tree. Two checks gate trusting the result: the candidate
+    must be a directory literally named ``.git``, AND the round-trip must close —
+    its own ``worktrees/<name>`` entry (``<name> = gitdir.name``) must resolve back
+    to ``gitdir``. A decoy tree that merely contains a ``.git/`` dir but does not
+    register THIS worktree fails the round-trip, so resolution degrades to ``root``.
     """
     git = root / ".git"
     try:
@@ -208,8 +288,14 @@ def _resolve_main_root(root: Path) -> Path:
         # ``root`` on anything that isn't the canonical ``.git`` directory.
         if not (cg.is_dir() and cg.name == ".git"):
             return root
-        # NB: this rejects a non-".git" redirect but TRUSTS any dir literally named
-        # ".git" — a name check, not a containment/sandbox check.
+        # Round-trip containment check (the bare name check above is necessary but
+        # not sufficient): the canonical .git must actually register THIS worktree —
+        # its ``worktrees/<name>`` entry must resolve back to ``gitdir``. A decoy
+        # tree that merely contains a ``.git/`` dir (passing the name check) but
+        # does not register this worktree fails here, so we degrade to ``root``
+        # rather than launch a ``uv run`` from the decoy.
+        if (cg / "worktrees" / gitdir.name).resolve() != gitdir.resolve():
+            return root
         return cg.parent  # parent of the canonical .git dir
     except OSError:
         return root

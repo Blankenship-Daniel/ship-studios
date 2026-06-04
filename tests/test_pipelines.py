@@ -307,6 +307,115 @@ async def test_batch_master_requires_paths(recording_hub) -> None:
         await pipelines.batch_master(recording_hub, [])
 
 
+class _FailOnPathHub:
+    """A RecordingHub-shaped hub that raises for any call whose ``path`` arg
+    matches ``fail_path`` — so one track's master chain blows up mid-pipeline."""
+
+    def __init__(self, fail_path: str, canned: dict[str, object] | None = None) -> None:
+        self.calls: list = []
+        self._fail = fail_path
+        self._canned = canned or {}
+
+    async def call_tool(self, server_key, name, args=None):
+        from ship_studios.mcp_client import ToolCallError
+        from tests.conftest import RecordedCall
+
+        recorded = dict(args or {})
+        self.calls.append(RecordedCall(server_key, name, recorded))
+        if recorded.get("path") == self._fail:
+            raise ToolCallError(server_key, name, "boom")
+        return self._canned.get(name, {})
+
+    @property
+    def tool_sequence(self):
+        return [c.tool for c in self.calls]
+
+
+async def test_batch_master_isolates_a_failing_track() -> None:
+    # One track's master chain raises; with continue_on_error (default) the batch
+    # keeps going, records the failure, and the album pass runs over the survivor.
+    hub = _FailOnPathHub(
+        "projects/ep/mix/b.wav",
+        canned={
+            "check-streaming-targets": {
+                "platforms": [{"name": "spotify", "fully_compliant": True}]
+            }
+        },
+    )
+    result = await pipelines.batch_master(
+        hub, ["projects/ep/mix/a.wav", "projects/ep/mix/b.wav"]
+    )
+    # only the surviving master is in masters/ and the album pass.
+    assert result["masters"] == ["projects/ep/masters/a.master.wav"]
+    # the failed track is recorded with its error + None verdict (not in masters).
+    by_input = {t["input"]: t for t in result["tracks"]}
+    assert "error" in by_input["projects/ep/mix/b.wav"]
+    assert by_input["projects/ep/mix/b.wav"]["streaming_compliant"] is None
+    assert by_input["projects/ep/mix/b.wav"]["master"] == "projects/ep/masters/b.master.wav"
+    assert "error" not in by_input["projects/ep/mix/a.wav"]
+    # album summary tallies the outcome.
+    assert result["album"] == {
+        "ok": 1,
+        "failed": 1,
+        "compliant": 1,
+        "noncompliant": 0,
+        "unknown": 1,
+    }
+    # the album pass ran over the ONE survivor, not the failed track.
+    assert result["album"]["ok"] == 1
+    assert hub.tool_sequence.count("analyze-album-normalization") == 1
+    last = [c for c in hub.calls if c.tool == "analyze-album-normalization"][-1]
+    assert last.args["paths"] == ["projects/ep/masters/a.master.wav"]
+
+
+async def test_batch_master_continue_on_error_false_reraises() -> None:
+    from ship_studios.mcp_client import ToolCallError
+
+    hub = _FailOnPathHub("b.wav")
+    with pytest.raises(ToolCallError):
+        await pipelines.batch_master(
+            hub, ["a.wav", "b.wav"], continue_on_error=False
+        )
+
+
+async def test_batch_master_all_tracks_fail_skips_album_pass() -> None:
+    # When every track fails, the album pass is skipped cleanly (no masters to
+    # measure) and the summary reports zero ok.
+    hub = _FailOnPathHub("X")  # match nothing on path...
+    # ...but make EVERY first call raise by failing on the shared measure path.
+    hub = _FailOnPathHub("only.wav")
+    result = await pipelines.batch_master(hub, ["only.wav"])
+    assert result["masters"] == []
+    assert "analyze-album-normalization" not in hub.tool_sequence
+    assert result["album"] == {
+        "ok": 0,
+        "failed": 1,
+        "compliant": 0,
+        "noncompliant": 0,
+        "unknown": 1,
+    }
+
+
+async def test_batch_master_album_summary_counts_compliance() -> None:
+    # All-succeed path: the album summary counts the per-track streaming verdicts.
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(
+        canned={
+            "check-streaming-targets": {
+                "platforms": [{"name": "spotify", "fully_compliant": True}]
+            }
+        }
+    )
+    result = await pipelines.batch_master(
+        hub, ["projects/ep/mix/a.wav", "projects/ep/mix/b.wav"]
+    )
+    assert result["album"]["ok"] == 2
+    assert result["album"]["failed"] == 0
+    assert result["album"]["compliant"] == 2
+    assert result["album"]["unknown"] == 0
+
+
 async def test_stem_master_sequence(recording_hub) -> None:
     await pipelines.stem_master(
         recording_hub, {"kick": "kick.wav", "bass": "bass.wav"}
@@ -704,12 +813,18 @@ def test_loop_paths_absolute_name_not_joined() -> None:
     ) == ["/abs/a.wav"]
 
 
-def test_loop_paths_degrades_to_empty_never_raises() -> None:
-    # non-dict input, no loops, and unusable loop entries all yield [] (callers
-    # fall back to input_path); it must never raise.
-    assert pipelines._loop_paths("nope") == []
-    assert pipelines._loop_paths({"out_dir": "o"}) == []
+def test_loop_paths_degrades_never_raises() -> None:
+    # The None-vs-[] contract (B2): an UNPARSEABLE shape (not a dict, or no
+    # recognizable loops container) yields None; a parseable manifest whose loop
+    # list has no usable entries yields []. Both make the caller fall back to the
+    # input, but the distinction is observable. Never raises.
+    assert pipelines._loop_paths("nope") is None  # not a dict
+    assert pipelines._loop_paths({"out_dir": "o"}) is None  # no loops container
+    # 'loops' IS a list but every entry is unusable -> parseable-but-empty.
     assert pipelines._loop_paths({"loops": [{"nope": 1}, "notadict"]}) == []
+    # a parseable manifest with an explicitly empty loop list -> [].
+    assert pipelines._loop_paths({"out_dir": "o", "loops": []}) == []
+    assert pipelines._loop_paths({"manifest": {"loops": []}}) == []
 
 
 async def test_loops_to_deliverables_processes_every_loop() -> None:
@@ -736,9 +851,34 @@ async def test_loops_to_deliverables_falls_back_when_manifest_unparseable() -> N
     from tests.conftest import RecordingHub
 
     hub = RecordingHub(canned={"find-loops": {"unexpected": "shape"}})
-    await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
+    result = await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
     # unknown manifest shape -> chain still runs once, on the input itself.
     assert hub.args_for("clean-loop")["path"] == "drums.wav"
+    # ...and the fallback is OBSERVABLE in the result (B2).
+    assert result["fell_back"] is True
+    assert result["loop_count"] == 1
+
+
+async def test_loops_to_deliverables_falls_back_when_manifest_empty() -> None:
+    # A manifest that PARSES cleanly but lists zero loops also falls back to the
+    # input — fell_back is True either way.
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned={"find-loops": {"out_dir": "out", "manifest": {"loops": []}}})
+    result = await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
+    assert hub.args_for("clean-loop")["path"] == "drums.wav"
+    assert result["fell_back"] is True
+    assert result["loop_count"] == 1
+
+
+async def test_loops_to_deliverables_reports_no_fallback_on_real_loops() -> None:
+    # The happy path: real loops parsed -> fell_back False, loop_count == #loops.
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned=_find_loops_canned("out", "a.wav", "b.wav"))
+    result = await pipelines.loops_to_deliverables(hub, "drums.wav", 120.0)
+    assert result["fell_back"] is False
+    assert result["loop_count"] == 2
 
 
 async def test_loops_to_deliverables_find_loops_args(recording_hub) -> None:

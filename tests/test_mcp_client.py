@@ -181,3 +181,133 @@ async def test_call_tool_no_timeout_when_disabled(fake_hub, monkeypatch) -> None
     async with hub:
         result = await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "x"})
     assert result == {"lufs_i": -14.0}
+
+
+# --- B4: timeout / poison / teardown edge paths (offline) -------------------
+
+
+async def test_hub_not_poisoned_after_tool_call_error(fake_hub, monkeypatch) -> None:
+    """A ToolCallError on one call must not poison the session: a later call on
+    the SAME open hub still succeeds (the call-timeout/error path abandons the
+    one result, it does not tear the session down)."""
+    from tests.conftest import _FakeToolResult
+
+    hub = fake_hub(canned={"measure-loudness": {"lufs_i": -9.0}})
+    async with hub:
+        sess = hub.session(LOOPS_SERVER)
+        good = sess.call_tool  # the recording FakeSession.call_tool
+
+        async def boom(name, arguments=None):
+            return _FakeToolResult(text="bad path", is_error=True)
+
+        # First call raises (server-flagged error result)...
+        monkeypatch.setattr(sess, "call_tool", boom, raising=True)
+        with pytest.raises(ToolCallError):
+            await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "no"})
+
+        # ...and the very same hub/session still serves the next call.
+        monkeypatch.setattr(sess, "call_tool", good, raising=True)
+        result = await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "ok"})
+    assert result == {"lufs_i": -9.0}
+
+
+async def test_open_session_handshake_timeout_relabelled_with_key(monkeypatch) -> None:
+    """When ``initialize()`` exceeds ``startup_timeout``, ``_open_session`` raises
+    a relabelled ``TimeoutError`` that names the offending server key (so an
+    operator debugging a hung handshake sees WHICH sibling stalled)."""
+    import asyncio
+    import contextlib
+
+    import mcp
+    import mcp.client.stdio as mcp_stdio
+
+    from ship_studios import config, mcp_client
+
+    # Drive the REAL _open_session, but stub everything it would touch on disk /
+    # over a subprocess so the test stays offline and deterministic.
+    monkeypatch.setattr(config, "startup_timeout_s", lambda: 0.01)
+    monkeypatch.setattr(config, "checked_server_dir", lambda key: None, raising=True)
+    monkeypatch.setattr(config, "server_parameters", lambda key: None, raising=True)
+
+    @contextlib.asynccontextmanager
+    async def fake_stdio_client(params):
+        yield (None, None)  # (read, write) — never used by the fake session
+
+    class _SlowInitSession:
+        def __init__(self, read, write):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def initialize(self):
+            await asyncio.sleep(1.0)  # well past the 0.01s startup timeout
+
+    monkeypatch.setattr(mcp_stdio, "stdio_client", fake_stdio_client, raising=True)
+    monkeypatch.setattr(mcp, "ClientSession", _SlowInitSession, raising=True)
+
+    hub = mcp_client.Hub([LOOPS_SERVER])
+    with pytest.raises(TimeoutError) as exc:
+        async with hub:
+            pass
+    msg = str(exc.value)
+    assert repr(LOOPS_SERVER) in msg  # the server key is named in the message
+    assert "handshake" in msg
+    assert hub._stack is None  # partial-open rolled back, stack released
+
+
+async def test_mid_call_raise_still_tears_down_stack(monkeypatch) -> None:
+    """A session whose ``call_tool`` raises mid-call must still leave the Hub's
+    AsyncExitStack closed on exit (no leaked transport/subprocess)."""
+    import contextlib
+
+    import mcp
+    import mcp.client.stdio as mcp_stdio
+
+    from ship_studios import config, mcp_client
+
+    monkeypatch.setattr(config, "startup_timeout_s", lambda: None)
+    monkeypatch.setattr(config, "call_timeout_s", lambda: None)
+    monkeypatch.setattr(config, "checked_server_dir", lambda key: None, raising=True)
+    monkeypatch.setattr(config, "server_parameters", lambda key: None, raising=True)
+
+    closed: list[str] = []
+
+    @contextlib.asynccontextmanager
+    async def fake_stdio_client(params):
+        try:
+            yield (None, None)
+        finally:
+            closed.append("stdio")
+
+    class _RaisingSession:
+        def __init__(self, read, write):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            closed.append("session")
+            return False
+
+        async def initialize(self):
+            return None
+
+        async def call_tool(self, name, arguments=None):
+            raise RuntimeError("transport blew up mid-call")
+
+    monkeypatch.setattr(mcp_stdio, "stdio_client", fake_stdio_client, raising=True)
+    monkeypatch.setattr(mcp, "ClientSession", _RaisingSession, raising=True)
+
+    hub = mcp_client.Hub([LOOPS_SERVER])
+    async with hub:
+        with pytest.raises(RuntimeError, match="blew up mid-call"):
+            await hub.call_tool(LOOPS_SERVER, "measure-loudness", {"path": "x"})
+    # Leaving the `async with` must close the stack: both the session and the
+    # stdio transport contexts were exited (reverse order, on the way out).
+    assert hub._stack is None
+    assert "session" in closed and "stdio" in closed

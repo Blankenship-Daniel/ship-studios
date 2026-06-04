@@ -35,6 +35,9 @@ LOOPS_SERVER = "stemmy-loops"
 #: Key used everywhere to address the Gemini audio server.
 GEMINI_SERVER = "stemmy-gemini"
 
+#: The valid server keys the Hub can open, in stable order.
+SERVER_KEYS: tuple[str, ...] = (LOOPS_SERVER, GEMINI_SERVER)
+
 #: Console scripts each sibling repo declares in its own pyproject [project.scripts].
 LOOPS_CONSOLE_SCRIPT = "stemmy-loops-mcp"
 GEMINI_CONSOLE_SCRIPT = "stemmy-gemini-mcp"

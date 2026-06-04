@@ -45,11 +45,16 @@ class Hub:
     """
 
     def __init__(self, server_keys: list[str] | None = None) -> None:
-        self.server_keys: list[str] = list(
-            server_keys
-            if server_keys is not None
-            else (config.LOOPS_SERVER, config.GEMINI_SERVER)
-        )
+        keys = list(server_keys if server_keys is not None else config.SERVER_KEYS)
+        # Validate at construction so a typo'd key fails here with a clear message
+        # rather than deep in __aenter__/_open_session as a bare KeyError.
+        unknown = [k for k in keys if k not in config.SERVER_KEYS]
+        if unknown:
+            raise ValueError(
+                f"unknown server key(s): {unknown}; "
+                f"valid keys are {list(config.SERVER_KEYS)}"
+            )
+        self.server_keys: list[str] = keys
         self._sessions: dict[str, ClientSession] = {}
         self._stack: contextlib.AsyncExitStack | None = None
 

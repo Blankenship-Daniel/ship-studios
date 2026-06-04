@@ -8,7 +8,7 @@ sf = pytest.importorskip("soundfile")
 pytest.importorskip("pyloudnorm")
 
 from drum_prep.kit import resolve_kit  # noqa: E402
-from drum_prep.mix import _balance_channels, mix_kit  # noqa: E402
+from drum_prep.mix import FEELS, _balance_channels, mix_kit  # noqa: E402
 from drum_prep.roles import Role  # noqa: E402
 
 SR = 48000
@@ -94,6 +94,73 @@ def test_plate_return_folded_in(tmp_path) -> None:
     assert res["plate"]["role"] == "fx (return)"
     assert res["plate"]["offset_db"] == -19.0
     assert "flipped" in res["plate"]["place"]
+
+
+def _kit_with_fx(tmp_path, fx_name="snare reverb.wav", n_mic=SR * 8, n_fx=None):
+    """A standard kit PLUS an fx-role return file sitting in the same dir."""
+    rng = np.random.default_rng(0)
+    n_fx = n_fx or n_mic
+    _w(tmp_path / "overhead.wav",
+       np.column_stack([rng.standard_normal(n_mic), rng.standard_normal(n_mic)]).astype(np.float32) * 0.3)
+    _w(tmp_path / "kick in.wav", (rng.standard_normal(n_mic) * 0.3).astype(np.float32))
+    _w(tmp_path / "snare top.wav", (rng.standard_normal(n_mic) * 0.3).astype(np.float32))
+    _w(tmp_path / fx_name,
+       np.column_stack([rng.standard_normal(n_fx), rng.standard_normal(n_fx)]).astype(np.float32) * 0.2)
+    return resolve_kit(str(tmp_path), strict=False)
+
+
+def test_fx_stem_in_kit_dir_folds_as_return_not_summed_as_mic(tmp_path) -> None:
+    # An fx-role stem ("snare reverb") sitting IN the kit dir must be folded as a
+    # stereo RETURN at the feel's fx offset, exactly once — NOT summed/panned as a
+    # kit mic (the role "fx" must never appear in the balance).
+    kit = _kit_with_fx(tmp_path)
+    assert any(s.role == Role.FX for s in kit.stems)            # detected as fx
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), feel="roomy", dur=0)
+    fx_rows = [r for r in res["balance"] if r["stem"] == "snare reverb.wav"]
+    assert len(fx_rows) == 1                                    # folded exactly once
+    assert fx_rows[0]["role"] == "fx (return)"                 # as a return, not a mic
+    assert fx_rows[0]["offset_db"] == FEELS["roomy"]["fx"]      # at the feel's fx offset
+    assert not any(r["role"] == "fx" for r in res["balance"])  # never the raw mic role
+    assert res["returns"] is not None and len(res["returns"]) == 1
+
+
+def test_plate_pointing_at_kit_fx_stem_dedupes(tmp_path) -> None:
+    # THE regression: an fx stem in the kit dir AND --plate pointing at the SAME
+    # file must fold ONCE (deduped), not double-count the reverb. The explicit
+    # --plate offset wins. Proven numerically against a single-fold reference where
+    # the same return is kept OUT of the kit dir and passed only via --plate.
+    kit = _kit_with_fx(tmp_path)
+    fx = tmp_path / "snare reverb.wav"
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"),
+                  feel="roomy", plate=str(fx), plate_offset=-24.0, dur=0)
+    fx_rows = [r for r in res["balance"] if r["stem"] == "snare reverb.wav"]
+    assert len(fx_rows) == 1                                    # deduped: folded once
+    assert fx_rows[0]["offset_db"] == -24.0                     # explicit --plate wins
+    assert res["plate"] is not None and res["plate"]["offset_db"] == -24.0
+    assert len(res["returns"]) == 1
+
+    # reference bus: the mics alone in a clean dir, the SAME fx file folded once via
+    # --plate. A double-count would make the in-dir bus louder/different.
+    clean = tmp_path / "clean"
+    clean.mkdir()
+    for f in ("overhead.wav", "kick in.wav", "snare top.wav"):
+        (clean / f).write_bytes((tmp_path / f).read_bytes())
+    kit2 = resolve_kit(str(clean), strict=False)
+    res2 = mix_kit(kit2, str(clean), out_dir=str(clean / "mix"),
+                   feel="roomy", plate=str(fx), plate_offset=-24.0, dur=0)
+    y1, _ = sf.read(res["out"], always_2d=True)
+    y2, _ = sf.read(res2["out"], always_2d=True)
+    assert y1.shape == y2.shape
+    assert np.allclose(y1, y2, atol=1e-6)                       # identical → no double-count
+
+
+def test_short_fx_return_does_not_truncate_the_bus(tmp_path) -> None:
+    # A fx return SHORTER than the mics must fold over its own length WITHOUT
+    # truncating the whole bus to the fx length (it is no longer part of the
+    # common-length min() over the mic stems).
+    kit = _kit_with_fx(tmp_path, n_mic=SR * 8, n_fx=SR * 5)
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), feel="roomy", dur=0)
+    assert res["duration_s"] == pytest.approx(8.0, abs=0.01)    # mic length, not 5 s
 
 
 def test_plate_samplerate_mismatch_raises(tmp_path) -> None:

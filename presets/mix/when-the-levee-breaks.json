@@ -1,0 +1,52 @@
+{
+  "name": "when-the-levee-breaks",
+  "description": "FAMOUS DRUM SOUND #7: Led Zeppelin 'When the Levee Breaks' (Bonham / Andy Johns, Headley Grange 1971) — the two-distant-mic stairwell CRUSH. A SECOND Bonham axis, but the OPPOSITE technique to 'fool-in-the-rain': that recipe is the warm room as a LAYER (wide, clean SSL glue, big-but-open); THIS is the two-DISTANT-MIC CRUSH — only the stairwell ambience IS the kit, aggressively compressed so it BREATHES/pumps, DARK and cavernous, NARROWER. Anchored on the Distressor driven hard (the Helios F760 comp/limiter 'breathing' proxy) -> dbx 160 (VCA pump) -> Studer A800 15 IPS (dark fat tape) -> a deterministic numpy Binson-style echo (the cavern) -> dark tilt -> narrow. This is the TONE, not a groove. Dev-validated 2026-06-04 on a 60 s drum bus. Honest era PROXY chain — NOT a claim of the literal Headley Grange path (see notes).",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems — the DISTANT mics (room + overheads) ARE the kit here, so the source wants a room and/or overhead pair (the inverse emphasis of a close-mic'd kit). Close mics support, far down.",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/when-the-levee-breaks-stem-process.plans.json (DARK + heavy: roll the top, control the close mics, let the room/overheads dominate; declick OFF) -> <kit>/processed-levee/.",
+    "3. ROOM/OVERHEAD-FORWARD balance: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS; the distant ambience is the star, like fool-in-the-rain's balance — but the BUS crushes it dark, not warm) -> bus_levee_pre.wav.",
+    "4. WHEN-THE-LEVEE-BREAKS BUS: scripts/mix/when_the_levee_breaks_bus.py bus_levee_pre.wav bus_levee.wav (Distressor -> dbx 160 -> Studer 15 IPS -> Binson echo -> dark tilt -> narrow; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages. (The Levee break is a classic sampling source — see loops-to-deliverables / slice-oneshots.)"
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem). DISTANT-FORWARD: the room/overheads (the stairwell ambience) ARE the kit and lead the balance; the close mics support far down. Same room-forward emphasis as fool-in-the-rain — but the bus then CRUSHES it dark/cavernous, not warm/open.",
+    "drum room": {"target_lufs": -15.0, "pan": 0.0, "_note": "THE STAR (if present) — the distant stairwell ambience; the bus crushes it dark"},
+    "overhead": {"target_lufs": -16.0, "pan": 0.0, "_note": "the distant-mic pair (the M160 stereo) — leads when there's no dedicated room channel (stereo)"},
+    "kick in": {"target_lufs": -19.0, "pan": 0.0, "_note": "supportive low thud under the ambience — far down (the distant mics carry the kick)"},
+    "snare top": {"target_lufs": -19.0, "pan": 0.0, "_note": "supportive backbeat under the ambience — far down"},
+    "snare bottom": {"target_lufs": -28.0, "pan": 0.0, "_note": "a faint touch of wires"},
+    "hi hat": {"target_lufs": -26.0, "pan": -0.1, "_note": "minimal — the distant ambience owns the cymbals/hat"},
+    "kick beater": {"target_lufs": -28.0, "pan": 0.0, "_note": "a faint click for definition"}
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/when_the_levee_breaks_bus.py — authoritative; a bare invocation reproduces these (the Binson echo is deterministic numpy; the Distressor/dbx/Studer are UADx — re-render sequentially to lock meters). The echo is a numpy multi-tap rather than a VST because the headless UADx Galaxy/EP-34 tape echo isn't render-verified here (load != render).",
+    "1_eq_pre_zero_phase": ["high_pass 35 Hz q0.707 (subsonic)"],
+    "2_distressor": {"plugin": "uaudio_distressor.vst3", "ratio": "10:1", "detector": "HP", "audio": "Dist 2", "input": 8.0, "attack": 4.0, "release": 2.0, "output": 7.0, "mix": 100.0, "headroom": 16.0, "_intent": "the aggressive Helios F760 comp/limiter 'breathing' proxy. 10:1 (the famous aggressive Distressor drum ratio), input 8 for real GR, attack 4 + release 2 = dense/pumping, Dist 2 = warmth/grit, detector HP keeps the kick punching. It compresses HARD and adds harmonics -> crest DOWN, the kit breathes/pumps (the Levee signature)."},
+    "3_dbx_160": {"plugin": "uaudio_dbx_160.vst3", "thresh": -26.0, "compress": " 4.0:1", "gain": 3.0, "meter": "GC", "sc_filter": false, "mix": 100.0, "_intent": "tight VCA pump/cohesion under the crush. compress is a STRING enum (' 4.0:1', leading space for single-digit ratios)."},
+    "4_studer_a800_tape": {"plugin": "uaudio_studer_a800.vst3", "path_select": "Repro", "ips": "15 IPS", "tape_type": "456", "emphasis_eq": "NAB", "cal_level": 6.0, "auto_cal": true, "input_level": 3.0, "repro_hf_eq": 1.5, "output_level": 0.0, "_intent": "dark, FAT tape — the cavernous low-mid weight. 15 IPS (the head-bump blooms the lows, like fool-in-the-rain) + a LOW repro_hf_eq (1.5) darkens the top (the Studer A800 model darkens overall, see docs/vst/studer-a800.md). input 3 = more drive for fat/dark."},
+    "5_binson_echo": {"impl": "numpy multi-tap HF-damped echo", "echo_time_ms": 120, "echo_feedback": 0.5, "echo_mix": 0.25, "echo_damp_hz": 3000, "echo_taps": 4, "_intent": "the Binson Echorec cavern. A deterministic numpy multi-tap slap: each repeat low-passed darker (damp 3000) and quieter (feedback 0.5). Adds the distant/cavernous repeats fool-in-the-rain has none of. Pure DSP (deterministic) — the headless Galaxy/EP-34 tape-echo VST isn't render-verified here."},
+    "6_eq_post_zero_phase": ["low_shelf 100 +1.5 dB q0.7 (weight)", "bell 200 +2.0 dB q0.9 (low-mid cavern thump)", "high_shelf 7000 -4.0 dB q0.7 (DARK — remove the air; cavernous)"],
+    "7_stereo_width": {"tool": "adjust-stereo", "width": 0.6, "mono_below_hz": 0, "_intent": "NARROW — the two-distant-mic stairwell image is narrower than fool-in-the-rain's wide warm room, but NOT full mono (the M160 pair has some spread). Width tracks the source; on a wide distant-mic kit 0.6 lands ~0.9 corr."},
+    "8_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 1597,
+    "tilt_db_per_oct": -3.17,
+    "crest_db": 18.1,
+    "correlation": 0.995,
+    "lufs_i": -18.4,
+    "winning_variant": "default (bare defaults — no flags)",
+    "_measured_on": "a 60 s watercolors drum bus (bus_punchy_pre.wav): pre-bus centroid 2223 / tilt -2.22 / crest 21.6 / corr 0.981 / LUFS -25.8. PLACEHOLDER pending the .claude/workflows/when-the-levee-breaks.js Gemini judge panel; lock the winner's meters here after a SEQUENTIAL re-render (UADx — Distressor/dbx/Studer — is non-deterministic across the concurrent workflow renders; the numpy echo is deterministic).",
+    "_what_to_check": "the DIRECTION, not absolutes: (1) crest DROPS (21.6->18.1) = the breathing CRUSH (Distressor 10:1 + dbx pump) — the OPPOSITE of fool-in-the-rain's glue that HOLDS crest ~16-18 wide. (2) centroid DROPS HARD (2223->1597) + tilt darker (-2.22->-3.17) = DARK/cavernous (15 IPS fat tape + the -4 dB high-shelf cut) — fool-in-the-rain is warm but NOT this dark. (3) correlation UP (0.981->0.995) = NARROWER (width 0.6; the inverse of fool-in-the-rain's wide warm room ~0.65-0.85; the absolute tracks the SOURCE width). (4) LUFS UP at the same peak = the dense crushed cavern + echo."
+  },
+  "notes": [
+    "SECOND Bonham recipe — but the OPPOSITE technique to fool-in-the-rain. fool-in-the-rain = the warm room as a LAYER of a full multi-mic kit (wide, clean SSL glue, big-but-open). when-the-levee-breaks = the two-DISTANT-MIC CRUSH (the stairwell ambience IS the kit, aggressively compressed/breathing, DARK/cavernous, NARROWER). Distinct slugs, distinct axes — pick by whether you want warm-open (FITR) or dark-crushed (Levee).",
+    "The DISTANT mics are the sound — balance room/overheads FORWARD and the close mics far down. If there are no room/overhead mics you cannot make the distant-ambience character (the close mics alone are too dry/tight).",
+    "AGGRESSIVE crush, not clean glue: the Distressor 10:1 + dbx pump genuinely REDUCE crest and make the kit breathe/pump (the Helios F760 'breathing'). Do NOT swap to a clean SSL glue (that's fool-in-the-rain).",
+    "DARK/cavernous: 15 IPS fat tape + a high-shelf CUT remove the air. Do NOT brighten — it's a damp stairwell, not an open warm room.",
+    "The Binson echo is deterministic numpy (a multi-tap HF-damped slap), not a VST — the headless UADx Galaxy/EP-34 tape echo isn't render-verified here (load != render). Tune it with --echo-* or disable with --no-echo.",
+    "HONEST NUANCE (the real recording): Bonham played at the bottom of Headley Grange's three-storey stairwell; engineer Andy Johns captured the kit with just TWO Beyerdynamic M160 ribbon mics at the top of the stairwell (the only mics on the kit), amplified/compressed through a Helios console — a pair of Helios F760 compressor/limiters set aggressively for the 'breathing' — with a Binson Echorec echo on the mix (Dec 1970 / Jan 1971). The distance + the stairwell ARE the sound.",
+    "HONEST PROXY: Distressor + dbx 160 + Studer 15 IPS + a numpy Binson echo is an era-appropriate chase of the distant/crushed/dark/cavernous tone, NOT a claim of the literal Headley Grange gear. Run .claude/workflows/when-the-levee-breaks.js to A/B the crush/dark/echo amounts and lock the winner's meters.",
+    "This is a MIX bus (peak -1, NOT mastered) — hand to master-track for loudness/limiting and loops-to-deliverables for loops (the Levee break is a classic sampling source)."
+  ]
+}

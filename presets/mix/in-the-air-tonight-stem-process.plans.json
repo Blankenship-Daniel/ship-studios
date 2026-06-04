@@ -1,0 +1,138 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick in.wav",
+  "role": "kick (inside mic) — LF thump + beater body. 80s gated kit: TIGHT + PUNCHY + controlled (drives the groove under the gated explosion).",
+  "clean": {"hpf_hz": 32, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 32, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 31.5, "gain_db": -2.0, "q": 1.2},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3.0, "q": 1.1},
+   {"type": "bell", "freq_hz": 3500, "gain_db": 2.0, "q": 1}
+  ],
+  "de_harsh": null, "dynamic_eq": null,
+  "transient": {"crossovers_hz": [180], "bands": [{"transient": 0.15, "gain_db": 0}, {"transient": 0.25, "gain_db": 0}]},
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 4, "thresh": -6, "attack": "Medium", "release_s": 0.14},
+   "eq": {"lf_freq": 60, "lf_gain": 1, "lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 3500, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -2
+  },
+  "rationale": "The 80s gated kit is TIGHT + PUNCHY (it must cut through the exploding ambience). HPF 32 + a -2 @31.5 control the sub; -3 @350 de-boxes; +2 @3.5k gives the beater a defined CLICK (more present than the dark Bonham recipe). A small positive transient (snare/mid band a touch more) restores attack the gate will key off. API New(FF) 4:1 Medium adds forward density; lf +1 @60. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic — owns attack. 80s: a defined click that sits under the 'in' mic.",
+  "clean": {"hpf_hz": 90, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 90, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -3, "q": 1},
+   {"type": "bell", "freq_hz": 3500, "gain_db": 2.5, "q": 1}
+  ],
+  "de_harsh": {"depth": 0.35, "max_reduction_db": 3, "focus_lo_hz": 5500, "focus_hi_hz": 7500},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -6, "release_s": 0.1},
+   "eq": {"lmf_freq": 200, "lmf_gain": -2, "hmf_freq": 3500, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "HPF 90 hands the thump to the 'in' mic; -3 @200 kills box; +2.5 @3.5k presents a defined click; a gentle 5.5-7.5k de-harsh keeps it from spitting. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare top.wav",
+  "role": "snare top — THE STAR of the gated sound: full body + a strong CRACK, punchy attack (the gate keys off this).",
+  "clean": {"hpf_hz": 80, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 5000, "gain_db": 2.5, "q": 1.3}
+  ],
+  "de_harsh": {"depth": 0.35, "max_reduction_db": 3, "focus_lo_hz": 6000, "focus_hi_hz": 8000},
+  "dynamic_eq": null,
+  "transient": {"crossovers_hz": [400], "bands": [{"transient": 0.2, "gain_db": 0}, {"transient": 0.35, "gain_db": 0}]},
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -8, "release_s": 0.16},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": -1.5, "hmf_freq": 5000, "hmf_gain": 2, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "The 80s gated snare is the centerpiece. -1.5 @300 de-boxes; +2.5 @5k = the CRACK that explodes through the gated room; a positive transient (esp. the upper band) restores the SNAP the bus gate keys off (transient snap is ALLOWED here — unlike home-at-last's dynamics-preserving rule — because the 80s snare is processed/punchy). 6-8k de-harsh guards against spit. API New(FF) 4:1 Medium for forward density. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires) — buzz/snap detail under the top.",
+  "clean": {"hpf_hz": 150, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4, "q": 1.4},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.6},
+   {"type": "bell", "freq_hz": 7000, "gain_db": 2, "q": 1.2}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 6000, "focus_hi_hz": 8000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.14},
+   "eq": {"lf_freq": 200, "lf_gain": -1.5, "lmf_freq": 400, "lmf_gain": -2, "hmf_freq": 7000, "hmf_gain": 1, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -6
+  },
+  "rationale": "HPF 150 kills shell-ring; -4/-2.5 @200/400 de-box; +2 @7k presents the wire snap; 6-8k de-harsh keeps it smooth. Sits under the top to thicken the snap the gate keys off. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) — RESTRAINED (the iconic intro had none); present but never splashy.",
+  "clean": {"hpf_hz": 120, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 120, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 250, "gain_db": -4, "q": 1.1},
+   {"type": "bell", "freq_hz": 450, "gain_db": -2.5, "q": 1.4},
+   {"type": "high_shelf", "freq_hz": 9000, "gain_db": 0.5, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.1},
+   "eq": {"lmf_freq": 250, "lmf_gain": -2, "hmf_freq": 9000, "hmf_gain": 0, "hf_freq": 12000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Kept restrained (the famous intro is hatless; a real kit needs a hat but it must not steal from the gated snare/tom). HPF 120 + -4 @250 + -2.5 @450 clear rumble/whoosh; only a tiny +0.5 @9k sizzle; 5-7k de-harsh tames spit. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) — clean kit image. The BUS owns the 'room', so the OH stays controlled (not the ambience star).",
+  "clean": {"hpf_hz": 130, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 250, "gain_db": -2, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 11000, "gain_db": 0.5, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 3.5, "focus_lo_hz": 3500, "focus_hi_hz": 6500},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 120,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 250, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "The OH is the kit image, NOT the ambience (the bus synthesizes the gated room). HPF 130 dumps the kick lump; -2 @250 eases box; only a tiny +0.5 @11k sheen guarded by a 3.5-6.5k de-harsh. Old(FB) 2:1 for cohesion. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) — OPTIONAL + redundant here (the BUS makes the gated room). Kept tight + far down, or omit.",
+  "clean": {"hpf_hz": 80, "denoise": true, "denoise_db": 5},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 80, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 220, "gain_db": -2, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 2500, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -6, "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": -1, "lmf_freq": 315, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Inversion vs fool-in-the-rain: the room is NOT the star and is REDUNDANT here (the bus synthesizes the gated ambience). HPF 80 + -2 @220 keep any real room channel tight; balance it FAR down (or omit the stem entirely). declick off."
+ }
+]

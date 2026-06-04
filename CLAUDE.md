@@ -34,7 +34,7 @@ Most work starts from a **skill**, not a raw tool — match the request here, th
 - **Work from stems** → `[[stem-master]]` (correct→sum→master); carve clashes only → `[[unmask-stems]]`; per-stem correct+color → `[[stem-process]]`; split a mixdown → `[[stem-split]]`.
 - **A multi-mic drum kit** → `[[drum-prep]]`; a raw Logic/interface dump → `[[logic-extract]]` → `[[multitrack-triage]]`.
 - **Bounce a prepped kit / song to stereo** → `[[drum-mix]]` (drums) · `[[song-mix]]` (full song); set levels first with `[[mix-balance]]`.
-- **A drum-bus character / famous drum tone** → `[[warm-drum-bus]]` · `[[drum-stems-character]]` · `[[fool-in-the-rain]]` (Bonham) · `[[home-at-last]]` (Aja) · `[[tomorrow-never-knows]]` (Beatles).
+- **A drum-bus character / famous drum tone** → `[[warm-drum-bus]]` · `[[drum-stems-character]]` · `[[fool-in-the-rain]]` (Bonham) · `[[home-at-last]]` (Aja) · `[[tomorrow-never-knows]]` (Beatles) · `[[in-the-air-tonight]]` (Collins gated) · `[[when-the-levee-breaks]]` (Bonham stairwell) · `[[back-in-black]]` (AC/DC) · `[[funky-drummer]]` (James Brown). Not sure which? `/famous-drum-shootout` renders your kit through all of them and recommends one.
 - **A targeted corrective move** → `[[de-ess]]` · `[[de-harsh]]` · `[[dynamic-eq]]` · `[[excite]]` · `[[multiband-compress]]` · `[[drum-punch]]` · `[[sub-design]]` · `[[groove-tighten]]`.
 - **Your own VST3/AU plugins** → `[[vst]]` (index + doctrine), then a `vst-*` task skill or per-plugin deep-dive.
 - **Loops / one-shots / a pack** → `[[loops-to-deliverables]]` · `[[slice-oneshots]]` · `[[sample-pack]]` · `[[sampler-kit]]`.
@@ -287,7 +287,8 @@ Reusable Claude Code **dynamic workflows** live in `.claude/workflows/*.js` — 
 | `house-curve` | one agent per mix → match-to-profile → match-eq → re-measure; cross-track spread reduce (tonal companion to `batch-master`) |
 | `stem-process` | one agent per stem diagnoses + authors a corrective plan; the executor then runs as ONE serial UADx-safe pass |
 | `drum-stems-character` | two-mode per-stem fan-out: `mode:'correct'` → plan + ONE serial `process_stems.py`; `mode:'character'` → plan a role+character-aware UADx chain + ONE serial `character_stems.py`. The skill drives it twice with an AskUserQuestion (chosen character) between |
-| `fool-in-the-rain` / `home-at-last` / `tomorrow-never-knows` | famous-drum bus-tuning twins: render N drum-bus variants → parallel multi-lens Gemini judge panel against the brief → pick the winner (whose meters become the preset's `approved_signature`) |
+| `fool-in-the-rain` / `home-at-last` / `tomorrow-never-knows` / `in-the-air-tonight` / `when-the-levee-breaks` / `back-in-black` / `funky-drummer` | famous-drum bus-tuning twins: render N drum-bus variants → parallel multi-lens Gemini judge panel against the brief → pick the winner (whose meters become the preset's `approved_signature`) |
+| `famous-drum-shootout` | render ONE prepared drum bus through ALL 7 famous-drum character bus scripts (defaults) → parallel Gemini fit-to-brief panel → RECOMMEND the best iconic character for the material (cross-character recommender, not a per-recipe tuner) |
 | `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / mono-caveat / argument-hint / frontmatter drift |
 | `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift |
 | `fold-learnings` | one agent per session learning → dedupe-grep + route to its durable home + draft the patch; a skeptic challenges each → a ranked fold plan |

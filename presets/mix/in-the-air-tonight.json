@@ -1,0 +1,52 @@
+{
+  "name": "in-the-air-tonight",
+  "description": "FAMOUS DRUM SOUND #4: Phil Collins 'In the Air Tonight' (Hugh Padgham, 1981) — the GATED-REVERB sound that defined the 1980s. A NEW axis vs the room-warm Bonham 'fool-in-the-rain', the mono-crush Beatles 'tomorrow-never-knows' and the clean-dynamic 'home-at-last': EXPLOSIVE / GATED / HUGE — a big, slightly dark room ambience that is HEAVILY COMPRESSED and then cut off ABRUPTLY by a noise gate (no decaying tail), blended big under the dry kit and spread WIDE. Built deterministically in PURE DSP: a seeded decaying-noise reverb IR -> compress-loop crush -> an abrupt envelope gate keyed off the dry kit (derived from scripts/mix/keyed_gate.py) -> wide blend. Does NOT need room mics (the bus SYNTHESIZES the room — the inverse of fool-in-the-rain). This is the gated-reverb TONE, not a groove. Dev-validated 2026-06-04 on a 60 s watercolors drum bus; the default path is BIT-REPRODUCIBLE (no VST, no UADx). Honest era PROXY of the SSL-channel comp+gate -> AMS/Lexicon ambience technique (see notes).",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems (kick + snare + toms + hi-hat + overheads). NO room mics required — the bus generates its own gated ambience (the OPPOSITE of fool-in-the-rain). A snare/tom-forward kit suits the iconic gated-fill sound.",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/in-the-air-tonight-stem-process.plans.json (PUNCHY + DRY + tight: controlled lows, present snare/tom CRACK, transient snap ALLOWED here so the dry hits cut through the explosion and key the gate cleanly; declick OFF) -> <kit>/processed-iat/.",
+    "3. SNARE/TOM-FORWARD balance: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS) -> bus_iat_pre.wav.",
+    "4. IN-THE-AIR-TONIGHT BUS: scripts/mix/in_the_air_tonight_bus.py bus_iat_pre.wav bus_iat.wav (synth reverb -> heavy compression -> abrupt gate -> wet/dry blend -> present EQ -> WIDE; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages."
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem). SNARE/TOM-FORWARD: the gated snare + tom fills are the 80s stars, kick solid, overheads/hat present but under the drums (the gated explosion is added at the BUS, not from a room mic).",
+    "snare top": {"target_lufs": -15.0, "pan": 0.0, "_note": "THE STAR — the gated snare; full body + crack, keyed into the bus gate"},
+    "tom": {"target_lufs": -16.0, "pan": 0.0, "_note": "the iconic tom FILL (if present) — forward; pan spread across multiple tom mics"},
+    "kick in": {"target_lufs": -17.0, "pan": 0.0, "_note": "solid, punchy, controlled — drives the groove under the explosion"},
+    "overhead": {"target_lufs": -19.0, "pan": 0.0, "_note": "kit image (stereo) — present but the bus owns the 'room'"},
+    "snare bottom": {"target_lufs": -26.0, "pan": 0.0, "_note": "a touch of wires/snap under the top"},
+    "hi hat": {"target_lufs": -23.0, "pan": -0.15, "_note": "present but restrained (the iconic intro had none — keep it modest)"},
+    "kick beater": {"target_lufs": -26.0, "pan": 0.0, "_note": "clean click for definition"},
+    "drum room": {"target_lufs": -30.0, "pan": 0.0, "_note": "OPTIONAL + FAR DOWN — the BUS makes the gated room; a real room channel is redundant here (omit it)"}
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/in_the_air_tonight_bus.py — authoritative; a bare invocation reproduces these BIT-FOR-BIT (deterministic: seeded synth reverb + compress-loop + numpy gate; no VST loaded on the default path).",
+    "1_eq_pre_zero_phase": ["high_pass 30 Hz q0.707 (subsonic; keep rumble out of the reverb)"],
+    "2_synth_reverb": {"impl": "seeded decaying-noise IR convolution", "decay_s": 1.6, "reverb_dark_hz": 9000, "reverb_seed": 1981, "predelay_ms": 8, "_intent": "a big, slightly dark room ambience generated from the dry kit. White noise * exp-decay, LPF dark + HPF 120, energy-normalized; two seeds (L/R) = a WIDE decorrelated room. Deterministic (seeded). --reverb-vst routes a real reverb instead, but that path is NOT the locked signature (load != render)."},
+    "3_heavy_compression": {"tool": "compress-loop", "threshold_db": -30, "ratio": 8, "attack_ms": 1, "release_ms": 200, "knee_db": 3, "_intent": "CRUSH the ambience so it EXPLODES — the SSL talkback-comp move. Auto-makeup (RMS-match) brings the crushed room back up to a big level. This is the engine of the gated-reverb 'whoomph'."},
+    "4_abrupt_gate": {"impl": "envelope gate keyed off the DRY kit", "gate_thresh_pct": 50, "gate_hold_ms": 320, "gate_release_ms": 28, "gate_floor_db": -60, "_intent": "the SIGNATURE: opens instantly on a hit, HOLDS open ~320 ms, then SLAMS shut (28 ms release) = the reverb has NO decaying tail. Keyed off the dry kit env (5 ms smoothing, 80th-pctile * thresh_pct) so it opens exactly on hits. Derived from scripts/mix/keyed_gate.py. Do NOT soften the close — the abrupt cutoff IS the sound."},
+    "5_blend": {"wet": 0.7, "_intent": "the gated explosion sits UNDER the dry hits, RMS-matched to the dry first so --wet is a meaningful ratio. 0.7 = a big but not drowning blend."},
+    "6_eq_post_zero_phase": ["low_shelf 100 +1.0 dB q0.7 (weight)", "bell 4000 +2.0 dB q1.0 (the explosive snare CRACK)", "high_shelf 10000 +1.0 dB q0.7 (gentle 80s sheen)"],
+    "7_stereo_width": {"tool": "adjust-stereo", "width": 1.4, "mono_below_hz": 0, "_intent": "WIDE — the HUGE 80s image (the OPPOSITE of tomorrow-never-knows' mono). The synth IR is already decorrelated L/R; width 1.4 spreads the explosion across the field."},
+    "8_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 2912,
+    "tilt_db_per_oct": -2.00,
+    "crest_db": 21.0,
+    "correlation": 0.494,
+    "lufs_i": -18.7,
+    "winning_variant": "default (bare defaults — no flags)",
+    "_measured_on": "a 60 s watercolors drum bus (bus_punchy_pre.wav): pre-bus centroid 2223 / tilt -2.22 / crest 21.6 / corr 0.981 / LUFS -25.8. PLACEHOLDER pending the .claude/workflows/in-the-air-tonight.js Gemini judge panel; the default render is BIT-REPRODUCIBLE (md5-identical across re-renders — no VST/UADx on the default path), so once the panel picks a winner, a sequential re-render reproduces it exactly.",
+    "_what_to_check": "the DIRECTION, not absolutes: (1) correlation DROPS HARD (0.981->0.494) = WIDE/HUGE — the defining 80s spread (the inverse of TNK's ~0.99 mono). (2) LUFS jumps UP (-25.8->-18.7) at the SAME -1 dBFS peak = the dense, exploding ambience filling the gaps. (3) centroid UP (2223->2912) = the present snare CRACK. (4) crest stays HIGH (21.6->21.0) = the dry transients punch THROUGH the explosion (the gate truncates the tail rather than smearing the hits). The gated-vs-ungated difference is mostly PERCEPTUAL (the abrupt tail cutoff), not in these 5 integrated meters — judge the tail by ear/the Gemini panel."
+  },
+  "notes": [
+    "This is the gated-reverb TONE — a heavily-compressed room cut off abruptly by a gate, blended big and wide. It is the 1980s drum-production signature, not a specific groove.",
+    "Does NOT need room mics — the bus SYNTHESIZES the gated ambience from the dry kit (the OPPOSITE of fool-in-the-rain, which needs a real room channel). A real room mic is redundant here; omit it or keep it far down.",
+    "EXPLOSIVE = the heavy compression of the ambience (the SSL talkback-comp move); GATED = the abrupt close (no decaying tail); HUGE = the wide blend. All three are the point — do not soften any of them.",
+    "DETERMINISTIC default: the synth reverb (seeded RNG) + compress-loop + numpy gate are pure DSP — a bare invocation is bit-reproducible (no VST, no UADx non-determinism). This is the only famous-drum recipe whose default path loads no plugin.",
+    "Optional --reverb-vst <path> routes a real reverb (e.g. ValhallaPlate / SSL Native FlexVerb) instead of the synth IR — a CREATIVE alternative, NOT the locked signature. load != render: verify the VST actually processed (a 0.00 change = passthrough) before trusting it ([[vst-reverb]] / [[vst-verify]]).",
+    "HONEST NUANCE (the real recording): the gated-reverb sound was DISCOVERED by engineer Hugh Padgham on Peter Gabriel's 'Intruder' (1980) at Townhouse Studios when an SSL 4000 talkback/overhead mic — with the console channel's compressor + noise gate engaged — was left open over the kit; it was then used on Phil Collins' 'In the Air Tonight' (1981). The era effect = a heavily-compressed ambient mic into a noise gate (and later AMS RMX16 'NonLin' / Lexicon ambience). This chain is an era-appropriate PROXY of that technique in deterministic DSP, NOT a model of the literal Townhouse signal path.",
+    "This is a MIX bus (peak -1, NOT mastered) — hand to master-track for loudness/limiting and loops-to-deliverables for loops."
+  ]
+}

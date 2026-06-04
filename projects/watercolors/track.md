@@ -64,3 +64,34 @@ meter-grounded). FX stayed **dry** (honoring the prior A/B).
 - `mix/bus_warm_dry.wav` (full untrimmed) · `mix/bus_warm_withfx.wav` + `mix/ab_*_m.wav` (the A/B that chose dry).
 - `mix/bus_punchy.wav` — FINAL **dry/tight/punchy** variant (mix bus, peak −1; not mastered). `mix/bus_punchy_pre.wav` = its dry balance pre-tone. Recipe: `scripts/mix/punchy_bus.py` + `mix/balance_punchy.spec.json`.
 - `loops/` (8 raw) · `deliverables/` (24 = 8 × {44.1/16, 48/24, 96/24}) — **warm-bus** loops. (Punchy loop pack not yet cut — say the word.)
+
+## Variant — Bonham "Fool In The Rain" (2026-06-03)
+
+The room-DOMINANT, warm/dark, breathing **John Bonham** flavor via the [[fool-in-the-rain]] skill — the
+opposite axis from the warm-tight and punchy buses: here the **room/overheads are the loudest layer** (the
+room IS the reverb), 15 IPS tape **blooms** the lows (vs 30 IPS tightening them), and the snare reverb is
+KEPT as ambience (vs dropped on the warm bus).
+
+- **Per-stem** (`presets/mix/watercolors-fitr-stem-process.plans.json` → `stems/processed-fitr/`): GENTLE +
+  warmth-preserving. Room **HPF only 45** (keep the low weight; warm used 120) + −1.5 @200; OH HPF 110 + −2
+  @200 (kick-bleed); Snare HPF 70, NO de-box, dynamic 4.5-7k de-harsh (it's the one bright element); Kick HPF
+  30, keep the 58 Hz sub. **No air anywhere**, and **zero low-mid cuts in the API color EQ** on room/OH (those
+  scoop the warmth). Snare Reverb (FX) cleaned with HPF 150 to kill the low-mid wash that loosened the warm bus.
+- **Room-forward balance** (`mix/bus_fitr_pre.wav`): Room **−16** (star) · OH −18 · Kick −20 · Snare −21 ·
+  Snare Reverb −26 (ambience), −6 dBFS headroom, 60 s.
+- **Bus chain** (`scripts/mix/fool_in_the_rain_bus.py`): HPF 35 → Helios Type 69 (Mic g40/pad−20, 700 Hz +3,
+  no air) → Studer A800 **15 IPS** NAB (repro-hf **3** — this kit is already dark) → SSL Bus Comp 2 → zero-phase
+  polish → −1 dBFS.
+- **Gemini tuning panel** (`.claude/workflows/fool-in-the-rain.js` logic, run MCP-free via the gemini venv —
+  the worktree session has no stemmy-gemini MCP): 5+4 variants over two rounds. **Winner = `glue_fast`**
+  (`--repro-hf 3 --ssl-thresh -18 --ssl-attack 3 --ssl-makeup 5`). Key reads: Gemini scores were noisy
+  run-to-run (more_glue 36→25) so only recurring notes were weighted; its "too dry / no room" verdict is a
+  **mono-downmix artifact** (it can't hear the wide stereo room — corr 0.84 confirms it's there), so that was
+  NOT chased; the meter-backed "more glue" note WAS — a faster SSL attack genuinely bit the peaky bus
+  (crest 25.9→24.7) without the mud that `glue_fast_hot` flagged. Variants kept in `mix/fitr_shootout/`.
+- **Signature** (`mix/bus_fitr.wav`, the winner): centroid **2154** (source 2673) · tilt **−2.31** (−1.62) ·
+  crest **24.7** (27.6) · corr **0.836** (wide room preserved — vs warm 0.975 / punchy 0.985) · LUFS −23.0.
+  Warm/dark, room-forward, breathing — exactly the Bonham brief. MIX bus (peak −1, not mastered).
+- **Files:** `mix/bus_fitr.wav` (FINAL) · `mix/bus_fitr_pre.wav` (room-forward balance) · `mix/bus_fitr_dry.wav`
+  (no-reverb alt) · `mix/fitr_shootout/` (9 tuning variants) · `presets/mix/watercolors-fitr-stem-process.plans.json`.
+  Loops not yet cut (104 BPM ready).

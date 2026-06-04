@@ -1,7 +1,7 @@
 ---
 name: manley-drums
 description: "Use when the user has a FOLDER of multi-mic drum stems and wants the user's preferred WARM, dynamic, hi-fi TUBE drum sound through an all-Manley chain — 'the Manley drum sound', 'warm tube drums with my Manley plugins', 'all-Manley drum chain', 'Manley drum bus', 'VOXBOX the kit then glue with Variable Mu', 'my warm Manley preference on these drum stems', 'process this folder of drum stems through Manley'. VOXBOX channel strip per stem → balance + sum → Massive Passive EQ + Variable Mu glue on the bus → [[master-track]]. For ONE Manley plugin on a single drum bus reach for [[manley-voxbox]] / [[manley-massive-passive]] / [[manley-variable-mu]] directly; this is the WHOLE all-Manley chain across a multi-mic kit. The all-tube engine alternative to [[drum-stems-character]]'s tape/console characters, and a tube-chain alternative to [[warm-drum-bus]]'s Studer recipe for the same WARM goal. Local DSP + the `vst` extra (Manley UADx plugins)."
-argument-hint: <stems-dir> [--ref ref.wav] [--platform spotify|apple|youtube]
+argument-hint: <stems-dir> [--platform spotify|apple|youtube]
 ---
 
 # manley-drums — an all-Manley tube chain for a warm, dynamic, hi-fi drum kit

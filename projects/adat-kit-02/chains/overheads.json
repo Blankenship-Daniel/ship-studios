@@ -1,0 +1,121 @@
+{
+  "name": "overheads-ffchain",
+  "description": "[kit] Pro-Q4 -> Pro-MB -> Pro-C2 -> Pro-L2 for overheads. Dark stereo pair (little air), dominant 199 Hz masks tom/snare. 140 HPF + -2.5 @200 cede low/low-mid to close mics; dynamic -3 @6k tames cymbal spike; conservative +2 @11k lifts dead air; width left untouched (corr 0.80).",
+  "plugin_build": "FabFilter Pro-Q 4 / Pro-MB / Pro-C 2 / Pro-L 2 (VST3, headless, no-iLok)",
+  "mode": "kit",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": null,
+    "width": 1.0,
+    "chain": [
+      {
+        "file": "FabFilter Pro-Q 4.vst3",
+        "params": {
+          "band_1_enabled": true,
+          "band_2_enabled": true,
+          "band_3_enabled": true,
+          "band_4_enabled": true,
+          "band_5_enabled": false,
+          "band_6_enabled": false,
+          "band_7_enabled": false,
+          "band_8_enabled": false,
+          "band_9_enabled": false,
+          "band_10_enabled": false,
+          "band_11_enabled": false,
+          "band_12_enabled": false,
+          "band_13_enabled": false,
+          "band_14_enabled": false,
+          "band_15_enabled": false,
+          "band_16_enabled": false,
+          "band_17_enabled": false,
+          "band_18_enabled": false,
+          "band_19_enabled": false,
+          "band_20_enabled": false,
+          "band_21_enabled": false,
+          "band_22_enabled": false,
+          "band_23_enabled": false,
+          "band_24_enabled": false,
+          "processing_mode": "Linear Phase",
+          "processing_resolution": "Medium",
+          "character": "Clean",
+          "gain_scale": 100.0,
+          "output_level": 0.0,
+          "auto_gain": false,
+          "band_1_used": "Used",
+          "band_1_shape": "Low Cut",
+          "band_1_frequency": 140.0,
+          "band_1_slope": "24 dB/oct",
+          "band_1_dynamics_enabled": "Dynamics Disabled",
+          "band_1_dynamic_range": 0.0,
+          "band_1_spectral_enabled": false,
+          "band_2_used": "Used",
+          "band_2_shape": "Bell",
+          "band_2_frequency": 200.0,
+          "band_2_gain": -2.5,
+          "band_2_q": 1.1,
+          "band_2_dynamics_enabled": "Dynamics Disabled",
+          "band_2_dynamic_range": 0.0,
+          "band_2_spectral_enabled": false,
+          "band_3_used": "Used",
+          "band_3_shape": "Bell",
+          "band_3_frequency": 6000.0,
+          "band_3_gain": 0.0,
+          "band_3_q": 3.0,
+          "band_3_dynamics_enabled": "Dynamics Enabled",
+          "band_3_dynamics_auto": "Dynamics Auto",
+          "band_3_threshold": "Auto",
+          "band_3_dynamic_range": -3.0,
+          "band_3_spectral_enabled": false,
+          "band_4_used": "Used",
+          "band_4_shape": "High Shelf",
+          "band_4_frequency": 11000.0,
+          "band_4_gain": 2.0,
+          "band_4_q": 0.7,
+          "band_4_dynamics_enabled": "Dynamics Disabled",
+          "band_4_dynamic_range": 0.0,
+          "band_4_spectral_enabled": false
+        }
+      },
+      {
+        "file": "FabFilter Pro-MB.vst3",
+        "params": {
+          "processing_mode": "Linear Phase",
+          "oversampling": "Off",
+          "lookahead_enabled": false,
+          "mix": 100.0,
+          "input_level": 0.0,
+          "output_level": 0.0
+        }
+      },
+      {
+        "file": "FabFilter Pro-C 2.vst3",
+        "params": {
+          "style": "Clean",
+          "threshold": -28.0,
+          "ratio": "1.50:1",
+          "attack": 30.0,
+          "release": 150.0,
+          "knee": 6.0,
+          "mix": 100.0,
+          "auto_gain": false,
+          "auto_release": false,
+          "output_level": 0.0,
+          "input_level": 0.0,
+          "oversampling": "Off",
+          "lookahead_enabled": false
+        }
+      },
+      {
+        "file": "FabFilter Pro-L 2.vst3",
+        "params": {
+          "gain": 0.0,
+          "style": "Transparent",
+          "output_level": -1.0,
+          "true_peak_limiting": true,
+          "oversampling": "4x",
+          "dithering": "Off"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "stem": "kick_in",
+    "rationale": "Sub/boom mic: dominant ~58-63 Hz, ~91% low-band, nothing above 300 Hz. Only a 26 Hz rumble HPF (below the fundamental); no box cut. Pro-MB low band evens an uneven sub. Pro-C inert (threshold 0).",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 26, "slope": "24 dB/oct"}
+    ],
+    "promb_bands": [
+      {"low_crossover": 20, "high_crossover": 120, "mode": "Compression", "threshold": -22, "range": -3, "ratio": 1.8, "attack": 15, "release": 140, "knee": 6}
+    ],
+    "proc": {"style": "Clean", "threshold": 0, "ratio": 1.5, "attack": 20, "release": 150, "knee": 6, "mix": 100},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1}
+  },
+  {
+    "stem": "kick_beater",
+    "rationale": "Click/attack mic (sub owned by kick_in): 40 Hz HPF removes sub-40 rumble; -1.8 @315 de-box; +2 @5k restores beater click; gentle Clean Pro-C glue (no makeup).",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 40, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 315, "gain": -1.8, "q": 1.2},
+      {"shape": "Bell", "frequency": 5000, "gain": 2, "q": 1}
+    ],
+    "promb_bands": [],
+    "proc": {"style": "Clean", "threshold": -22, "ratio": 1.8, "attack": 15, "release": 120, "knee": 6, "mix": 100},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1}
+  },
+  {
+    "stem": "snare_top",
+    "rationale": "Body ~199 Hz; 90 Hz HPF clears kick spill; -2 @450 de-box; +1.5 @4k crack; dynamic -4 @6k tames spit only on spikes (preserves crest ~29); light Clean Pro-C.",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 90, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 450, "gain": -2, "q": 1.1},
+      {"shape": "Bell", "frequency": 4000, "gain": 1.5, "q": 1},
+      {"shape": "Bell", "frequency": 6000, "gain": 0, "q": 2.5, "dynamic": true, "dynamic_range": -4}
+    ],
+    "promb_bands": [],
+    "proc": {"style": "Clean", "threshold": -26, "ratio": 1.8, "attack": 25, "release": 150, "knee": 6, "mix": 100},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1}
+  },
+  {
+    "stem": "tom",
+    "rationale": "Rack tom, ~193-199 Hz ring with long sustain (91% low-mid). 80 Hz HPF clears bleed; dynamic -4 @200 (Q3.5) decays the ring while keeping the attack; Pro-MB 120-350 controls sustain. Pro-C inert (threshold 0).",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 80, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 200, "gain": -4, "q": 3.5, "dynamic": true, "dynamic_range": -4}
+    ],
+    "promb_bands": [
+      {"low_crossover": 120, "high_crossover": 350, "mode": "Compression", "threshold": -30, "range": -4, "ratio": 2.5, "attack": 15, "release": 180, "knee": 6}
+    ],
+    "proc": {"style": "Clean", "threshold": 0, "ratio": 1.5, "attack": 20, "release": 160, "knee": 6, "mix": 100},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1}
+  },
+  {
+    "stem": "overheads",
+    "rationale": "Dark stereo pair (little air), dominant 199 Hz masks tom/snare. 140 HPF + -2.5 @200 cede low/low-mid to close mics; dynamic -3 @6k tames cymbal spike; conservative +2 @11k lifts dead air; width left untouched (corr 0.80).",
+    "proq_bands": [
+      {"shape": "Low Cut", "frequency": 140, "slope": "24 dB/oct"},
+      {"shape": "Bell", "frequency": 200, "gain": -2.5, "q": 1.1},
+      {"shape": "Bell", "frequency": 6000, "gain": 0, "q": 3, "dynamic": true, "dynamic_range": -3},
+      {"shape": "High Shelf", "frequency": 11000, "gain": 2, "q": 0.7}
+    ],
+    "promb_bands": [],
+    "proc": {"style": "Clean", "threshold": -28, "ratio": 1.5, "attack": 30, "release": 150, "knee": 6, "mix": 100},
+    "prol": {"style": "Transparent", "gain": 0, "ceiling_dbtp": -1}
+  }
+]

@@ -1,0 +1,102 @@
+[
+  {
+    "stem": "kick_in",
+    "measured": "tilt -5.76, centroid 2742, low share 0.91, dominant 58.6 Hz; body 50-63 Hz, box ridge 160-250, beater click 4-5 kHz. Deep clean sub kick.",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 30, "q": 0.7, "slope": "12 dB/oct" },
+      { "shape": "Bell", "frequency": 200, "gain": -2.5, "q": 1.2 },
+      { "shape": "Bell", "frequency": 400, "gain": -1.5, "q": 1.0 },
+      { "shape": "Bell", "frequency": 4200, "gain": 1.5, "q": 1.4 }
+    ],
+    "promb_bands": [
+      { "low_crossover": 30, "high_crossover": 120, "mode": "Compression", "threshold": -18, "range": -4, "ratio": 2.5, "attack": 20, "release": 35, "knee": 6 }
+    ],
+    "proc": { "style": "Punch", "threshold": -16, "ratio": 3, "attack": 12, "release": 120, "knee": 3, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "Low-frequency anchor: 30 Hz/12 HPF keeps the 50-63 Hz body, -2.5@200 + -1.5@400 de-box the 160-400 ridge, +1.5@4.2k defines the beater click (only boost). MB 30-120 tightens boom on loud hits; Pro-C Punch ~3 dB GR, transient preserved; Pro-L -1 dBTP safety. No makeup."
+  },
+  {
+    "stem": "kick_beater",
+    "measured": "tilt -2.09, centroid 3054, low 0.72 / low_mid 0.18, dominant 70 Hz; full kick body 63-200 PLUS a prominent beater-click band 2.5-6.3 kHz (5-6.3k -15/-14.7). Partner of kick_in (same source - reinforce, don't gut lows).",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 35, "q": 0.7, "slope": "24 dB/oct" },
+      { "shape": "Bell", "frequency": 300, "gain": -2.0, "q": 1.0 },
+      { "shape": "Bell", "frequency": 4000, "gain": 1.5, "q": 1.0 },
+      { "shape": "Bell", "frequency": 6000, "gain": 0, "q": 2.5, "dynamic": true, "dynamic_range": -4 },
+      { "shape": "High Cut", "frequency": 15000, "q": 0.7, "slope": "12 dB/oct" }
+    ],
+    "promb_bands": [
+      { "low_crossover": 35, "high_crossover": 150, "mode": "Compression", "threshold": -18, "range": -4, "ratio": 2.5, "attack": 20, "release": 35, "knee": 6 }
+    ],
+    "proc": { "style": "Punch", "threshold": -16, "ratio": 3, "attack": 12, "release": 120, "knee": 3, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "Beater/click kick mic, partner of kick_in (reinforces - lows kept). 35/24 HPF drops rumble only; -2@300 de-boxes the low-mid lump; +1.5@4k defines the measured beater click (only boost); dynamic -4 bell @6k ducks click spit on loud hits; 15k/12 HPF rolls cymbal-bleed hiss. MB 35-150 tightens boom on loud hits; Pro-C Punch ~3 dB GR; Pro-L -1 dBTP. No makeup."
+  },
+  {
+    "stem": "snare_top",
+    "measured": "tilt -0.9, centroid 4663, dominant 199 Hz body, kick spill <125, 400 Hz box hump, crack 3-5 k even, top edge spit 6-8 k. Moderately bright.",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 100, "q": 0.7, "slope": "24 dB/oct" },
+      { "shape": "Bell", "frequency": 400, "gain": -3, "q": 1.4 },
+      { "shape": "Bell", "frequency": 200, "gain": 0, "q": 1.6, "dynamic": true, "dynamic_range": -4 },
+      { "shape": "Bell", "frequency": 3800, "gain": 1.5, "q": 1.0 },
+      { "shape": "Bell", "frequency": 7000, "gain": 0, "q": 3, "dynamic": true, "dynamic_range": -5, "spectral": true, "spectral_density": 68 }
+    ],
+    "promb_bands": [
+      { "low_crossover": 150, "high_crossover": 700, "mode": "Compression", "threshold": -26, "range": -4, "ratio": 2.5, "attack": 22, "release": 40 },
+      { "low_crossover": 2000, "high_crossover": 8000, "mode": "Compression", "threshold": -30, "range": -3, "ratio": 2, "attack": 7, "release": 25 }
+    ],
+    "proc": { "style": "Punch", "threshold": -24, "ratio": 3, "attack": 12, "release": 90, "knee": 2, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "100/24 HPF clears kick spill below the 200 Hz body; -3@400 de-boxes; dynamic -4@200 tucks the over-prominent fundamental on loud hits; +1.5@3.8k adds crack (only boost); dynamic+spectral -5@7k de-harshes the top edge only when it rings. MB body + fast presence band catch box/spit; Pro-C Punch ~3 dB GR. No makeup."
+  },
+  {
+    "stem": "snare_bottom",
+    "measured": "tilt ~0, centroid 4205, low share 0.02, dominant 199 Hz body-hump the TOP owns, wire detail+spit 4-6.3 k. Thin wires mic by design.",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 220, "q": 0.71, "slope": "24 dB/oct" },
+      { "shape": "Bell", "frequency": 200, "gain": -4, "q": 1.4 },
+      { "shape": "Bell", "frequency": 330, "gain": -2, "q": 1.3 },
+      { "shape": "Bell", "frequency": 5200, "gain": 0, "q": 2.2, "dynamic": true, "dynamic_range": -5 },
+      { "shape": "Bell", "frequency": 6300, "gain": 0, "q": 3, "dynamic": true, "dynamic_range": -4, "spectral": true, "spectral_density": 68 }
+    ],
+    "promb_bands": [
+      { "low_crossover": 4000, "high_crossover": 9000, "mode": "Compression", "threshold": -28, "range": -4, "ratio": 2.5, "attack": 8, "release": 30, "knee": 6 }
+    ],
+    "proc": { "style": "Punch", "threshold": -22, "ratio": 2.5, "attack": 12, "release": 90, "knee": 2, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "Bottom-wires mic kept thin: 220/24 HPF + -4@200 + -2@330 strip the body the top mic owns. Wire detail+spit share 4-6.3 k, tamed DYNAMICALLY: -5@5.2k ducks spit on loud hits, spectral -4@6.3k smooths the brittle ring. MB 4-9k backstops the spit; Pro-C Punch ~3 dB GR. No air shelf (top is hiss). No makeup."
+  },
+  {
+    "stem": "drum_overheads",
+    "measured": "tilt -1.6, centroid 2718, low share 0.11, corr 0.66 width healthy; dominant 199 Hz low-mid mass 160-400, hot 63/80 spill, dull top, cymbal-edge spit only on loud hits (band2 crest 30+, TP-vs-RMS 40 dB).",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 140, "q": 0.7, "slope": "24 dB/oct" },
+      { "shape": "Bell", "frequency": 300, "gain": -3, "q": 1.1 },
+      { "shape": "Bell", "frequency": 6000, "gain": 0, "q": 2.2, "dynamic": true, "dynamic_range": -5, "spectral": true, "spectral_density": 68 },
+      { "shape": "High Shelf", "frequency": 10000, "gain": 2, "q": 0.6 }
+    ],
+    "promb_bands": [
+      { "low_crossover": 150, "high_crossover": 600, "mode": "Compression", "threshold": -26, "range": -4, "ratio": 2, "attack": 20, "release": 35, "knee": 6 }
+    ],
+    "proc": { "style": "Bus", "threshold": -22, "ratio": 2, "attack": 15, "release": 120, "knee": 2, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "Cymbals + stereo picture. 140/24 HPF lets close mics own lows; -3@300 de-boxes the low-mid mass; dynamic+spectral -5@6k tames cymbal spit (fires only on loud hits) without dulling shimmer; +2 air shelf @10k on the dull top. MB low-mid firms box on loud hits; Pro-C Bus ~2 dB GR. Width 1.0 (corr 0.66 preserved). No makeup."
+  },
+  {
+    "stem": "drum_room",
+    "measured": "tilt -2.44, centroid 2067, low_mid 0.70, corr 0.80; dark room, boom ~200 Hz, mud ~400 Hz, kick thump 63-80, carries most continuous bleed - do NOT lift floor.",
+    "proq_bands": [
+      { "shape": "Low Cut", "frequency": 90, "q": 0.7, "slope": "24 dB/oct" },
+      { "shape": "Bell", "frequency": 200, "gain": -3.5, "q": 1.6 },
+      { "shape": "Bell", "frequency": 400, "gain": -2.5, "q": 1.1 },
+      { "shape": "Bell", "frequency": 5000, "gain": 0, "q": 2.5, "dynamic": true, "dynamic_range": -4 }
+    ],
+    "promb_bands": [
+      { "low_crossover": 120, "high_crossover": 700, "mode": "Compression", "threshold": -26, "range": -4, "ratio": 2, "attack": 20, "release": 45, "knee": 6 }
+    ],
+    "proc": { "style": "Bus", "threshold": -22, "ratio": 2, "attack": 15, "release": 180, "knee": 6, "mix": 100 },
+    "prol": { "style": "Transparent", "gain": 0, "ceiling_dbtp": -1 },
+    "rationale": "Room space/glue, carries most bleed - corrective only, no floor lift. 90/24 HPF clears subsonic bleed keeping 63-80 thump; -3.5@200 tames boom, -2.5@400 trims mud; dynamic -4@5k catches hit-edge only on loud hits. MB body glue on loud hits; Pro-C Bus ~2 dB GR; no air boost (top is bleed/hiss). Width preserved (corr 0.80). No makeup."
+  }
+]

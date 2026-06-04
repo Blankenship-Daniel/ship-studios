@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import struct
 
 import pytest
@@ -52,6 +53,21 @@ def test_list_and_sidecar_detected(tmp_path) -> None:
     json.dump({"bpm": 120}, open(str(p) + ".tags.json", "w"))
     r = verify_tags(str(p))
     assert r["has_sidecar"] is True and r["sidecar"]["bpm"] == 120
+
+
+def test_corrupt_sidecar_flagged_and_logged(tmp_path, caplog) -> None:
+    # A .tags.json that exists but isn't valid JSON must be flagged corrupt (the
+    # QC gate, so it must NOT pass as tagged just by existing) AND log the cause —
+    # not silently swallowed by a bare except.
+    p = tmp_path / "loop.wav"
+    _plain_wav(p)
+    (tmp_path / "loop.wav.tags.json").write_text("{not valid json")
+    with caplog.at_level(logging.WARNING):
+        r = verify_tags(str(p))
+    assert r["has_sidecar"] is True
+    assert r["sidecar_corrupt"] is True
+    assert r["tagged"] is False
+    assert "loop.wav.tags.json" in caplog.text
 
 
 def test_verify_dir_flags_untagged(tmp_path) -> None:

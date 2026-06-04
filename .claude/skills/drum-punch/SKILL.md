@@ -72,6 +72,10 @@ not just louder.
   `check-clipping` after.
 - **`render-ab` is mono.** For a stereo before/after of a kit, use
   [[drum-audition]].
+- **Transient-boosting raises peaks.** `shape-bands` adds level to attacks —
+  on a peak-normalized bus this clips. **Pad the input ~−5 dB first** for
+  headroom; a downstream renormalizing stage (a bus EQ/limiter) recovers the
+  level. Confirm the output peak before the next stage.
 
 ## Related
 

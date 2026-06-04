@@ -12,6 +12,9 @@ Two layers, both cheap and additive:
   tool call (and the MCP handshake) also appends one JSON line
   ``{run_id, server, tool, elapsed_s, ok, kind?, rss_self?, rss_children?, at}``.
   Disabled by default, so the offline test suite and normal runs are unaffected.
+  Set ``SHIP_STUDIOS_PERF_RSS=0`` to skip the (~7 ms) psutil process-tree RSS
+  scan and drop ``rss_self``/``rss_children`` from the line; unset (the default)
+  keeps RSS sampling, so the JSONL schema is unchanged.
 
 The ``run_id`` correlates every call made through one :class:`Hub` instance —
 the cross-process correlation key the roadmap calls for. (It is recorded in the
@@ -39,6 +42,10 @@ from typing import Any
 
 #: File path to append the JSONL perf trace to; unset/empty disables the sink.
 PERF_LOG_ENV = "SHIP_STUDIOS_PERF_LOG"
+
+#: Set to ``"0"`` to skip the (~7 ms) psutil process-tree RSS scan in
+#: :func:`sample_rss`; unset/any other value keeps the default RSS sampling.
+PERF_RSS_ENV = "SHIP_STUDIOS_PERF_RSS"
 
 #: Set once after the first sink write/makedirs failure so a misconfigured (but
 #: explicitly enabled) log warns exactly once and then stays a silent no-op.
@@ -77,9 +84,16 @@ def _load_psutil() -> Any:
         return None
 
 
-#: Resolved once at import; ``Any`` so attribute access type-checks whether or
-#: not the optional dependency is present (mypy treats a missing import as Any).
-_PSUTIL: Any = _load_psutil()
+#: Sentinel: ``_PSUTIL`` is resolved lazily on the first :func:`sample_rss`, so a
+#: plain CLI run (cli → pipelines → perf) never pays the ``psutil`` import — it is
+#: the opt-in ``metrics`` extra. A test may monkeypatch ``_PSUTIL`` to a fake or
+#: ``None`` directly; the ``is _UNSET`` guard then skips lazy resolution, so the
+#: patched value stands.
+_UNSET = object()
+
+#: ``Any`` so attribute access type-checks whether or not the optional dependency
+#: is present (mypy treats a missing import as Any).
+_PSUTIL: Any = _UNSET  # resolved lazily on first sample_rss()
 
 
 def sample_rss() -> dict[str, int] | None:
@@ -90,7 +104,12 @@ def sample_rss() -> dict[str, int] | None:
     (and any DSP/Demucs/Pedalboard workers they spawn) — the per-subprocess cost
     Claude Code's native telemetry cannot see. Never raises.
     """
+    global _PSUTIL
+    if _PSUTIL is _UNSET:
+        _PSUTIL = _load_psutil()
     if _PSUTIL is None:
+        return None
+    if os.environ.get(PERF_RSS_ENV, "1") == "0":
         return None
     try:
         proc = _PSUTIL.Process()

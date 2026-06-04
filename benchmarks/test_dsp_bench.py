@@ -36,3 +36,35 @@ def test_zero_phase_eq_benchmark(benchmark) -> None:
     gains = np.array([3.0, -2.0, 4.0])
     out = benchmark(dsp.zero_phase_eq, x, SR, centers, gains)
     assert out.shape[0] == x.shape[0]
+
+
+def test_estimate_benchmark(benchmark) -> None:
+    """The real per-kit hotspot: FFT cross-correlation lag estimation, run on a
+    realistic 40 s @ 48 kHz window (the ``pick_excerpt`` default) against a
+    known-lag delayed copy with a realistic ``max_lag``."""
+    a = _signal(40.0)
+    lag = 137  # a known integer lag, well inside max_lag
+    b = np.roll(a, lag)
+    max_lag = 4800  # 100 ms at 48 kHz — the alignment search range
+    d_star, peak = benchmark(dsp.estimate, a, b, max_lag)
+    assert np.isfinite(d_star) and np.isfinite(peak)
+    # estimate maximizes sum a[n]b[n-d]; with b = roll(a, lag) (b[n] = a[n-lag])
+    # the peak is at d = -lag, so the recovered lag is -d_star (sub-sample exact).
+    assert abs(-d_star - lag) < 1.0  # recovers the planted lag to sub-sample
+
+
+def test_align_to_benchmark(benchmark) -> None:
+    """``align_to`` is the full per-mic alignment driver (envelope-coarse ->
+    waveform-refine + polarity), the genuine per-kit cost. Benchmark it on a
+    realistic 40 s @ 48 kHz target vs a known-lag delayed reference."""
+    ref = _signal(40.0)
+    target = np.roll(ref, 137)
+    max_lag = 4800
+    delay, pol, pre_corr, post_corr = benchmark(dsp.align_to, target, ref, max_lag, SR)
+    assert all(np.isfinite(v) for v in (delay, pol, pre_corr, post_corr))
+
+
+# NOTE: drum_prep.reference_match._measure is intentionally NOT benchmarked here:
+# it takes a directory + reference path and reads WAVs off disk (io.read), so a
+# benchmark would be dominated by disk I/O variance rather than the DSP. The
+# array-callable DSP primitives above cover the genuine per-kit hotspot instead.

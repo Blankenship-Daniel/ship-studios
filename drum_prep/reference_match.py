@@ -145,11 +145,11 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
 
     eq_sig = None
     per_stem_eq = {}
-    for (name, _), out in zip(raw, outs, strict=True):  # one EQ'd output per stem
+    for i, ((name, _), out) in enumerate(zip(raw, outs, strict=True)):  # one EQ'd output per stem
         out = out * trim
         io.write_aiff24(os.path.join(out_dir, name), out, sr)
         per_stem_eq[name] = {k: round(v, 1) for k, v in
-                             dsp.group_avg(gains[names.index(name)], THIRD).items()}
+                             dsp.group_avg(gains[i], THIRD).items()}
         mm = dsp.mono(out)
         if eq_sig is None:
             eq_sig = mm.copy()

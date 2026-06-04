@@ -70,11 +70,21 @@ class Hub:
             raise RuntimeError("Hub is already open; use a fresh Hub per context")
         self._stack = contextlib.AsyncExitStack()
         try:
-            for key in self.server_keys:
-                self._sessions[key] = await self._open_session(key)
+            # Open every server CONCURRENTLY so two independent cold `uv run`
+            # handshakes overlap instead of summing. Within this one event loop the
+            # gathered _open_session coroutines only interleave at await points, and
+            # the shared self._stack is mutated by an atomic list append, so sharing
+            # the AsyncExitStack across them is safe. gather preserves argument order,
+            # so _sessions keeps server_keys insertion order; if any open raises,
+            # gather re-raises the FIRST exception, handled by the except below.
+            results = await asyncio.gather(
+                *(self._open_session(key) for key in self.server_keys)
+            )
+            for key, session in zip(self.server_keys, results, strict=True):
+                self._sessions[key] = session
         except BaseException:
-            # Roll back any partially-opened sessions so a failure on the
-            # second server doesn't leak the first server's subprocess.
+            # Roll back any partially-opened sessions so a failure on one
+            # server doesn't leak another server's subprocess.
             await self._stack.aclose()
             self._stack = None
             self._sessions.clear()

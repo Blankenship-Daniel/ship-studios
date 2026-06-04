@@ -69,6 +69,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "ruff>=0.6",
     "mypy>=1.11",
+    "pytest-xdist>=3",  # OPT-IN: parallel local runs via `uv run pytest -n auto`; do NOT wire into addopts (default serial run is the contract; xdist is for the full-suite loop, useless for `-k one_test`)
 ]
 
 [tool.ruff]

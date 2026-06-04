@@ -245,7 +245,7 @@ Pick the tool(s) matching the ask; never modify the audio:
 
 Slugify the name; create `projects/<slug>/` with the layout below; tell the user where to drop the source and which skill to run next.
 
-### raw-intake — Logic project → clean, song-split, role-labeled kits
+### raw-intake — Logic project → clean, song-split, role-labeled kits (local-DSP skills, no MCP tools)
 
 The create-loops / mix pipelines assume you already have clean, named stems. For
 raw multitrack (a Logic session, an interface dump) two **local-DSP skills**

@@ -32,6 +32,9 @@ the lows, or only the highs** around one crossover. It's the plugin-specific, me
 4. **Level-independent (no threshold)** — it reacts to transient *shape*, not gain, so you don't gain-stage
    into it (unlike the API strip). The output `clip` soft-clips at 0 dB; keep input with headroom or it
    engages.
+5. **The band/mode enums need the [[vst-preset]] harness.** Attack(PUNCH)/decay(SUSTAIN) and crossover are
+   floats you can drive straight from `apply-vst-chain`, but the **band-select / on-off enums are strings** a
+   float-only dict can't set — pick the band (e.g. `sustain_band=LOW`) via the preset harness. See Part A.
 
 ---
 

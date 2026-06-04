@@ -200,7 +200,15 @@ def _resolve_main_root(root: Path) -> Path:
             common_git = Path(rel) if Path(rel).is_absolute() else (gitdir / rel)
         else:  # fall back to the standard .git/worktrees/<name> layout
             common_git = gitdir.parent.parent
-        return common_git.resolve().parent  # parent of the canonical .git dir
+        cg = common_git.resolve()
+        # Only trust the result if it actually points at a git directory (a dir
+        # named ".git"). A tampered or garbage ``commondir`` (e.g. "../../../../tmp")
+        # would otherwise redirect sibling-server resolution to an arbitrary tree ->
+        # a ``uv run`` from an attacker-controlled location. Degrade safely to
+        # ``root`` on anything that isn't the canonical ``.git`` directory.
+        if not (cg.is_dir() and cg.name == ".git"):
+            return root
+        return cg.parent  # parent of the canonical .git dir
     except OSError:
         return root
 
@@ -219,6 +227,15 @@ def _sibling_dir(name: str, override_env: str) -> Path:
 
     Without an override the sibling is looked up next to the **main** checkout
     (:func:`main_repo_root`), so resolution works from a git worktree too.
+
+    SECURITY: the resolved path is launched as ``uv --directory <path> run
+    <console-script>``, which executes that directory's code (its pyproject /
+    console entry point). The override env vars (``SHIP_STUDIOS_LOOPS_DIR`` /
+    ``SHIP_STUDIOS_GEMINI_DIR``) therefore turn env-var control into code
+    execution — set them only in a trusted environment (CI, a vendored checkout),
+    never to a path an untrusted party can write. :func:`checked_server_dir`
+    validates the resolved path before launch, but that catches misconfiguration
+    (a missing/un-synced dir), not a deliberately planted ``pyproject.toml``.
     """
     override = os.environ.get(override_env)
     if override:
@@ -237,12 +254,35 @@ def gemini_dir() -> Path:
 
 
 def server_dir(server_key: str) -> Path:
-    """Resolved sibling-repo path for either server key."""
+    """Resolved sibling-repo path for either server key (no existence check)."""
     if server_key == LOOPS_SERVER:
         return loops_dir()
     if server_key == GEMINI_SERVER:
         return gemini_dir()
     raise KeyError(f"unknown server key: {server_key!r}")
+
+
+def checked_server_dir(server_key: str) -> Path:
+    """Resolve a server's sibling dir AND verify it's a synced repo before launch.
+
+    Guards the actual launch paths — the CLI's ``Hub._open_session`` and the
+    ``.mcp.json`` ``mcp_launch`` shim — so a mistyped or hostile
+    ``SHIP_STUDIOS_*_DIR`` override (or a missing sibling) fails with a clear
+    message instead of an opaque ``uv`` error from a bad ``--directory``. Mirrors
+    the ``doctor`` check (dir + ``pyproject.toml``). ``server_dir`` /
+    ``server_parameters`` stay side-effect-free (no filesystem probe) by design —
+    ``doctor`` does its own reporting — so this is the explicit "about to launch"
+    boundary where touching the filesystem is appropriate.
+    """
+    directory = server_dir(server_key)
+    if not directory.is_dir() or not (directory / "pyproject.toml").is_file():
+        raise FileNotFoundError(
+            f"{server_key}: {directory} is not a synced MCP server repo "
+            f"(missing directory or pyproject.toml). Clone/sync it, or set the "
+            f"correct path via SHIP_STUDIOS_*_DIR (see CLAUDE.md setup); "
+            f"`ship-studios doctor` reports the details."
+        )
+    return directory
 
 
 def _passthrough_env(server_key: str) -> dict[str, str]:

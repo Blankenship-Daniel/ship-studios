@@ -136,7 +136,13 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
 
     anchor = next((s for s in stems if s.role == Role.OVERHEAD), None) or stems[0]
     ax, _ = io.read(os.path.join(stems_dir, anchor.name))
-    lufs_anchor = meter.integrated_loudness(io.to_stereo(ax))
+    # Measure the anchor the SAME way the per-stem loop measures each stem below
+    # (to_stereo for a stereo role, else mono-sum). A blanket to_stereo() would
+    # read a MONO fallback anchor ~3 dB hot (BS.1770 counts the duplicated
+    # channel), skewing every loudness-matched gain vs the mono-measured stems.
+    lufs_anchor = meter.integrated_loudness(
+        io.to_stereo(ax) if anchor.role in _STEREO else dsp.mono(ax)
+    )
 
     role_counts: dict[Role, int] = {}
     role_idx: dict[Role, int] = {}  # keyed by Role (like role_counts), not role.value
@@ -163,8 +169,9 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
             gain_db = _db(gain)
             if s.role in _STEREO:
                 ch = io.to_stereo(x)
-                # Channel-balance only a GENUINE stereo room pair; a mono room mic
-                # (to_stereo duplicates it to both channels) passes through unchanged.
+                # Channel-balance ONLY a genuine stereo room pair. The shape[1]==2
+                # guard skips _balance_channels for a mono room mic (to_stereo has
+                # already duplicated it to both channels, so it is balanced as-is).
                 if s.role == Role.ROOM and x.shape[1] == 2:
                     ch = _balance_channels(ch)
                 if flip:

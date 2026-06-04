@@ -92,6 +92,10 @@ class Hub:
         from mcp.client.stdio import stdio_client
 
         assert self._stack is not None  # set by __aenter__ before this runs
+        # Validate the sibling dir at the launch boundary (server_parameters stays
+        # side-effect-free), so a missing/un-synced or mis-pointed repo fails with
+        # a clear message instead of an opaque `uv --directory` spawn error.
+        config.checked_server_dir(server_key)
         params = config.server_parameters(server_key)
         read, write = await self._stack.enter_async_context(stdio_client(params))
         session = await self._stack.enter_async_context(ClientSession(read, write))

@@ -34,8 +34,9 @@ The skill [[fabfilter-saturn-2]] is the measured workflow over this doc.
    **Foldback** = wavefolder (5th harmonic *louder* than the fundamental); **Rectify** = full-wave rectification
    (fundamental **removed** → octave-up 2k/4k/6k even harmonics); **Destroy** = bit-crush/decimation mush. Our
    measurements **agree with** the corrected web research (tube isn't purely "even", tape is odd-leaning).
-4. **`apply-vst-chain`'s float dict can't really drive Saturn.** All 956 params are Pedalboard `valid_values`
-   lists; the **string enums** — `band_N_style`, `band_N_crossover_slope`, `band_N_state`, `channel_mode`,
+4. **`apply-vst-chain`'s float dict can't really drive Saturn.** All 956 Pedalboard params (the fully-flattened
+   surface — far more than the hand-countable front-panel controls, mostly per-band repeats + modulation slots)
+   expose `valid_values` lists; the **string enums** — `band_N_style`, `band_N_crossover_slope`, `band_N_state`, `channel_mode`,
    `processing_mode`, `high_quality_mode` — can't be set through a float-only dict (the most important one,
    `band_N_style`, is a string). The float dict *can* nudge `band_N_drive`/`mix`/`dynamics`/tone/`crossover_frequency`
    on an already-configured instance, but for any real move **use the [[vst-preset]] harness** (`apply_vst_preset.py`,

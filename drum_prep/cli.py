@@ -209,8 +209,11 @@ def stem_mix_cmd(src: str, out_dir: str | None, target_lufs: float, spec: str | 
         from drum_prep.stem_mix import mix_stems
 
         if spec:
-            with open(spec) as fh:
-                sp = json.load(fh)
+            try:
+                with open(spec) as fh:
+                    sp = json.load(fh)
+            except json.JSONDecodeError as exc:
+                raise click.ClickException(f"invalid JSON in {spec}: {exc}") from exc
         else:
             sp = None
         return mix_stems(src, out_dir, target_lufs, sp, t0=t0, dur=dur)

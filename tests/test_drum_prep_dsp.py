@@ -125,3 +125,12 @@ def test_tilt_tracks_relative_difference() -> None:
     t_bright = _measured_tilt(colored_noise(SR, n, 0.0, seed=5))
     assert abs((t_dark - t_bright) - (-6.0)) < 1.0
     assert t_dark < t_bright
+
+
+def test_tilt_rejects_nonpositive_centers() -> None:
+    # A 0 Hz center -> log2(0) -> polyfit "SVD did not converge". Reject it clearly.
+    db = np.array([0.0, 1.0, 2.0])
+    with pytest.raises(ValueError, match="positive frequencies"):
+        dsp.tilt(db, np.array([0.0, 1000.0, 2000.0]))
+    # a valid positive-frequency call still works.
+    assert np.isfinite(dsp.tilt(db, np.array([250.0, 1000.0, 4000.0])))

@@ -45,6 +45,25 @@ def test_mix_produces_stereo_bus(tmp_path) -> None:
     assert any(r["role"] == "hihat" and "pan" in r["place"] for r in res["balance"])
 
 
+def test_mono_anchor_measured_as_mono_not_stereo(tmp_path) -> None:
+    # With no overhead, the anchor falls back to a MONO close mic. It must be
+    # measured the same way (mono-sum) as the other mono stems — a blanket
+    # to_stereo() would read it ~3 dB hot and skew every loudness-matched gain.
+    # The anchor stem's own gain then equals its feel offset exactly
+    # (lufs_anchor == its own lufs), so kick_in (stems[0]) lands at the -2 dB
+    # roomy offset, not -2+3 = +1.
+    from drum_prep.mix import FEELS
+
+    rng = np.random.default_rng(0)
+    n = SR * 8
+    _w(tmp_path / "kick in.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    _w(tmp_path / "snare top.wav", (rng.standard_normal(n) * 0.3).astype(np.float32))
+    kit = resolve_kit(str(tmp_path), strict=False)
+    res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), feel="roomy", dur=0)
+    rows = {r["role"]: r for r in res["balance"]}
+    assert rows["kick_in"]["gain_db"] == pytest.approx(FEELS["roomy"]["kick_in"], abs=0.05)
+
+
 def test_flat_mode_unity_bounce(tmp_path) -> None:
     kit = _kit_dir(tmp_path)
     res = mix_kit(kit, str(tmp_path), out_dir=str(tmp_path / "mix"), flat=True, dur=0)

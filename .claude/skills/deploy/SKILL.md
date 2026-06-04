@@ -18,8 +18,8 @@ Goal: take the work in the current worktree from "uncommitted" to "merged into
 - Runs from a worktree under `.claude/worktrees/<name>/` (usually on a throwaway
   `worktree-*` branch with no upstream). Confirm with `git rev-parse --show-toplevel`.
 - "CI green" = the **PR-triggered** checks pass: `test` (Python 3.12 **and** 3.13)
-  + `base-deps`. `live-contract` is `workflow_dispatch`/`schedule`-only — it never
-  appears on a PR; do not wait on it.
+  + `base-deps`. `live-contract` is `workflow_dispatch`/`schedule`-only — on a PR it
+  shows up but is **skipped** (`SKIPPED`, non-blocking), so don't gate on it.
 - Mandatory footers: commits end with
   `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`; PR
   bodies end with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
@@ -64,9 +64,9 @@ Goal: take the work in the current worktree from "uncommitted" to "merged into
    gh pr checks <pr> --watch --fail-fast --interval 20
    ```
    This blocks until checks finish; `--fail-fast` exits on the first failure.
-   `live-contract` will not appear. If a PR genuinely has **zero** checks
-   (none configured), don't block forever — treat as "no CI gate, proceed (CI not
-   applicable)" and say so.
+   `live-contract` shows as `skipping` on a PR (non-blocking — `--fail-fast`
+   ignores skips). If a PR genuinely has **zero** checks (none configured), don't
+   block forever — treat as "no CI gate, proceed (CI not applicable)" and say so.
 8. **Verify green explicitly (don't trust the exit code alone):**
    ```bash
    gh pr checks <pr> --json name,bucket,state
@@ -108,8 +108,10 @@ left to do.
 - **Worktree branch-delete gotcha.** Never `gh pr merge -d` here; delete the
   remote branch with `git push origin --delete <branch>` and leave the local one
   (it's checked out in this worktree).
-- **`live-contract` is not a PR check** — gated to `workflow_dispatch`/`schedule`;
-  it won't show in `gh pr checks` on a PR. Don't wait for it.
+- **`live-contract` is not a gate** — gated to `workflow_dispatch`/`schedule`, so on
+  a PR it appears in `gh pr checks` as `skipping`/`SKIPPED` (a skip, not a failure).
+  `--fail-fast` ignores it and the step-8 `bucket` verify only requires the three
+  gate checks; don't wait for or gate on it.
 - **Footers are mandatory.** Use the `$'…'` forms so the blank line + exact footer
   text land. Repo history + reviewers expect both.
 - **No wikilinks in this skill** — `scripts/lint_skills.py` fails on any unresolved

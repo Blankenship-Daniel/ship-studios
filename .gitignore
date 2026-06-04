@@ -11,6 +11,8 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+# pytest-benchmark autosave baselines are machine/CPU-specific (wall-clock) — don't commit
+.benchmarks/
 
 # Secrets / local env
 .env

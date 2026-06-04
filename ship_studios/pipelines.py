@@ -18,6 +18,7 @@ from __future__ import annotations
 from pathlib import PurePosixPath
 from typing import Any, Protocol
 
+from ship_studios import perf
 from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER
 
 #: Verified ``export-deliverables`` preset names (stemmy-loops ``_dsp/deliverables.py``
@@ -140,11 +141,28 @@ class _Recorder:
     async def run(
         self, server_key: str, tool: str, args: dict[str, Any]
     ) -> Any:
-        result = await self._hub.call_tool(server_key, tool, args)
-        self.steps.append(
-            {"server": server_key, "tool": tool, "args": args, "result": result}
-        )
-        return result
+        # Time + record every step, on success AND failure: a failed step is the
+        # one you most want in the trace. The extra keys (elapsed_s/ok) are additive
+        # — the step dict stays a superset of {server,tool,args,result}. The finally
+        # runs before the exception propagates (it does not swallow it).
+        start = perf.now()
+        result: Any = None
+        ok = False
+        try:
+            result = await self._hub.call_tool(server_key, tool, args)
+            ok = True
+            return result
+        finally:
+            self.steps.append(
+                {
+                    "server": server_key,
+                    "tool": tool,
+                    "args": args,
+                    "result": result,
+                    "elapsed_s": round(perf.now() - start, 6),
+                    "ok": ok,
+                }
+            )
 
 
 async def master_track(

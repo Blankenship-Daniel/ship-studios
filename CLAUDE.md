@@ -336,6 +336,8 @@ script returns a structured object the session writes out.
 | `fool-in-the-rain` / `home-at-last` / `tomorrow-never-knows` | the famous-drum **bus-tuning** twins: render N drum-bus variants → a parallel multi-lens Gemini judge panel against that recipe's brief → pick the winner (whose meters become the preset's `approved_signature`). The same-named skill calls this to lock its chain | the balanced pre-bus + `out_dir` (+ the variant flags) |
 | `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / **mono-caveat** / **argument-hint** / frontmatter drift | the skill-dir list + valid-target sets |
 | `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift | (agents read the files themselves) |
+| `measure-performance` | a SERIAL measure agent (honest numbers: import/startup · test-suite · DSP bench+scaling+memory · perf-instrumentation overhead · CLI cold-start) → one analysis agent per surface → an adversarial skeptic per finding → a synthesized prioritized report | nothing — it **re-measures** the repo each run; optional `args.dimensions` / `args.venv` |
+| `fix-perf-issues` | one edit agent per **DISJOINT** file group (parallel, conflict-free) → one central CI gate (pytest + benchmarks + ruff + mypy) → an automatic repair pass on red | the `args.fixes=[{id,title,files,instr}]` list (e.g. the actionable findings from a `measure-performance` run) |
 
 Reference a workflow in prose as `name` / `/name` (a slash command) — **not** as
 a `[[name]]` wikilink (those resolve to skills/docs only). **Workflows are NOT in

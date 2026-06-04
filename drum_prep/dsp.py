@@ -211,6 +211,10 @@ def zero_phase_eq(x: np.ndarray, sr: int, centers: np.ndarray, gains_db: np.ndar
 
     Because the gain is real and non-negative, the phase of every bin is left
     untouched — so a prior inter-mic phase alignment survives intact.
+
+    A 1-D ``(N,)`` input is treated as a single channel and returned 2-D
+    ``(N, 1)`` (production callers pass 2-D ``(N, ch)`` from
+    :func:`drum_prep.io.read`; the 1-D path is for direct/unit use).
     """
     x = np.atleast_2d(x.T).T if x.ndim == 1 else x  # normalize to (N, ch)
     n = x.shape[0]

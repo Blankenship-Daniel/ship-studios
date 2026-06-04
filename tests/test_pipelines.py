@@ -612,6 +612,34 @@ async def test_loops_to_deliverables_sequence() -> None:
     assert result["bpm"] == 120.0
 
 
+def test_loop_paths_nested_manifest_joins_out_dir() -> None:
+    # the real find-loops shape: loops nested under "manifest", each wav a basename
+    # joined to out_dir.
+    manifest = {"out_dir": "out", "manifest": {"loops": [{"wav": "a.wav"}, {"wav": "b.wav"}]}}
+    assert pipelines._loop_paths(manifest) == ["out/a.wav", "out/b.wav"]
+
+
+def test_loop_paths_flat_shape_and_alternate_keys() -> None:
+    # loops at top level + the alternate name keys (path/wav_path/file) all resolve.
+    manifest = {"out_dir": "d",
+                "loops": [{"path": "x.wav"}, {"wav_path": "y.wav"}, {"file": "z.wav"}]}
+    assert pipelines._loop_paths(manifest) == ["d/x.wav", "d/y.wav", "d/z.wav"]
+
+
+def test_loop_paths_absolute_name_not_joined() -> None:
+    assert pipelines._loop_paths(
+        {"out_dir": "out", "loops": [{"wav": "/abs/a.wav"}]}
+    ) == ["/abs/a.wav"]
+
+
+def test_loop_paths_degrades_to_empty_never_raises() -> None:
+    # non-dict input, no loops, and unusable loop entries all yield [] (callers
+    # fall back to input_path); it must never raise.
+    assert pipelines._loop_paths("nope") == []
+    assert pipelines._loop_paths({"out_dir": "o"}) == []
+    assert pipelines._loop_paths({"loops": [{"nope": 1}, "notadict"]}) == []
+
+
 async def test_loops_to_deliverables_processes_every_loop() -> None:
     from tests.conftest import RecordingHub
 

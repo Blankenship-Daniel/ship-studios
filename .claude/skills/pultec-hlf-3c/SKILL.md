@@ -1,6 +1,6 @@
 ---
 name: pultec-hlf-3c
-description: "Use when running the UAD/UADx Pultec HLF-3C for clean, musical high-pass / low-pass FILTERING on a stem, bus, mix, or master — 'Pultec HLF-3C', 'Pultec filter', 'high-pass the rumble', 'roll off the harsh top', 'low-cut / high-cut filter', 'tame the cymbals / hiss / digital edge', 'band-limit this', 'lo-fi / telephone / vintage filter effect', or when you want a smooth passive filter instead of a surgical Butterworth HPF/LPF. The measured, plugin-specific deep-dive of [[vst-eq]] — a PURE FILTER (low-cut 50–2000 CPS + high-cut 1.5–15 KCS, no boost/Q/gain, 0.000% THD), grounded in the real 4-enum-param surface + isolation/slope/render numbers in docs/vst/pultec-hlf-3c.md. NOT a tonal EQ (that's the EQP-1A) — it only removes the extremes. Stemmy MCP, the `vst` extra. UADx native (iLok account, no dongle; verified-headless on this rig)."
+description: "Use when running the UAD/UADx Pultec HLF-3C for clean, musical high-pass / low-pass FILTERING on a stem, bus, mix, or master — 'Pultec HLF-3C', 'Pultec filter', 'high-pass the rumble', 'low-cut / high-cut filter', 'tame the cymbals / hiss / digital edge', 'band-limit this', 'lo-fi / telephone filter effect'. The plugin-specific deep-dive of [[vst-eq]] — a PURE FILTER (no boost/Q/gain), not a tonal EQ (that's the [[pultec-eqp-1a]]). Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: low-cut|high-cut|band-limit|lofi|tame-top|rumble]
 ---
 

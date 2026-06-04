@@ -1,6 +1,6 @@
 ---
 name: fabfilter-saturn-2
-description: "Use when running FabFilter Saturn 2 for multiband distortion / saturation / harmonic color on a stem, bus, or loop — 'Saturn 2', 'FabFilter Saturn', 'saturate this', 'multiband saturation', 'tube/tape/amp/transformer warmth', 'add harmonics/grit/drive', 'tape glue on the drum bus', 'parallel smash the drums', 'make the bass cut on small speakers', 'lo-fi/destroy/bitcrush', 'add air with saturation'. The measured, plugin-specific deep-dive of [[vst-saturate]] — a 6-band distortion engine with 28 styles (tube/tape/amp/transformer/saturation + Foldback/Rectify/Destroy FX), per-band Drive/Dynamics/Feedback/Tone/Mix, Mid-Side, Linear-phase + HQ oversampling, grounded in the real 956-param Pedalboard surface + our render/harmonic results in docs/vst/fabfilter-saturn-2.md. Renders headless, no-iLok. Stemmy MCP, the `vst` extra."
+description: "Use when running FabFilter Saturn 2 for multiband distortion / saturation / harmonic color on a stem, bus, or loop — 'Saturn 2', 'FabFilter Saturn', 'multiband saturation', 'tube/tape/amp/transformer warmth', 'add harmonics/grit/drive', 'lo-fi/destroy/bitcrush'. The measured, plugin-specific deep-dive of [[vst-saturate]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: warm|parallel|bass|air|density|lofi|master]
 ---
 

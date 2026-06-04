@@ -1,6 +1,6 @@
 ---
 name: studer-a800
-description: "Use when running the UAD/UADx Studer A800 tape plugin for warmth/glue/tape-compression on a stem, drum bus, or mix bus — 'add tape', 'Studer A800', 'tape warmth on the drums', 'tape glue on the 2-bus', 'tame the harshness with tape', or when a tape chain sounds harsh/bright and you need to know which knob. The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real A800 param surface + isolation numbers in docs/vst/studer-a800.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UAD/UADx Studer A800 tape plugin for warmth/glue/tape-compression on a stem, drum bus, or mix bus — 'Studer A800', 'add tape', 'tape warmth on the drums', 'tape glue on the 2-bus', 'tame the harshness with tape'. The plugin-specific deep-dive of [[vst-saturate]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: warm/glue/tame-harshness/punch]
 ---
 

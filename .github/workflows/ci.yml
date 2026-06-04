@@ -33,5 +33,11 @@ jobs:
       - name: Type-check (mypy)
         run: uv run mypy
 
+      # Deterministic skill-contract lint (stdlib only): the recurring [G]-keyless
+      # label bug, wikilink resolution, and frontmatter presence across .claude/skills.
+      # The deeper agent-based audit-skill-consistency workflow can't run in CI.
+      - name: Lint skills (doc contract)
+        run: uv run python scripts/lint_skills.py
+
       - name: Test (pytest)
         run: uv run pytest -q

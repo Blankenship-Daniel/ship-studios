@@ -1,6 +1,6 @@
 ---
 name: fool-in-the-rain
-description: "Use when the user wants the Led Zeppelin 'Fool In The Rain' / John Bonham drum sound from a FOLDER of multi-mic drum stems (with ROOM + overhead mics) — 'Bonham drums', 'Fool In The Rain drum sound', 'room-forward 70s rock drums', 'make the room the star', 'big warm dark Bonham kit', 'that Zeppelin drum tone', 'do the whole Bonham drums workflow'. The composite end-to-end pipeline (the first of the 'famous drum sound' recipes): phase-align → per-stem process → ROOM-FORWARD balance → Helios+tape+SSL Bonham bus → loops. Room-DOMINANT, warm/dark, fat low-mids, breathing glue; the room mic IS the reverb. This is the TONE, not the shuffle GROOVE, and it NEEDS room mics. Local DSP + the stemmy MCP servers; needs the `vst` extra (Helios/Studer/SSL) + optional GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user wants the Led Zeppelin 'Fool In The Rain' / John Bonham drum sound from a FOLDER of multi-mic drum stems (which must include ROOM + overhead mics) — 'Bonham drums', 'Fool In The Rain drum sound', 'room-forward 70s rock drums', 'make the room the star', 'big warm dark Bonham kit', 'that Zeppelin drum tone'. Room-dominant, warm/dark, fat low-mids, breathing glue; the room mic IS the reverb. The TONE, not the shuffle groove, and it NEEDS room mics. Local DSP + the stemmy MCP servers; needs the `vst` extra + optional GEMINI_API_KEY (perceptual A/B)."
 argument-hint: <stems-folder> [slug] [bpm]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kit-bb-n105
-description: "Use when running the KIT Plugins BB N105 V2 (Blackbird Studio Neve 8078 / 31105 channel strip) for warm, thick, vintage Neve tone on drums, bus, bass, or vocals — 'KIT BB N105', 'Blackbird Neve channel', 'Neve 8078/31105 console', 'that warm Neve drum sound', 'use the BB N105', or when you need the 4-band 31105 EQ + Mic-mode transformer drive dialed for warmth without harshness. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real 23-param surface + isolation/drive/EQ numbers in docs/vst/kit-bb-n105.md. The WARM Neve counterpart to the punchy API siblings [[kit-bb-a5]] / [[api-vision-channel-strip]]. Stemmy MCP, the `vst` extra. iLok/PACE (verified-headless on this rig)."
+description: "Use when running the KIT Plugins BB N105 V2 (Blackbird Studio Neve 8078 / 31105 channel strip) for warm, thick, vintage Neve tone on drums, bus, bass, or vocals — 'KIT BB N105', 'Blackbird Neve channel', 'Neve 8078/31105 console', 'that warm Neve drum sound', 'use the BB N105'. Measured deep-dive of [[vst-channel-strip]]; the WARM Neve counterpart to the punchy [[kit-bb-a5]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: warm-bus/weight/de-box/air]
 ---
 

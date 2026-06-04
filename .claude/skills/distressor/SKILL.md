@@ -1,6 +1,6 @@
 ---
 name: distressor
-description: "Use when running the UADx Empirical Labs Distressor (EL8) for aggressive/forward compression, drum smack, parallel 'smash', NUKE room-mic explosion, opto vocal leveling, bass thickness, or harmonic warmth/grit — 'Distressor', 'Empirical Labs', 'EL8', 'put the Distressor on the drums/snare/room/bass/vocal', 'NUKE the room mics', 'parallel smash the drums', '10:1 British-style drums', 'Dist 2/Dist 3 warmth', 'opto-level this vocal', 'that forward in-your-face compression'. The measured, plugin-specific deep-dive of [[vst-compress]] / [[vst-saturate]] — an 8-curve 'knee' compressor + 2nd/3rd-harmonic distortion box, grounded in the real 12-enum-param Pedalboard surface + ratio/input/attack/release/detector/distortion/mix render numbers in docs/vst/distressor.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UADx Empirical Labs Distressor (EL8) for aggressive/forward compression, parallel smash, room-mic NUKE, or harmonic grit — 'Distressor', 'Empirical Labs', 'EL8', 'NUKE the room mics', 'Dist 2/Dist 3 warmth'. The deep-dive of [[vst-compress]] / [[vst-saturate]]. Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: drum-glue|aggressive|parallel|opto|2bus]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: manley-variable-mu
-description: "Use when running the UADx Manley Variable Mu for CLEAN/transparent vari-mu tube glue, leveling, M/S mastering, or parallel compression on a mix bus, 2-bus, master, drum bus, vocal, or bass — 'Manley Variable Mu', 'Vari-Mu', 'Variable Mu compressor', 'transparent tube bus glue', 'glue the mix bus with the Manley', 'mastering compressor', 'M/S bus compression', 'vari-mu on the 2-bus', 'parallel-smash the drums with the Manley'. The measured, plugin-specific deep-dive of [[vst-compress]] — an all-tube variable-mu compressor that LEVELS macro-dynamics while KEEPING transients (crest held/up, even-harmonic color only when driven), grounded in the real 23-enum-param Pedalboard surface + threshold/input/attack/recovery/comp-vs-limit/headroom/M-S render numbers in docs/vst/manley-variable-mu.md. The CLEAN counterpart to the thicker [[fairchild-660]]. Stemmy MCP, the `vst` extra."
+description: "Use when running the UADx Manley Variable Mu for CLEAN/transparent vari-mu tube glue, leveling, or M/S mastering on a mix bus, 2-bus, master, or drum bus — 'Manley Variable Mu', 'Vari-Mu', 'transparent tube bus glue', 'vari-mu on the 2-bus', 'M/S bus compression'. The measured deep-dive of [[vst-compress]]; the CLEAN counterpart to [[fairchild-660]]. Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: drum-glue|bus-glue|parallel|master-ms]
 ---
 

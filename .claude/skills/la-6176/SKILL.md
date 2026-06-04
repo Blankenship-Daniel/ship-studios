@@ -1,6 +1,6 @@
 ---
 name: la-6176
-description: "Use when running the UAD/UADx LA-6176 Signature Channel Strip — a complete one-pass console channel (610 tube preamp + 2-band EQ + a switchable 1176-OR-LA-2A compressor) — on a vocal, bass, guitar, drum bus, or any source: 'LA-6176', '6176 channel strip', 'UA channel strip on the vocal', '610 preamp + 1176', 'put the LA-2A / 1176 on this', 'that Coldplay/Adele vocal chain', 'tube preamp + compressor in one', or when you want to pick FET-fast (1176) vs opto-smooth (LA-2A) compression in one strip. The measured, plugin-specific deep-dive of [[vst-channel-strip]] (preamp+EQ+comp, with a real compressor unlike [[helios-type-69]]) — grounded in the real 26-enum-param surface + isolation/THD/dynamics numbers in docs/vst/la-6176.md. Stemmy MCP, the `vst` extra. UADx native (no iLok)."
+description: "Use when running the UAD/UADx LA-6176 Signature Channel Strip (610 tube preamp + 2-band EQ + a switchable 1176-OR-LA-2A compressor) on a vocal, bass, guitar, drum bus, or any source: 'LA-6176', '6176 channel strip', '610 preamp + 1176', 'put the LA-2A / 1176 on this', 'that Coldplay/Adele vocal chain', 'tube preamp + compressor in one'. The plugin-specific deep-dive of [[vst-channel-strip]] (with a real compressor unlike [[helios-type-69]]). Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: vocal|drum-glue|la2a-punch|warm|smash|bus-glue|color|tighten]
 ---
 

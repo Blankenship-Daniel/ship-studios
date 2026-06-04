@@ -1,6 +1,6 @@
 ---
 name: drum-stems-warm-loops
-description: "Use when the user has a FOLDER of drum stems (kick, snare, overheads, room, +optional FX returns) and wants the whole job done end-to-end: process the stems, volume-balance them, EQ them, sum them into the user's WARM/tight drum bus, and cut drum loops — 'turn these drum stems into a warm bus and loops', 'process+mix my drum stems and make loops', 'warm drum bus + loop pack from this folder', 'do the whole drum-stems-to-loops workflow'. The composite pipeline that chains [[stem-process]] → [[mix-balance]] → [[warm-drum-bus]] → [[loops-to-deliverables]], parameterized by a stems folder + slug, with two confirm-points (BPM, FX-return A/B). Local DSP + the stemmy MCP servers; needs the `vst` extra (Studer/API) + GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user has a FOLDER of drum stems (kick, snare, overheads, room, +optional FX returns) and wants the whole job done end-to-end — process, balance, EQ, sum into the user's WARM/tight drum bus, and cut drum loops: 'turn these drum stems into a warm bus and loops', 'process+mix my drum stems and make loops', 'warm drum bus + loop pack from this folder', 'do the whole drum-stems-to-loops workflow'. The composite pipeline chaining [[stem-process]] → [[mix-balance]] → [[warm-drum-bus]] → [[loops-to-deliverables]]. Local DSP + the stemmy MCP servers; needs the `vst` extra (Studer/API) + GEMINI_API_KEY (perceptual A/B)."
 argument-hint: <stems-folder> [slug]
 ---
 

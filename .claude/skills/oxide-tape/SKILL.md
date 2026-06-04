@@ -1,6 +1,6 @@
 ---
 name: oxide-tape
-description: "Use when running the UAD/UADx Oxide Tape Recorder for fast, simple analog tape warmth, glue, or lo-fi color on a stem/drum-bus/mix-bus/master/loop — 'Oxide Tape Recorder', 'UAD Oxide', 'put Oxide on the drums/mix', 'quick tape warmth', 'simple tape glue', 'add some tape', 'lo-fi tape', or when you want the stripped-down UA tape machine (one Input drive + IPS/EQ/NR switches) instead of the full Ampex/Studer surface. The measured, plugin-specific deep-dive of [[vst-saturate]] — grounded in the real 8-param surface + isolation/harmonic numbers in docs/vst/oxide-tape.md. The lighter, faster cousin of [[ampex-atr-102]] (mastering) and [[studer-a800]] (multitrack). Stemmy MCP, the `vst` extra."
+description: "Use when running the UAD/UADx Oxide Tape Recorder for fast, simple analog tape warmth, glue, or lo-fi color on a stem/bus/mix/master/loop — 'Oxide Tape Recorder', 'UAD Oxide', 'quick tape warmth', 'simple tape glue', 'lo-fi tape', or the stripped-down UA tape machine (one Input drive + IPS/EQ/NR switches) vs the full Ampex/Studer surface. The plugin-specific deep-dive of [[vst-saturate]]; the lighter cousin of [[ampex-atr-102]] / [[studer-a800]]. Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: warm|master|lofi|clean]
 ---
 

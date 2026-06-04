@@ -31,8 +31,9 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
    latency inflates it). For UADx, prefer the `uaudio_*.vst3` path; the `UAD ….component`/`.vst3` twins
    typically come back `PASSTHROUGH ✗ (ignores params)`.
 3. **In-context spot check (optional)** — for a plugin you're about to use, `[L] measure-spectrum` the
-   input, `[L] apply-vst-chain` a strong move (e.g. a +12 dB bell, or an output trim), `[L] measure-spectrum`
-   the output; a **0.00 detail change = passthrough**, regardless of `changed:true`.
+   input, `[L] apply-vst-chain` a strong **EFFECT** move (a +12 dB EQ band, a comp threshold — **not** an
+   output/input trim, which a dead-DSP plugin still passes), `[L] measure-spectrum` the output; a **0.00
+   detail change = passthrough**, regardless of `changed:true`.
 4. **Refresh the inventory (on demand)** — to turn the load-probe list into a render-verified one, probe
    the titles in [`demo/headless-safe-titles.txt`](../../../demo/headless-safe-titles.txt) and keep only
    `RENDERS ✓`. This is a big job (hundreds of plugin loads). At scale, run the **`vst-probe-inventory`
@@ -54,6 +55,15 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
 
 - **`changed:true` is not enough** — `apply-vst-chain` reports `changed` on any difference incl. latency;
   judge by *detail* (spectrum/crest/tilt) or the probe's `Δparam`.
+- **`RENDERS ✓` can be a FALSE positive — a param responding ≠ the EFFECT engaging.** `probe_plugin.py`
+  ranks `output`/`gain`/`level` params FIRST and stops at the first responder, so a plugin whose **output
+  gain works while its actual DSP is inert** (iLok-/learn-/companion-gated) still reports `RENDERS ✓`.
+  Measured this way: **Ozone 11 Equalizer** (EQ dead — only the locked output gain moves), **Neutron 4
+  Compressor/Gate** (0 dB GR at threshold −45/ratio 10), **Neutron 4 Unmask** (needs a companion instance) —
+  all probe `RENDERS` yet don't process. **After a probe pass, confirm the SPECIFIC effect**: push an effect
+  param (an EQ band gain, a comp threshold/ratio, a drive) — *not* output/input gain — and measure the
+  matching detail (`[L] measure-spectrum` for EQ, `[L] measure-loudness` crest/GR for a comp, added
+  harmonics for drive). The iZotope family is the worked example → [[izotope]].
 - **UAD two builds** — `/Library/Audio/Plug-Ins/VST3/uaudio_*.vst3` renders; `…/Components/UAD ….component`
   and `…/VST3/Universal Audio/UAD ….vst3` ignore params headless. Always probe the `uaudio_*` path.
 - **iLok/UADx authorization** — a plugin can be licensed for a DAW yet passthrough in this offline host;
@@ -63,4 +73,5 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
 
 - `[[vst]]` — suite index/doctrine · `[[vst-chain]]` / `[[vst-browse]]` — feed verified picks into these
 - `[[vst-preset]]` — once verified, capture the chain as a preset
+- `[[izotope]]` — the worked example of probe-`RENDERS`-but-effect-inert (Ozone DAW-only; Neutron comp/gate/unmask)
 - `vst-probe-inventory` (workflow) — at-scale parallel render-verification of many plugins → a render-verified inventory

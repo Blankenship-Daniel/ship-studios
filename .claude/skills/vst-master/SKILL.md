@@ -19,8 +19,10 @@ reach here when the user specifically wants their own mastering plugins.
   first if needed).
 - Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)): EQ `FabFilter Pro-Q 4` /
   `Maag EQ4`; comp `FabFilter Pro-C 2` / `SSL Native Bus Compressor 2`; limiter `FabFilter Pro-L 2`
-  / `Brickwall Limiter`. (Only `Ozone 11 Equalizer` loads here; the Ozone 11 mastering modules —
-  Maximizer / Dynamics — are iLok-blocked, so prefer FabFilter/SSL for the comp + limiter.)
+  / `Brickwall Limiter`. (**All Ozone 11 modules are DAW-only here** — Maximizer / Imager / Match EQ
+  are iLok-blocked headless, and even the `Ozone 11 Equalizer` loads but its EQ is **inert offline**
+  [only its output gain responds], so prefer FabFilter/SSL for the EQ + comp + limiter → [[izotope]] /
+  [[ozone-11-maximizer]].)
 
 ## Recipe
 

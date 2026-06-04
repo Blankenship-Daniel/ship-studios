@@ -14,7 +14,8 @@ transient survives.
 
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). Candidates
   ([`docs/vst/README.md`](../../../docs/vst/README.md)): `ValhallaPlate`, `FabFilter Pro-R 2`,
-  `SSL Native FlexVerb`, `ValhallaShimmer`. (Avoid `AIR Studios Reverb` — blocked here.)
+  `SSL Native FlexVerb`, `ValhallaShimmer`, `Neoverb` (iZotope's AI 3-engine reverb — renders & engages
+  headless → [[neoverb]]). (Avoid `AIR Studios Reverb` — blocked here.)
 
 ## Recipe
 

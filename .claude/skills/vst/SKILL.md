@@ -49,6 +49,7 @@ no DAW/GUI/audio-device. This skill is the map; reach for a specific `vst-*` ski
 | `[[vst-de-ess]]` | de-esser, paired with `[G] find-sibilance` |
 | `[[vst-master]]` | plugin mastering chain (EQ→comp→limiter) — the VST sibling of `[[master-track]]` |
 | `[[vst-amp]]` | guitar/bass amp + pedal tone (TONEX, NAM, Amp Rooms) |
+| `[[izotope]]` | the iZotope family map (Ozone/Neutron/RX/Nectar/Neoverb) + headless render verdicts |
 
 ### Per-plugin deep-dives (measured)
 
@@ -72,9 +73,10 @@ The table above highlights a few; the **complete set** — each a measured field
 
 - **Channel strips / consoles:** [[api-vision-channel-strip]] · [[ssl-4k-e]] · [[ssl-native-channel-strip-2]] · [[la-6176]] · [[helios-type-69]] · [[kit-bb-a5]] · [[kit-bb-n105]] · [[kit-bb-n73]] · [[manley-voxbox]]
 - **Compressors:** [[fairchild-660]] · [[manley-variable-mu]] · [[la-3a]] · [[dbx-160]] · [[distressor]] · [[ssl-bus-compressor-2]]
-- **EQs:** [[pultec-eqp-1a]] · [[pultec-meq-5]] · [[pultec-hlf-3c]] · [[manley-massive-passive]] · [[hitsville-eq]] · [[hitsville-eq-mastering]]
-- **Tape / saturation / transient:** [[studer-a800]] · [[ampex-atr-102]] · [[oxide-tape]] · [[softube-tape]] · [[vibe-analog-machines]] · [[softube-transient-shaper]] · [[tape-j-37]] (⚠ loads but renders passthrough headless — DAW-only)
+- **EQs:** [[pultec-eqp-1a]] · [[pultec-meq-5]] · [[pultec-hlf-3c]] · [[manley-massive-passive]] · [[hitsville-eq]] · [[hitsville-eq-mastering]] · [[neutron-4-equalizer]] · [[neutron-4-sculptor]]
+- **Tape / saturation / transient:** [[studer-a800]] · [[ampex-atr-102]] · [[oxide-tape]] · [[softube-tape]] · [[vibe-analog-machines]] · [[softube-transient-shaper]] · [[neutron-4-exciter]] · [[neutron-4-transient-shaper]] · [[tape-j-37]] (⚠ loads but renders passthrough headless — DAW-only)
 - **FabFilter:** [[fabfilter-pro-q-4]] · [[fabfilter-pro-mb]] · [[fabfilter-saturn-2]] · [[fabfilter-pro-l-2]]
+- **iZotope — repair (RX) / vocal / reverb / mastering:** [[rx-10-voice-de-noise]] · [[rx-10-spectral-de-noise]] · [[rx-10-de-click]] · [[rx-10-de-ess]] · [[rx-10-de-reverb]] · [[nectar-3]] · [[neoverb]] · [[rx-10-de-hum]] (⚠ DAW-only) · [[ozone-11-maximizer]] / [[ozone-11-equalizer]] / [[ozone-11-imager]] / [[ozone-11-match-eq]] (⚠ Ozone = DAW-only, iLok) — full map + verdicts: [[izotope]]
 
 ## Prerequisites
 

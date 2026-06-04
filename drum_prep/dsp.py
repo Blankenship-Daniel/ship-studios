@@ -75,7 +75,9 @@ def fractional_delay(x: np.ndarray, delay: float) -> np.ndarray:
         return x.copy()
     n = len(x)
     pad = int(np.ceil(abs(delay))) + 8
-    z = np.zeros(pad, dtype=x.dtype)  # preserve dtype (don't upcast float32 -> float64)
+    z = np.zeros(pad, dtype=x.dtype)  # pad matches x.dtype, but the rfft/irfft path
+    # below always returns float64 regardless of input dtype (production input is
+    # float64 from drum_prep.io.read, so no cast back is needed).
     xp = np.concatenate([z, x, z])
     nfft = len(xp)
     k = np.fft.rfftfreq(nfft)
@@ -236,6 +238,21 @@ def zero_phase_eq(x: np.ndarray, sr: int, centers: np.ndarray, gains_db: np.ndar
     A 1-D ``(N,)`` input is treated as a single channel and returned 2-D
     ``(N, 1)`` (production callers pass 2-D ``(N, ch)`` from
     :func:`drum_prep.io.read`; the 1-D path is for direct/unit use).
+
+    Edge tradeoff (circular convolution): this does an *un-padded*
+    ``rfft -> x gain -> irfft`` at length ``n``, which is circular (not linear)
+    convolution — the filter's time-domain tail that would spill past the buffer
+    end instead WRAPS around onto the start (and vice-versa). The interior is
+    exact; only the first/last few samples carry the wrap. This is safe in the
+    production envelope it's used in: modest gains on full-length stems (the
+    reference-match step caps boosts/cuts at +6/-8 dB, where the filter tail is
+    short and the edge contamination is inaudible against a multi-second stem).
+    A *large narrow* boost (a long, ringing time-domain tail) or a *very short*
+    buffer (a one-bar loop, where the edges are a large fraction of the signal)
+    would produce audible edge contamination. The fix, if those cases arise, is
+    to zero-pad to ``n + tail`` and crop back — mirroring
+    :func:`fractional_delay` — which is deliberately NOT done here so the pinned
+    numeric signature of the verified ref-match path stays bit-identical.
     """
     x = np.atleast_2d(x.T).T if x.ndim == 1 else x  # normalize to (N, ch)
     n = x.shape[0]

@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Additive triggers for the opt-in live-contract job below — never fire on PRs,
+  # so they can't block the normal gate.
+  workflow_dispatch:
+  schedule:
+    # Nightly (03:17 UTC) so the live tool-name + enum contract is re-checked
+    # against the real sibling servers off the PR critical path.
+    - cron: "17 3 * * *"
 
 jobs:
   test:
@@ -41,3 +48,60 @@ jobs:
 
       - name: Test (pytest)
         run: uv run pytest -q
+
+  # Separate, additive job: the live tool-name + enum-subset contract test
+  # (test_pipelines.py::test_live_tool_names_exist_on_servers) opens the REAL
+  # sibling MCP servers and asserts every tool/enum a pipeline emits exists on
+  # them — the one guard against a sibling rename/removed enum slipping past the
+  # offline suite (which only proves the hub is internally consistent).
+  #
+  # NOT in the PR/push gate: it only runs on manual dispatch or the nightly
+  # schedule, and it never blocks `test`. It best-effort checks out the two
+  # siblings next to this repo and points the hub at them; if they are absent or
+  # unsyncable the test SKIPS cleanly (it self-skips unless both siblings expose
+  # a pyproject.toml and the mcp SDK is importable), so this job stays green.
+  live-contract:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout hub
+        uses: actions/checkout@v6
+        with:
+          path: ship-studios
+
+      # Best-effort sibling checkouts next to the hub. If a repo is private or
+      # renamed the step is allowed to fail without failing the job; the test
+      # then skips cleanly because the sibling pyproject.toml is absent.
+      - name: Checkout stemmy-loops sibling (best-effort)
+        continue-on-error: true
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository_owner }}/stemmy-loops-mcp
+          path: stemmy-loops-mcp
+
+      - name: Checkout stemmy-gemini sibling (best-effort)
+        continue-on-error: true
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository_owner }}/stemmy-gemini-mcp
+          path: stemmy-gemini-mcp
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.13"
+
+      - name: Sync hub (mcp client needed to open the live servers)
+        working-directory: ship-studios
+        run: uv sync --extra drum-prep
+
+      # Run only the live-marked contract test. SHIP_STUDIOS_LIVE_CONTRACT=1 arms
+      # it; SHIP_STUDIOS_*_DIR point the hub at the siblings checked out above.
+      # The test self-skips (does not fail) when a sibling is missing/unsynced.
+      - name: Live tool-name + enum contract (skips cleanly if siblings absent)
+        working-directory: ship-studios
+        env:
+          SHIP_STUDIOS_LIVE_CONTRACT: "1"
+          SHIP_STUDIOS_LOOPS_DIR: ${{ github.workspace }}/stemmy-loops-mcp
+          SHIP_STUDIOS_GEMINI_DIR: ${{ github.workspace }}/stemmy-gemini-mcp
+        run: uv run pytest tests/test_pipelines.py -k live -q

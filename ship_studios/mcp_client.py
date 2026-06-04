@@ -163,6 +163,17 @@ class Hub:
         result's text content blocks. Raises ``ToolCallError`` when the
         server flags the result as an error so a broken step fails the
         pipeline loudly rather than feeding garbage to the next tool.
+
+        Timeout semantics (important): the client-side call timeout
+        (``SHIP_STUDIOS_CALL_TIMEOUT``) only abandons the local wait — it
+        does NOT send a cancellation (``notifications/cancelled``) to the
+        server. When the wait elapses this raises ``ToolCallError(kind=
+        "timeout")``, but the sibling subprocess keeps grinding the in-flight
+        tool (e.g. a 10-minute Demucs separation or a Gemini render) until it
+        is reaped at Hub/stack teardown — the work is abandoned, not aborted.
+        So set ``SHIP_STUDIOS_CALL_TIMEOUT`` GENEROUSLY for heavy tools, or to
+        ``0`` to disable it; a too-short timeout wastes the server's compute
+        without freeing it. Passing ``args=None`` is treated as ``{}``.
         """
         session = self.session(server_key)
         timeout = config.call_timeout_s()

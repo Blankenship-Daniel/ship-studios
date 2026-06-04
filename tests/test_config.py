@@ -95,6 +95,25 @@ def test_resolve_main_root_malformed_pointer_falls_back(tmp_path: Path) -> None:
     assert config._resolve_main_root(tmp_path) == tmp_path
 
 
+def test_resolve_main_root_tampered_commondir_decoy_falls_back(tmp_path: Path) -> None:
+    # S1: a tampered ``commondir`` pointing at a DECOY tree that contains a real
+    # ``.git/`` dir (so the name check passes) but does NOT register this worktree
+    # must fail the round-trip and degrade to ``root`` — never launch from the decoy.
+    decoy = tmp_path / "attacker"
+    (decoy / ".git").mkdir(parents=True)  # a real .git dir, but no worktrees/wt entry
+    canonical = tmp_path / "ship-studios"
+    gitdir = canonical / ".git" / "worktrees" / "wt"
+    gitdir.mkdir(parents=True)
+    # Redirect commondir at the decoy's .git instead of the canonical one.
+    (gitdir / "commondir").write_text(f"{decoy / '.git'}\n")
+    wt = canonical / ".claude" / "worktrees" / "wt"
+    wt.mkdir(parents=True)
+    (wt / ".git").write_text(f"gitdir: {gitdir}\n")
+
+    # The decoy's .git has no worktrees/wt -> round-trip fails -> fall back to root.
+    assert config._resolve_main_root(wt) == wt
+
+
 def test_siblings_resolve_from_main_checkout_in_worktree(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -286,3 +305,25 @@ def test_artifacts_root_default_and_override(
     assert config.artifacts_root() == config.repo_root() / "artifacts"
     monkeypatch.setenv("SHIP_STUDIOS_ARTIFACTS_DIR", str(tmp_path / "art"))
     assert config.artifacts_root() == (tmp_path / "art").resolve()
+
+
+@pytest.mark.parametrize("enum", [config.LoopsTool, config.GeminiTool])
+def test_tool_registry_member_value_round_trips(enum: type[config.StrEnum]) -> None:
+    # C1: member NAME == value uppercased with '-'->'_', value == name lowercased
+    # with '_'->'-', and the value round-trips back to the member. This is the
+    # deterministic rule G1b derives independently, so it must hold exactly.
+    for member in enum:
+        assert member.value == member.name.lower().replace("_", "-")
+        assert member.name == member.value.upper().replace("-", "_")
+        assert enum(member.value) is member
+        # StrEnum IS a str: the member equals (and serializes as) its value string.
+        assert member == member.value
+        assert isinstance(member, str)
+
+
+def test_tool_registry_values_are_unique() -> None:
+    # No accidental duplicate tool-name strings across either registry.
+    loops = [m.value for m in config.LoopsTool]
+    gemini = [m.value for m in config.GeminiTool]
+    assert len(loops) == len(set(loops))
+    assert len(gemini) == len(set(gemini))

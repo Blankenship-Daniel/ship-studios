@@ -14,8 +14,12 @@ A = A || {}
 
 const pipelines = A.pipelines || [
   { name: 'master-track',          fn: 'master_track' },
+  { name: 'batch-master',          fn: 'batch_master' },
   { name: 'mix-check',             fn: 'mix_check' },
   { name: 'reference-match',       fn: 'reference_match' },
+  { name: 'house-curve',           fn: 'house_curve' },
+  { name: 'stem-master',           fn: 'stem_master' },
+  { name: 'unmask-stems',          fn: 'unmask_stems' },
   { name: 'loops-to-deliverables', fn: 'loops_to_deliverables' },
   { name: 'understand-audio',      fn: 'understand_audio' },
 ]
@@ -48,7 +52,7 @@ const LOCKSTEP = {
   required: ['inSync', 'issues'],
 }
 
-// ---- Phase 1: one agent per pipeline (5 < 16 → a single parallel barrier is fine) ---------------
+// ---- Phase 1: one agent per pipeline (9 < 16 → a single parallel barrier is fine) ---------------
 phase('Check')
 const results = (await parallel(pipelines.map(p => () =>
   agent(

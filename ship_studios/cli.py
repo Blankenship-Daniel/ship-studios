@@ -23,9 +23,16 @@ import click
 from ship_studios import __version__, config
 
 # Choice lists only (pure data, no MCP SDK) so the click decorators can constrain
-# --platform/--severity at import time; `doctor` stays SDK-free (pipelines imports
-# nothing heavier than config).
-from ship_studios.pipelines import DEFAULT_PRESETS, PLATFORM_CHOICES, SEVERITY_CHOICES
+# --platform/--severity/--intent/--intensity/--match-phase at import time; `doctor`
+# stays SDK-free (pipelines imports nothing heavier than config).
+from ship_studios.pipelines import (
+    DEFAULT_PRESETS,
+    INTENSITY_CHOICES,
+    INTENT_CHOICES,
+    MATCH_PHASE_CHOICES,
+    PLATFORM_CHOICES,
+    SEVERITY_CHOICES,
+)
 
 
 def _format_error(exc: BaseException) -> str:
@@ -84,21 +91,6 @@ def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> None:
         click.echo(click.style(f"Error: {_format_error(exc)}", fg="red"), err=True)
         raise SystemExit(1) from exc
     click.echo(json.dumps(result, indent=2, default=str))
-
-
-def _default_master_out(mix_path: str) -> str:
-    """Default master output: ``<project>/masters/<stem>.master<ext>``.
-
-    Honors the project layout (CLAUDE.md: "Always master into ``masters/``, never
-    overwrite ``mix/``"). When the mix sits in a ``mix/`` dir, the master goes to
-    the sibling ``masters/``; otherwise a ``masters/`` dir beside the mix. The
-    loops ``render-mastered`` tool creates the parent dir, so it need not exist.
-    """
-    from pathlib import Path
-
-    p = Path(mix_path)
-    project = p.parent.parent if p.parent.name == "mix" else p.parent
-    return str(project / "masters" / f"{p.stem}.master{p.suffix}")
 
 
 def _parse_bars(bars: str | None) -> list[int] | None:
@@ -222,14 +214,16 @@ def main() -> None:
               help="Use master-assistant (a typed chain plan) for the perceptual "
                    "step instead of mastering-feedback.")
 @click.option("--intent", default="balanced", show_default=True,
-              type=click.Choice(
-                  ["loud", "dynamic", "warm", "bright", "balanced", "punchy"]),
+              type=click.Choice(INTENT_CHOICES),
               help="master-assistant creative intent (with --assistant).")
 @click.option("--intensity", default="medium", show_default=True,
-              type=click.Choice(["subtle", "medium", "strong"]),
+              type=click.Choice(INTENSITY_CHOICES),
               help="master-assistant intensity (with --assistant).")
 @click.option("--style", default=None,
               help="master-assistant style / genre hint (with --assistant).")
+@click.option("--presets", default=None,
+              help="Comma-separated export presets (default: distribution_44k_16,"
+                   "production_48k_24,master_96k_24).")
 def master(
     mix_path: str,
     out_path: str | None,
@@ -245,12 +239,14 @@ def master(
     intent: str,
     intensity: str,
     style: str | None,
+    presets: str | None,
 ) -> None:
     """Master a near-final mix and export the deliverable format matrix."""
     from ship_studios.mcp_client import open_hub
-    from ship_studios.pipelines import master_track
+    from ship_studios.pipelines import _master_out, master_track
 
-    resolved_out = out_path or _default_master_out(mix_path)
+    resolved_out = out_path or _master_out(mix_path, None)
+    preset_list = _parse_presets(presets)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -270,6 +266,7 @@ def master(
                 intent=intent,
                 intensity=intensity,
                 style=style,
+                presets=preset_list,
             )
 
     _run(_go())
@@ -286,7 +283,7 @@ def master(
 @click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
               show_default=True,
               help="How much of the mix->profile delta match-eq corrects.")
-@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+@click.option("--match-phase", type=click.Choice(MATCH_PHASE_CHOICES),
               default="minimum", show_default=True,
               help="match-eq filter realization.")
 @click.option("--out", "out_path", type=click.Path(), default=None,
@@ -527,7 +524,7 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
               show_default=True,
               help="How much of the mix->reference delta match-eq corrects "
                    "(0=none, 1=fully flatten toward the reference).")
-@click.option("--match-phase", type=click.Choice(["minimum", "linear", "tilt_only"]),
+@click.option("--match-phase", type=click.Choice(MATCH_PHASE_CHOICES),
               default="minimum", show_default=True,
               help="match-eq filter realization (FIR phase, or 1 kHz tilt shelves).")
 @click.option("--match-out", "match_out_path", type=click.Path(), default=None,

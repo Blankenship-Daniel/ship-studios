@@ -92,6 +92,21 @@ def test_zero_phase_eq_sloped_curve_preserves_lag() -> None:
     assert abs(d1 - d0) < 0.5
 
 
+def test_zero_phase_eq_flat_curve_is_identity() -> None:
+    # Documents that zero_phase_eq's INTERIOR is clean: a flat 0 dB curve is an
+    # all-pass (every bin gain == 1), so even with the un-padded (circular) rfft
+    # path the output must equal the input within float round-off — no edge
+    # contamination when there is no filter tail to wrap. (A non-fragile companion
+    # to the circular-convolution tradeoff documented in the function's docstring;
+    # it deliberately does NOT assert any edge-artifact magnitude under a real
+    # curve, which would be brittle.)
+    n = SR
+    a = np.random.default_rng(7).standard_normal(n)
+    flat = np.zeros(len(dsp.THIRD_OCT))
+    out = dsp.zero_phase_eq(a, SR, dsp.THIRD_OCT, flat)[:, 0]
+    assert np.allclose(out, a, atol=1e-9)
+
+
 def test_estimate_declines_when_window_outside_search_range() -> None:
     # halfwidth window wholly outside [-max_lag, max_lag] used to return a bogus
     # lag (idx 0 == -max_lag) with a misleading peak. The guard must decline with

@@ -1,0 +1,132 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) — THE STAR (the stairwell ambience IS the kit). Full, dark, cavernous; the bus crushes it.",
+  "clean": {"hpf_hz": 40, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 40, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 250, "gain_db": 1.5, "q": 1.0},
+   {"type": "high_shelf", "freq_hz": 8000, "gain_db": -2, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 3000, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 4, "thresh": -10, "release_s": 0.3},
+   "eq": {"lf_freq": 100, "lf_gain": 1, "lmf_freq": 250, "lmf_gain": 1, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Inversion vs fool-in-the-rain: here the room is the WHOLE kit and is crushed DARK, not kept warm-open. HPF 40 keeps the low rumble but lets the cavern bloom; +1.5 @250 fills the low-mid body; a -2 @8k shelf starts the darkening (the bus does the rest). Old(FB) 4:1 (heavier than FITR's gentle room comp) for the breathing. declick off; polarity from phase-align."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) — the distant-mic pair (the M160 stereo). Leads when there is no dedicated room channel. Dark, full.",
+  "clean": {"hpf_hz": 60, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 250, "gain_db": 1, "q": 1.0},
+   {"type": "high_shelf", "freq_hz": 9000, "gain_db": -2, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 3000, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 60,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 3, "thresh": -10, "release_s": 0.28},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 250, "lmf_gain": 1, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "The distant pair carries the whole-kit image (and the kick/snare, since the original had ONLY distant mics). HPF 60 (keep more low than a close-mic OH); +1 @250 body; a -2 @9k shelf darkens toward the cavern. Old(FB) 3:1 for the breathing character. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick in.wav",
+  "role": "kick (inside mic) — SUPPORTIVE low thud under the ambience (the distant mics carry the real kick). Far down.",
+  "clean": {"hpf_hz": 35, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 35, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 6000, "gain_db": -3, "q": 0.7}
+  ],
+  "de_harsh": null, "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -8, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 60, "lf_gain": 2, "lmf_freq": 350, "lmf_gain": -2, "hmf_freq": 3000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "The close kick only SUPPORTS the low thud (the distant mics own the kick sound). HPF 35 + +2 @60 weight; -3 @350 de-box; a -3 @6k shelf darkens (no click — Levee has no modern beater attack). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic — a faint click for definition (mostly buried under the ambience).",
+  "clean": {"hpf_hz": 90, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 90, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -3, "q": 1},
+   {"type": "high_shelf", "freq_hz": 6000, "gain_db": -3, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 3, "thresh": -6, "release_s": 0.12},
+   "eq": {"lmf_freq": 200, "lmf_gain": -2, "hmf_freq": 3000, "hmf_gain": 0, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "A faint click only — Levee has no bright beater attack. HPF 90 + -3 @200 + a -3 @6k darken; balanced far down. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare top.wav",
+  "role": "snare top — SUPPORTIVE backbeat under the ambience (the distant mics carry the real snare). Far down, dark.",
+  "clean": {"hpf_hz": 75, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 300, "gain_db": -1.5, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 7000, "gain_db": -3, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 4000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 3, "thresh": -8, "release_s": 0.18},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": -1.5, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -4
+  },
+  "rationale": "The close snare only SUPPORTS the backbeat (the distant mics own the cracking snare-in-the-stairwell). -1.5 @300 de-box; a -3 @7k shelf darkens (no bright crack — it's a damp cavern). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires) — a faint touch of wires under the ambience.",
+  "clean": {"hpf_hz": 150, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4, "q": 1.4},
+   {"type": "high_shelf", "freq_hz": 7000, "gain_db": -3, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 2.5, "thresh": -6, "attack": "Medium", "release_s": 0.18},
+   "eq": {"lf_freq": 200, "lf_gain": -1.5, "lmf_freq": 400, "lmf_gain": -2, "hmf_freq": 7000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -8
+  },
+  "rationale": "Just a faint hint of wires; HPF 150 + de-box + a -3 @7k darkening. Balanced very far down (the distant mics own the snare). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) — MINIMAL (the distant ambience owns the cymbals/hat). Dark, far down.",
+  "clean": {"hpf_hz": 130, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 130, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 250, "gain_db": -4, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 8000, "gain_db": -4, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.1},
+   "eq": {"lmf_freq": 250, "lmf_gain": -2, "hmf_freq": 8000, "hmf_gain": 0, "hf_freq": 12000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Minimal close hat — the distant ambience carries the cymbals. HPF 130 + -4 @250 + a -4 @8k shelf darken hard; balanced far down. declick off."
+ }
+]

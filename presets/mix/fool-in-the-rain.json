@@ -36,6 +36,19 @@
     "_measured_on": "a 45 s clip of the artifacts/drums kit (dev smoke test) — a BRIGHT (centroid 4630, tilt -1.5) and HYPER-DYNAMIC (room crest 34) kit, i.e. a stress test, not a Bonham performance.",
     "_what_to_check": "the DIRECTION, not absolutes: centroid DOWN ~1000 Hz (warmer/darker), tilt more negative (warm, ~-2.0 here from -1.5), correlation MODERATE ~0.65-0.85 (the room/OH stereo is preserved — a live room sits well below the warm-tight bus's 0.97). CREST IS CONTENT-DEPENDENT: this kit's room is so dynamic the bus stays ~28; on a more controlled Bonham source expect lower. 'Breathing glue' = a few dB of crest reduction vs the pre-bus, NOT an absolute 16-18."
   },
+  "approved_signature_watercolors_kit": {
+    "centroid_hz": 1896,
+    "tilt_db_per_oct": -2.61,
+    "crest_db": 25.5,
+    "correlation": 0.856,
+    "lufs_i": -24.0,
+    "true_peak_dbtp": -0.99,
+    "winning_variant": "tight_30ips (--ips \"30 IPS\")",
+    "final_bus": "projects/watercolors/mix/bus_fitr.wav",
+    "_measured_on": "the watercolors kit's ROOM-FORWARD pre-bus (projects/watercolors/mix/bus_fitr_pre.wav: centroid 2673 / tilt -1.62 / crest 27.6 / corr 0.833 / LUFS -30.4 — a genuinely wide, hyper-dynamic room). LOCKED 2026-06-04: won the .claude/workflows/fool-in-the-rain.js 5-lens Gemini panel (44/50) over 5 variants, and a SEQUENTIAL re-render reproduced these meters EXACTLY (an independent re-measure agreed: TP -0.99 dBTP). Also surfaced by /famous-drum-shootout as the best-fit character for this kit.",
+    "_judge_panel": "/fool-in-the-rain 5-lens panel — winner tight_30ips 44/50: roominess 9, warmth 9, glue 8, lowmid 9, dynamics 9. Runner-ups: no_helios 40 (crest 28.1 — without the Helios colour the room reads 'disconnected/pushed back', -5 on roominess), default_15ips 39 (the recipe default — 30 IPS edged it here), slow_breathe 34 (--ssl-attack 30 raised crest), more_glue 31 (--ssl-thresh -20 over-glued).",
+    "_what_to_check": "PER-KIT INVERSION (do NOT change the recipe default): on THIS kit 30 IPS WON over the recipe's standard 15 IPS bloom. The watercolors room is already FAT + hyper-dynamic (pre-bus crest 27.6, tilt -1.62), so 15 IPS over-fattened it while 30 IPS TIGHTENED the low end into the warm/controlled Bonham target (centroid 2673->1896 warm-dark, tilt -1.62->-2.61, crest 27.6->25.5 = breathing not crush, corr 0.833->0.856 = room stereo preserved). 15 IPS remains the documented default for most kits; 30 IPS is the locked setting for THIS kit only. The Helios colour matters (no_helios lost 5 roominess points — the room glue needs it)."
+  },
   "notes": [
     "Needs ROOM mics — no room channel, no Bonham sound (the room is the loudest layer, the 'reverb').",
     "This is the TONE, not the half-time shuffle GROOVE or the ghost-note performance — those live in the source.",

@@ -1,0 +1,51 @@
+{
+  "name": "back-in-black",
+  "description": "FAMOUS DRUM SOUND #5: AC/DC 'Back in Black' (Mutt Lange / Tony Platt, Compass Point 1980). A NEW axis vs the room-warm Bonham 'fool-in-the-rain', the mono-crush Beatles 'tomorrow-never-knows', the clean-dynamic 'home-at-last' and the gated-explosion 'in-the-air-tonight': TIGHT / PUNCHY / DRY / PRESENT arena rock — low-tuned, controlled, upfront drums with strong transients and a PRESENT (never dark) top, captured 'dry and compact' with MINIMAL effects (no tape, no reverb). Anchored on Softube Transient Shaper (add attack, tighten the boom) -> SSL 4K E channel strip (Black EQ weight + de-box + presence, grabby VCA with FAST attack OUT = transients pass = crest UP) -> dbx 160 (light VCA punch). This is the TONE, not a groove. Dev-validated 2026-06-04 on a 60 s drum bus. Honest era PROXY chain — NOT a claim of the literal Compass Point signal path (see notes).",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems (kick + snare + toms + hi-hat + overheads). Overheads carry MOST of the texture (Tony Platt). Room mics OPTIONAL and MINIMAL — Back in Black is DRY/compact; a room channel, if present, sits far down.",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/back-in-black-stem-process.plans.json (PUNCHY + DRY + tight + PRESENT: low-tuned controlled kick, cracking snare, present toms, present-but-smooth overheads; transient snap ALLOWED; declick OFF) -> <kit>/processed-bib/.",
+    "3. KICK/SNARE-FORWARD balance: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS; kick + snare upfront, overheads carrying texture, dry/minimal room) -> bus_bib_pre.wav.",
+    "4. BACK-IN-BLACK BUS: scripts/mix/back_in_black_bus.py bus_bib_pre.wav bus_bib.wav (Softube Transient Shaper -> SSL 4K E -> dbx 160 -> present zero-phase EQ -> natural width; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages."
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem). KICK/SNARE-FORWARD arena rock: kick + snare upfront and punchy, overheads carrying MOST of the texture (Platt), hat present, DRY (room minimal or omitted). Neither room-forward (Bonham) nor mono (TNK).",
+    "snare top": {"target_lufs": -15.0, "pan": 0.0, "_note": "THE backbeat — punchy, cracking, present (low-tuned but snappy)"},
+    "kick in": {"target_lufs": -15.5, "pan": 0.0, "_note": "tight, low-tuned, controlled, PUNCHY — the AC/DC engine"},
+    "overhead": {"target_lufs": -17.0, "pan": 0.0, "_note": "carries MOST of the kit texture (Platt) — present, controlled (stereo)"},
+    "tom": {"target_lufs": -18.0, "pan": 0.0, "_note": "present, punchy fills (if present); pan spread across tom mics"},
+    "hi hat": {"target_lufs": -21.0, "pan": -0.15, "_note": "present, tight (rock hat), not splashy"},
+    "snare bottom": {"target_lufs": -26.0, "pan": 0.0, "_note": "a touch of wires/snap under the top"},
+    "kick beater": {"target_lufs": -25.0, "pan": 0.0, "_note": "defined click for the punchy attack"},
+    "drum room": {"target_lufs": -28.0, "pan": 0.0, "_note": "OPTIONAL + MINIMAL — Back in Black is DRY/compact; omit or keep far down"}
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/back_in_black_bus.py — authoritative; a bare invocation reproduces these. Softube TS / SSL 4K E / dbx 160 are driven inline via Pedalboard set_param (nearest-valid snap) because their band/ratio/colour/routing values are STRING enums apply-vst-chain's float dict would silently drop.",
+    "1_eq_pre_zero_phase": ["high_pass 35 Hz q0.707 (tight subsonic)"],
+    "2_softube_transient_shaper": {"plugin": "Transient Shaper.vst3", "punch_db": 2.0, "punch_band": "WIDE", "punch_type": "SLOW", "sustain_db": -2.0, "sustain_band": "LOW", "crossover_freq_hz": 700, "clip": false, "_intent": "ADD attack (punch +2, WIDE, SLOW = snare crack/fatness) while TIGHTENING the low boom (sustain -2 on the LOW band, xover 700 = kick/snare body tightens, cymbals keep their decay). Level-independent transient design — the AC/DC punch + tight bottom. Keep punch modest (+3 spits)."},
+    "3_ssl_4k_e": {"plugin": "SSL 4K E.vst3", "eq_colour": "Black", "lf_type": "Bell", "lf_frequency_hz": 80, "lf_gain_db": 3.0, "lmf_frequency_khz": 0.45, "lmf_gain_db": -2.0, "lmf_q": 1.0, "hmf_frequency_khz": 3.0, "hmf_gain_db": 1.5, "hmf_q": 1.0, "hf_type": "Shelf", "hf_frequency_khz": 10.0, "hf_gain_db": 1.5, "high_pass_filter_hz": "OUT", "low_pass_filter_khz": "OUT", "compressor_ratio": "4.0", "compressor_threshold_db": -16.0, "compressor_release_s": 0.15, "compressor_fast_attack": "Out", "compressor_mix": 100.0, "compressor_auto_make_up": true, "_intent": "the clean weighty 'British console' tone + the grabby VCA punch. BLACK EQ card (the SSL 'legendary low-end weight'): LF bell +3 @80 = weight, -2 @450 = de-box, +1.5 @3k = attack/presence, +1.5 @10k shelf = PRESENT top (NOT dark). Comp 4:1 @ -16 with FAST attack OUT (slow) -> transients PASS -> crest UP = punch (the measured SSL way; FAST IN would tame it). The E EQ is constant-Q (a top boost stays bright, won't auto-snap). String enums (ratio/colour/types/routing) MUST go through set_param."},
+    "4_dbx_160": {"plugin": "uaudio_dbx_160.vst3", "thresh": -26.0, "compress": " 4.0:1", "gain": 3.0, "meter": "GC", "sc_filter": false, "mix": 100.0, "_intent": "light VCA punch/glue for cohesion. On drums the dbx 4:1 RAISES crest (clamps the body, transients ride over) = MORE punch, not leveling. thresh -26 = only a few dB GR (minimal effects). sc_filter OFF keeps the kick punching. compress is a STRING enum (' 4.0:1', leading space for single-digit ratios)."},
+    "5_eq_post_zero_phase": ["low_shelf 100 +0.5 dB q0.7 (a touch of weight)", "bell 450 -0.5 dB q1.0 (gentle de-box guard)", "bell 3500 +0.5 dB q1.2 (stick snap)", "high_shelf 9000 +1.0 dB q0.7 (PRESENT top — a BOOST, the opposite of TNK's cut)"],
+    "6_stereo_width": {"tool": "adjust-stereo", "width": 1.0, "mono_below_hz": 0, "_intent": "NATURAL width — default 1.0 is a NO-OP (stage skipped). Don't narrow (TNK) or hyper-widen (room/gated)."},
+    "7_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 2525,
+    "tilt_db_per_oct": -2.01,
+    "crest_db": 24.5,
+    "correlation": 0.989,
+    "lufs_i": -23.9,
+    "winning_variant": "default (bare defaults — no flags)",
+    "_measured_on": "a 60 s watercolors drum bus (bus_punchy_pre.wav): pre-bus centroid 2223 / tilt -2.22 / crest 21.6 / corr 0.981 / LUFS -25.8. PLACEHOLDER pending the .claude/workflows/back-in-black.js Gemini judge panel; lock the winner's meters here after a SEQUENTIAL re-render (UADx — SSL/dbx — is non-deterministic across the concurrent workflow renders).",
+    "_what_to_check": "the DIRECTION, not absolutes: (1) crest goes UP (21.6->24.5) = PUNCH — the SSL FAST-out comp + dbx 4:1 + TS punch ADD transient impact rather than leveling it (the OPPOSITE of a crushed bus). (2) centroid UP / tilt held (~-2.0) = PRESENT, not dark (the present top BOOST; the inverse of TNK's dark cut). (3) correlation stays NATURAL (~0.99 here tracks the narrow source; on a wide-OH kit expect ~0.95) — NOT narrowed toward mono and NOT hyper-widened. (4) NO tape/reverb darkening — it's DRY."
+  },
+  "notes": [
+    "This is the TIGHT/PUNCHY/DRY/PRESENT arena-rock TONE, not an AC/DC groove — the groove lives in the source performance.",
+    "PUNCH is the point. The SSL comp runs FAST attack OUT (slow) so transients PASS and crest goes UP; the dbx 4:1 RAISES crest on drums; the Transient Shaper adds attack. Don't over-glue — if crest collapses you've lost the punch.",
+    "DRY/compact — NO tape and NO reverb/echo ('AC/DC didn't like to hear any effects'). Do NOT add a Studer/tape darkening stage (Bonham/TNK) or any ambience (in-the-air-tonight). Keep the room mic minimal or omit it.",
+    "PRESENT, not dark — the post EQ pushes the top a touch (high-shelf BOOST). The inverse of tomorrow-never-knows' dark high-shelf cut.",
+    "HONEST NUANCE (the real recording): 'Back in Black' (1980) was tracked at Compass Point Studios, Nassau, by engineer Tony Platt with producer Robert John 'Mutt' Lange. Platt hunted a drum-position 'sweet spot' in the room where the snare sounded biggest/snappiest; the kit was low-tuned and muffled, OVERHEADS carried most of the texture, the snare went through an Eventide H910 Harmonizer (detuned ~93), and the capture was deliberately dry/compact with minimal effects. Mic'ing: U87 overheads, U47/D20 kick, KM86+SM57 snare, 414/451 hat, MD421/U87 toms, plus moveable ambience mics.",
+    "HONEST PROXY: Softube Transient Shaper + SSL 4K E + dbx 160 is an era-appropriate chase of the tight/punchy/dry/present tone, NOT a claim of Compass Point's gear (no SSL channel on the original; the snare H910 detune is a pitch effect not modeled here). Run .claude/workflows/back-in-black.js to A/B the punch/EQ amounts and lock the winner's meters.",
+    "This is a MIX bus (peak -1, NOT mastered) — hand to master-track for loudness/limiting and loops-to-deliverables for loops."
+  ]
+}

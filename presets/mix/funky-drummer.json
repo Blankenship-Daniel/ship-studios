@@ -1,0 +1,54 @@
+{
+  "name": "funky-drummer",
+  "description": "FAMOUS DRUM SOUND #6: James Brown 'Funky Drummer' (Clyde Stubblefield, King Studios 1969) — the most-sampled breakbeat. A NEW axis vs the room-warm Bonham 'fool-in-the-rain', the mono-crush Beatles 'tomorrow-never-knows', the clean-dynamic 'home-at-last', the gated-huge 'in-the-air-tonight' and the present-arena 'back-in-black': DRY / TIGHT / VINTAGE-FUNK / MONO-ish / MID-FORWARD — a dry, tight, mid-forward kit, band-limited and narrow, sample-ready. Anchored on API Vision channel strip (forward console punch + mid lift) -> Pultec MEQ-5 (passive midrange: body + carved box + 3 kHz presence) -> dbx 160 (tight VCA knock, 4:1 raises crest) -> Pultec HLF-3C (band-limit for the vintage/sample-ready bandwidth) -> narrow toward mono. This is the TONE, not the groove. Dev-validated 2026-06-04 on a 60 s drum bus. Honest era PROXY chain — NOT a claim of the literal King Studios path (see notes).",
+  "pipeline": [
+    "1. SOURCE: phase-aligned multi-mic stems (kick + snare + hi-hat + overheads; toms if present). The funk break is dry/mid-forward and MONO-ish — room mics OPTIONAL and MINIMAL.",
+    "2. PER-STEM PROCESS: scripts/mix/process_stems.py with presets/mix/funky-drummer-stem-process.plans.json (DRY + TIGHT + MID-FORWARD: tight kick, snappy mid-forward snare, restrained vintage top; transient snap a touch; declick OFF) -> <kit>/processed-funky/.",
+    "3. SNARE/KICK-FORWARD balance: scripts/mix/balance_stems.py with the per-role targets below (measured LUFS; the funk snare + kick drive the break, hat present, mono-ish) -> bus_funky_pre.wav.",
+    "4. FUNKY-DRUMMER BUS: scripts/mix/funky_drummer_bus.py bus_funky_pre.wav bus_funky.wav (API Vision -> Pultec MEQ-5 -> dbx 160 -> [opt Studer] -> Pultec HLF-3C band-limit -> narrow; params in that script).",
+    "5. (end-to-end) loops-to-deliverables / master-track as separate stages. (This recipe is the natural source for a breakbeat loop/one-shot pack — see loops-to-deliverables / slice-oneshots.)"
+  ],
+  "balance_targets_lufs": {
+    "_method": "measured integrated LUFS per stem, gained to target; one global -6 dBFS-peak headroom trim on the sum (NOT peak-normalized per stem). DRY/TIGHT FUNK: the snare + kick drive the breakbeat, the hat present (the funk 16ths), overheads a controlled mono-ish image, room minimal. The whole bus is narrowed toward mono at Stage 4.",
+    "snare top": {"target_lufs": -15.0, "pan": 0.0, "_note": "THE funk backbeat + ghost notes — snappy, mid-forward, tight"},
+    "kick in": {"target_lufs": -16.0, "pan": 0.0, "_note": "tight, dry, punchy — the funk pocket"},
+    "hi hat": {"target_lufs": -19.0, "pan": -0.1, "_note": "PRESENT (the funky 16th-note hat is a defining element), tight, not splashy"},
+    "overhead": {"target_lufs": -20.0, "pan": 0.0, "_note": "controlled kit image (stereo); narrowed at the bus toward mono"},
+    "snare bottom": {"target_lufs": -26.0, "pan": 0.0, "_note": "a touch of wires/ghost-note snap under the top"},
+    "kick beater": {"target_lufs": -26.0, "pan": 0.0, "_note": "clean click for definition"},
+    "drum room": {"target_lufs": -30.0, "pan": 0.0, "_note": "OPTIONAL + MINIMAL — the funk break is dry/mono; omit or keep far down"}
+  },
+  "bus_chain": {
+    "_impl": "scripts/mix/funky_drummer_bus.py — authoritative; a bare invocation reproduces these. API/MEQ-5/dbx/HLF-3C are driven inline via Pedalboard set_param (nearest-valid snap) because their type/ratio/CPS-KCS/enable values are STRING enums apply-vst-chain's float dict would silently drop.",
+    "1_eq_pre_zero_phase": ["high_pass 35 Hz q0.707 (subsonic)"],
+    "2_api_vision": {"plugin": "uaudio_api_vision_channel_strip.vst3", "input_select": "Line", "215_on": true, "215_hp_filter": 50, "225_on": true, "225_type": "New (FF)", "225_attack": "Medium", "225_ratio": 4, "225_thresh": -8, "225_knee": "Hard", "225_release": "0.12 s", "eq_on": true, "550_lf_freq": 100, "550_lf_gain": 2, "550_lmf_freq": 700, "550_lmf_gain": 2, "550_hmf_freq": 3000, "550_hmf_gain": 2, "550_hf_freq": 5000, "550_hf_gain": 0, "_intent": "forward American-console PUNCH + a mid-forward EQ (the funk presence lives in the mids). New(FF) 4:1 Medium = forward density; lf +2 @100 weight, lmf +2 @700 + hmf +2 @3k = the mid-forward funk lift. 550 top kept flat (the HLF-3C owns the band-limit)."},
+    "3_pultec_meq_5": {"plugin": "uaudio_pultec_meq-5.vst3", "enable": "In", "lm_freq": "200 CPS", "lm_peak": 3.0, "mid_freq": "500 CPS", "mid_dip": 3.0, "hm_freq": "3 KCS", "hm_peak": 4.0, "output": "0.0 dB", "_intent": "the passive-midrange signature (the MEQ-5 dial is ~dB here): LOW PEAK +3 @200 (body/thump) + DIP -3 @500 (carve the box) + HIGH PEAK +4 @3k (presence/attack). MID-FORWARD — it BOOSTS the mids (do NOT scoop; the funk presence is the midrange)."},
+    "4_dbx_160": {"plugin": "uaudio_dbx_160.vst3", "thresh": -22.0, "compress": " 4.0:1", "gain": 3.0, "meter": "GC", "sc_filter": false, "mix": 100.0, "_intent": "the tight VCA KNOCK. On drums the dbx 4:1 RAISES crest (clamps the body, the snare/kick snap rides over) = the funk knock. thresh -22 = a few dB GR. compress is a STRING enum (' 4.0:1', leading space for single-digit ratios)."},
+    "5_studer_a800_tape": {"plugin": "uaudio_studer_a800.vst3", "_default": "OFF (--tape to enable)", "ips": "15 IPS", "input_level": 2.0, "repro_hf_eq": 2.0, "_intent": "OPTIONAL touch of vintage 15 IPS tape warmth. OFF by default — the funk break is fairly dry; --tape adds period warmth if wanted."},
+    "6_pultec_hlf_3c": {"plugin": "uaudio_pultec_hlf-3c.vst3", "enable": "In", "low_cut": "50 CPS", "high_cut": "10 KCS", "_intent": "BAND-LIMIT = the vintage, sample-ready bandwidth. 50 CPS low-cut tightens the sub; 10 KCS high-cut rolls the very top (-3 @10k, ~-11 @15k) for the period 'tape/sampler' feel. PURE filter (0% THD). Do NOT restore full-range air/sub — the band-limit IS the vintage character."},
+    "7_eq_post_zero_phase": ["low_shelf 80 +0.5 dB q0.7 (a touch of weight)", "bell 3500 +0.5 dB q1.2 (stick snap)"],
+    "8_stereo_width": {"tool": "adjust-stereo", "width": 0.45, "mono_below_hz": 0, "_intent": "NARROW toward mono — the 1969 breakbeat image (like tomorrow-never-knows; the OPPOSITE of in-the-air-tonight's wide). Do NOT widen."},
+    "9_output": "peak-normalize to -1 dBFS (mix bus — NOT mastered)"
+  },
+  "approved_signature_full_kit": {
+    "centroid_hz": 1912,
+    "tilt_db_per_oct": -2.54,
+    "crest_db": 25.1,
+    "correlation": 0.996,
+    "lufs_i": -23.9,
+    "winning_variant": "default (bare defaults — no flags)",
+    "_measured_on": "a 60 s watercolors drum bus (bus_punchy_pre.wav): pre-bus centroid 2223 / tilt -2.22 / crest 21.6 / corr 0.981 / LUFS -25.8. PLACEHOLDER pending the .claude/workflows/funky-drummer.js Gemini judge panel; lock the winner's meters here after a SEQUENTIAL re-render (UADx — API/dbx/Pultec — is non-deterministic across the concurrent workflow renders).",
+    "_what_to_check": "the DIRECTION, not absolutes: (1) crest goes UP (21.6->25.1) = the tight VCA KNOCK (dbx 4:1 + API punch ADD snap, the funk attack). (2) centroid goes DOWN (2223->1912) + tilt slightly warmer (-2.22->-2.54) = the BAND-LIMITED vintage top (the HLF-3C 10 KCS high-cut) — sample-ready, not bright. (3) correlation goes UP toward mono (0.981->0.996) = the NARROW 1969 breakbeat image (the width 0.45 narrow; the inverse of in-the-air-tonight). (4) the MID-FORWARD lift (API + MEQ-5 @700/3k) doesn't raise centroid because the high-cut removes the top — that's the vintage funk balance."
+  },
+  "notes": [
+    "This is the DRY/TIGHT/MID-FORWARD/MONO-ish/sample-ready TONE — the most-sampled breakbeat character — not the groove (Clyde Stubblefield's 8-bar break lives in the source performance).",
+    "MID-FORWARD is the point: both the API EQ and the MEQ-5 BOOST the mids (200/700/3k). Do NOT scoop the mids — the funk presence is the midrange.",
+    "BAND-LIMITED: the HLF-3C cuts the sub AND the very top (10 KCS) for the vintage, sample-ready bandwidth. Do NOT restore full-range air/sub — the band-limit IS the vintage character. (For a brighter take, raise --hlf-highcut to 15 KCS.)",
+    "MONO-ish/NARROW (width ~0.45) — the 1969 image is narrow, like tomorrow-never-knows and the OPPOSITE of in-the-air-tonight. Do NOT widen.",
+    "DRY by default — tape is OFF (--tape adds a touch of vintage 15 IPS warmth); no reverb/echo.",
+    "Natural home for a breakbeat loop/one-shot pack: hand bus_funky.wav to loops-to-deliverables (loops) or slice-oneshots / sample-pack (the individual hits).",
+    "HONEST NUANCE (the real recording): 'Funky Drummer' was cut at King Studios, Cincinnati, on 1969-11-20; the famous 8-bar unaccompanied break is Clyde Stubblefield's (uncredited; he received no songwriter credit or sampling royalties). It was popularized as a sample from the mid-1980s (Eric B. & Rakim, Public Enemy, etc.) and now appears on 1000+ records. The break is dry, mid-forward and narrow on period gear.",
+    "HONEST PROXY: API Vision + Pultec MEQ-5 + dbx 160 + Pultec HLF-3C is an era-appropriate chase of the dry/tight/mid-forward/sample-ready tone, NOT a claim of King Studios' actual gear. Run .claude/workflows/funky-drummer.js to A/B the EQ/comp/band-limit amounts and lock the winner's meters.",
+    "This is a MIX bus (peak -1, NOT mastered) — hand to master-track for loudness/limiting and loops-to-deliverables for loops."
+  ]
+}

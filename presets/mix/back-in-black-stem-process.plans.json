@@ -1,0 +1,138 @@
+[
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick in.wav",
+  "role": "kick (inside mic) — LF thump + beater body. Back in Black: LOW-TUNED, TIGHT, PUNCHY, controlled (the AC/DC engine).",
+  "clean": {"hpf_hz": 34, "denoise": false},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 34, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 31.5, "gain_db": -2.0, "q": 1.2},
+   {"type": "bell", "freq_hz": 350, "gain_db": -3.5, "q": 1.1},
+   {"type": "bell", "freq_hz": 4000, "gain_db": 2.5, "q": 1}
+  ],
+  "de_harsh": null, "dynamic_eq": null,
+  "transient": {"crossovers_hz": [180], "bands": [{"transient": 0.2, "gain_db": 0}, {"transient": 0.2, "gain_db": 0}]},
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 40,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 4, "thresh": -6, "attack": "Medium", "release_s": 0.12},
+   "eq": {"lf_freq": 60, "lf_gain": 1, "lmf_freq": 350, "lmf_gain": -3, "hmf_freq": 4000, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -2
+  },
+  "rationale": "AC/DC kick: low-tuned but TIGHT + PUNCHY. HPF 34 + -2 @31.5 control sub; a firm -3.5 @350 de-boxes the cardboard (the dry/compact sound has no mud); +2.5 @4k = a defined beater attack. A positive transient restores the smack the bus SSL/dbx keep. API New(FF) 4:1 Medium for forward punch. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/kick beater.wav",
+  "role": "kick beater / click mic — owns attack. Back in Black: a defined punchy click.",
+  "clean": {"hpf_hz": 90, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 90, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -3, "q": 1},
+   {"type": "bell", "freq_hz": 4000, "gain_db": 3, "q": 1}
+  ],
+  "de_harsh": {"depth": 0.35, "max_reduction_db": 3, "focus_lo_hz": 5500, "focus_hi_hz": 7500},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -6, "release_s": 0.1},
+   "eq": {"lmf_freq": 200, "lmf_gain": -2, "hmf_freq": 4000, "hmf_gain": 1, "hf_freq": 5000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "HPF 90 hands thump to the 'in' mic; -3 @200 kills box; +3 @4k presents a punchy click; a 5.5-7.5k de-harsh keeps it from spitting (dry but not harsh). declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare top.wav",
+  "role": "snare top — THE backbeat: punchy, cracking, present, low-tuned but snappy.",
+  "clean": {"hpf_hz": 75, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 300, "gain_db": -2, "q": 1.1},
+   {"type": "bell", "freq_hz": 5000, "gain_db": 2.5, "q": 1.3}
+  ],
+  "de_harsh": {"depth": 0.35, "max_reduction_db": 3, "focus_lo_hz": 6000, "focus_hi_hz": 8000},
+  "dynamic_eq": null,
+  "transient": {"crossovers_hz": [400], "bands": [{"transient": 0.2, "gain_db": 0}, {"transient": 0.3, "gain_db": 0}]},
+  "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 4, "thresh": -8, "release_s": 0.15},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 300, "lmf_gain": -2, "hmf_freq": 5000, "hmf_gain": 2, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -3
+  },
+  "rationale": "AC/DC snare = a big punchy crack. -2 @300 de-boxes the low-tuned body so it stays tight; +2.5 @5k = the crack/presence; a positive transient keeps the SNAP (transient snap ALLOWED — the punch is the point). 6-8k de-harsh guards spit. API New(FF) 4:1 Medium for forward density. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/snare bottom.wav",
+  "role": "snare bottom (wires) — buzz/snap detail under the top.",
+  "clean": {"hpf_hz": 150, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 150, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 200, "gain_db": -4, "q": 1.4},
+   {"type": "bell", "freq_hz": 400, "gain_db": -2.5, "q": 1.6},
+   {"type": "bell", "freq_hz": 7000, "gain_db": 2, "q": 1.2}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 6000, "focus_hi_hz": 8000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "New (FF)", "ratio": 3, "thresh": -6, "attack": "Medium", "release_s": 0.14},
+   "eq": {"lf_freq": 200, "lf_gain": -1.5, "lmf_freq": 400, "lmf_gain": -2, "hmf_freq": 7000, "hmf_gain": 1, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -6
+  },
+  "rationale": "HPF 150 kills shell-ring; -4/-2.5 @200/400 de-box; +2 @7k presents the wire snap; 6-8k de-harsh. Thickens the snap under the top. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/hi hat.wav",
+  "role": "hi-hat (close mic) — tight rock hat: present, controlled, not splashy.",
+  "clean": {"hpf_hz": 120, "denoise": true, "denoise_db": 6},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 120, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 250, "gain_db": -4, "q": 1.1},
+   {"type": "bell", "freq_hz": 450, "gain_db": -2.5, "q": 1.4},
+   {"type": "high_shelf", "freq_hz": 9000, "gain_db": 1, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 5000, "focus_hi_hz": 7000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 0,
+   "comp": {"on": true, "type": "New (FF)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.1},
+   "eq": {"lmf_freq": 250, "lmf_gain": -2, "hmf_freq": 9000, "hmf_gain": 1, "hf_freq": 12000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Rock hat = present but tight, not splashy. HPF 120 + -4 @250 + -2.5 @450 clear rumble/whoosh; +1 @9k sizzle DETAIL guarded by a 5-7k de-harsh. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/overhead.wav",
+  "role": "overheads (stereo) — carries MOST of the kit texture (Tony Platt). Present, controlled, NOT dark.",
+  "clean": {"hpf_hz": 110, "denoise": true, "denoise_db": 4},
+  "eq_bands": [
+   {"type": "bell", "freq_hz": 250, "gain_db": -1.5, "q": 1.1},
+   {"type": "high_shelf", "freq_hz": 10000, "gain_db": 1.5, "q": 0.7}
+  ],
+  "de_harsh": {"depth": 0.4, "max_reduction_db": 3.5, "focus_lo_hz": 3500, "focus_hi_hz": 6500},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 100,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -8, "release_s": 0.25},
+   "eq": {"lf_freq": 100, "lf_gain": 0, "lmf_freq": 250, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 12500, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "In Back in Black the OVERHEADS carry most of the texture, so they are PRESENT (not buried). HPF 110 dumps the kick lump; -1.5 @250 eases box; a +1.5 @10k shelf = the present (not dark) top, guarded by a 3.5-6.5k de-harsh so it stays smooth. Old(FB) 2:1 for cohesion that keeps cymbal dynamics. declick off."
+ },
+ {
+  "stem": "/Users/ship/Documents/code/ship-studios/artifacts/drums/phase-aligned/drum room.wav",
+  "role": "room/ambience (stereo) — OPTIONAL + MINIMAL. Back in Black is DRY/compact; keep it tight + far down or omit.",
+  "clean": {"hpf_hz": 80, "denoise": true, "denoise_db": 5},
+  "eq_bands": [
+   {"type": "high_pass", "freq_hz": 80, "gain_db": 0, "q": 0.707},
+   {"type": "bell", "freq_hz": 220, "gain_db": -2, "q": 1.4}
+  ],
+  "de_harsh": {"depth": 0.45, "max_reduction_db": 4, "focus_lo_hz": 2500, "focus_hi_hz": 6000},
+  "dynamic_eq": null, "transient": null, "excite": null,
+  "color_api": {
+   "hp_filter_hz": 80,
+   "comp": {"on": true, "type": "Old (FB)", "attack": "Medium", "ratio": 2, "thresh": -6, "release_s": 0.3},
+   "eq": {"lf_freq": 200, "lf_gain": -1, "lmf_freq": 315, "lmf_gain": 0, "hmf_freq": 5000, "hmf_gain": 0, "hf_freq": 10000, "hf_gain": 0},
+   "line_gain_db": 0, "output_peak_dbfs": -1
+  },
+  "rationale": "Back in Black is DRY/compact, so the room is NOT the sound — keep any room channel tight (HPF 80 + -2 @220) and balance it far down, or omit the stem. Don't make it room-forward (that's fool-in-the-rain). declick off."
+ }
+]

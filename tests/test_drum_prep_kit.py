@@ -1,9 +1,17 @@
-"""Kit detection, manifest overlay, and validation (stdlib — no extra needed)."""
+"""Kit detection, manifest overlay, and validation.
+
+Needs the ``drum-prep`` extra: ``detect_kit`` lazily imports ``drum_prep.io``
+(numpy) to list audio, so this module skips cleanly without it — mirroring the
+other ``test_drum_prep_*`` guards (a bare ``uv run pytest`` on base deps must
+skip, not error).
+"""
 from __future__ import annotations
 
 import json
 
 import pytest
+
+pytest.importorskip("numpy")  # detect_kit -> drum_prep.io imports numpy
 
 from drum_prep.kit import (
     KitError,

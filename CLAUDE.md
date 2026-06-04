@@ -301,6 +301,7 @@ script returns a structured object the session writes out.
 | `batch-master` | one agent per track runs the master chain → cross-track consistency table | the folder + the ONE shared `target_lufs` / `ceiling_dbtp` |
 | `house-curve` | one agent per mix → match-to-profile → match-eq → re-measure; cross-track spread reduce (tonal companion to `batch-master`) | the references (or a prebuilt profile JSON) + the mix list |
 | `stem-process` | one agent per stem diagnoses + authors a corrective plan (parallel reads); the executor then runs as ONE serial UADx-safe pass | the kit's stem dir (`srcDir`/`outDir`); a prebuilt plans list is optional |
+| `drum-stems-character` | two-mode per-stem fan-out: `mode:'correct'` → one agent per stem authors a pure-DSP corrective plan, then ONE serial `process_stems.py`; `mode:'character'` → one agent per stem plans a role+character-aware UADx chain, then ONE serial `character_stems.py` (one stem at a time, UADx-safe). The `drum-stems-character` skill drives it twice with an AskUserQuestion (the chosen character) in between | the kit's stem dir (`srcDir`/`outDir`), the chosen `character` (Clean/Warm/Punchy/Crushed/Aggressive/Bonham/TNK) |
 | `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / frontmatter drift | the skill-dir list + valid-target sets |
 | `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift | (agents read the files themselves) |
 

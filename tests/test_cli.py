@@ -8,6 +8,7 @@ called with which parsed args.
 from __future__ import annotations
 
 import contextlib
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -15,10 +16,40 @@ from click.testing import CliRunner
 
 from ship_studios import cli
 
+_PATH_EXTS = (".wav", ".aif", ".aiff", ".flac")
+
 
 @pytest.fixture
-def runner() -> CliRunner:
-    return CliRunner()
+def runner():
+    """A CliRunner that pre-creates any audio-path token in an isolated CWD.
+
+    The CLI now validates input paths with ``click.Path(exists=True)``, so the
+    dispatch tests (which pass bare names like ``mix.wav``) need those files to
+    exist. Audio-extension tokens are created inside an isolated filesystem for
+    the invoke; the relative arg strings are unchanged, so the recorded-arg
+    assertions still hold. Invocations with no audio tokens (e.g. ``doctor``)
+    run unwrapped.
+    """
+    base = CliRunner()
+
+    class _FileMakingRunner:
+        def invoke(self, cli_obj, argv=None, **kwargs):
+            toks = [t for t in (argv or [])
+                    if isinstance(t, str) and t.endswith(_PATH_EXTS)]
+            if not toks:
+                return base.invoke(cli_obj, argv, **kwargs)
+            with base.isolated_filesystem():
+                for t in toks:
+                    p = Path(t)
+                    if str(p.parent) != ".":
+                        p.parent.mkdir(parents=True, exist_ok=True)
+                    p.write_bytes(b"")
+                return base.invoke(cli_obj, argv, **kwargs)
+
+        def __getattr__(self, name):
+            return getattr(base, name)
+
+    return _FileMakingRunner()
 
 
 @pytest.fixture
@@ -106,6 +137,19 @@ def test_master_default_out_falls_back_to_masters_sibling(
     assert result.exit_code == 0, result.output
     _, args, _ = patched_pipelines[0]
     assert args == ("song/bounce.wav", "song/masters/bounce.master.wav")
+
+
+def test_master_rejects_missing_input(patched_pipelines) -> None:
+    # The input path is validated up front (click.Path(exists=True)): a missing
+    # file is a usage error (exit 2) BEFORE any server is spawned, not a late
+    # failure after the MCP handshake. Uses a bare CliRunner (the `runner`
+    # fixture would auto-create the token).
+    base = CliRunner()
+    with base.isolated_filesystem():
+        result = base.invoke(cli.main, ["master", "nope.wav"])
+    assert result.exit_code == 2
+    assert "does not exist" in result.output
+    assert len(patched_pipelines) == 0  # never reached the pipeline
 
 
 def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:

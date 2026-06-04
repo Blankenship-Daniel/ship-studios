@@ -9,7 +9,19 @@ from __future__ import annotations
 import pytest
 
 from ship_studios.config import GEMINI_SERVER, LOOPS_SERVER
-from ship_studios.mcp_client import ToolCallError
+from ship_studios.mcp_client import Hub, ToolCallError
+
+
+def test_hub_rejects_unknown_server_key() -> None:
+    # A typo'd key must fail at construction with a clear message, not later in
+    # __aenter__/_open_session as a bare KeyError far from the cause.
+    with pytest.raises(ValueError, match="unknown server key"):
+        Hub([LOOPS_SERVER, "not-a-server"])
+
+
+def test_hub_accepts_known_server_keys() -> None:
+    hub = Hub([LOOPS_SERVER, GEMINI_SERVER])
+    assert hub.server_keys == [LOOPS_SERVER, GEMINI_SERVER]
 
 
 async def test_hub_opens_both_sessions_and_initializes(fake_hub) -> None:

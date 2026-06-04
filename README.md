@@ -115,7 +115,7 @@ The hub honours a few optional `SHIP_STUDIOS_*` knobs (defined in
 
 | Var | Default | Purpose |
 |---|---|---|
-| `SHIP_STUDIOS_LOOPS_DIR` | `../stemmy-loops-mcp` | Loops-server location — the escape hatch when the repos don't share a parent (see the sibling-layout note above). |
+| `SHIP_STUDIOS_LOOPS_DIR` | `../stemmy-loops-mcp` | Loops-server location — the escape hatch when the repos don't share a parent (see the sibling-layout note above). Auto-resolved from the main checkout even in a git worktree; set this only for a non-standard layout. |
 | `SHIP_STUDIOS_GEMINI_DIR` | `../stemmy-gemini-mcp` | Gemini-server location. |
 | `SHIP_STUDIOS_STARTUP_TIMEOUT` | `120` | MCP handshake budget, seconds; `0` disables the timeout. |
 | `SHIP_STUDIOS_CALL_TIMEOUT` | `600` | Per tool-call budget, seconds; `0` disables the timeout. |

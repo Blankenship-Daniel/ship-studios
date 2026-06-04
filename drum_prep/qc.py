@@ -17,12 +17,15 @@ reported every AIFF/FLAC as untagged.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import struct
 
 import soundfile as sf
 
 from drum_prep import io
+
+logger = logging.getLogger(__name__)
 
 #: AIFF text/metadata chunk IDs (after trailing-space strip) that count as tags.
 _AIFF_TAG_CHUNKS = frozenset({"NAME", "AUTH", "ANNO", "(c)", "COMT", "ID3"})
@@ -169,7 +172,11 @@ def verify_tags(path: str) -> dict:
         try:
             with open(sidecar) as fh:
                 data = json.load(fh)
-        except Exception:
+        except (OSError, ValueError) as exc:
+            # Unreadable / malformed sidecar -> treat as corrupt (this is the QC
+            # gate), but log the specific cause so an operator can tell a bad-JSON
+            # sidecar from a permission error instead of seeing only a binary flag.
+            logger.warning("could not read tag sidecar %s: %s", sidecar, exc)
             data = {}
             sidecar_corrupt = True
     info = sf.info(path)

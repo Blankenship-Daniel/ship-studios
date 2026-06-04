@@ -88,10 +88,10 @@ const neighborhoodPrompt =
   `Then suggest additional genuinely on-topic existing skills worth linking (suggestedRelated). ` +
   `Finally, name the closest existing skill(s) and assess duplicationRisk — does "${name}" overlap an existing skill, and if so how should the new skill differentiate itself or should it instead extend the existing one? Read SKILL.md files as needed to judge.`
 
-const [styleGuide, groundedFacts, neighborhood] = await Promise.all([
-  agent(conventionsPrompt,   { label: 'research:conventions', phase: 'Research', agentType: 'general-purpose' }),
-  agent(subjectPrompt,       { label: 'research:subject',     phase: 'Research', agentType: 'general-purpose' }),
-  agent(neighborhoodPrompt,  { label: 'research:neighborhood', phase: 'Research', agentType: 'general-purpose', schema: NEIGHBORHOOD }),
+const [styleGuide, groundedFacts, neighborhood] = await parallel([
+  () => agent(conventionsPrompt,   { label: 'research:conventions', phase: 'Research', agentType: 'general-purpose' }),
+  () => agent(subjectPrompt,       { label: 'research:subject',     phase: 'Research', agentType: 'general-purpose' }),
+  () => agent(neighborhoodPrompt,  { label: 'research:neighborhood', phase: 'Research', agentType: 'general-purpose', schema: NEIGHBORHOOD }),
 ])
 
 const safeNb = neighborhood || { relatedValid: spec.related, relatedBroken: [], suggestedRelated: [], duplicationRisk: '(neighborhood agent returned nothing)' }

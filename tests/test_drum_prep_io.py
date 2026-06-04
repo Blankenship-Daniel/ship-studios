@@ -90,6 +90,15 @@ def test_write_wav_preserves_subtype(tmp_path) -> None:
     assert io.subtype_of(str(out)) == "PCM_24"
 
 
+def test_write_wav_aif_extension_writes_aiff(tmp_path) -> None:
+    # The 3-letter ``.aif`` extension is not inferable by soundfile; write_wav must
+    # derive format=AIFF explicitly or it would crash with a raw TypeError mid-batch.
+    out = tmp_path / "stem.aif"
+    io.write_wav(str(out), np.zeros((SR, 2)), SR, subtype="PCM_24")
+    info = sf.info(str(out))
+    assert info.format == "AIFF" and info.subtype == "PCM_24"
+
+
 def test_write_aiff24_writes_24bit_aiff(tmp_path) -> None:
     # The alignment/match flows write 24-bit AIFF; pin that container + subtype at
     # the writer so a regression there is caught regardless of caller.

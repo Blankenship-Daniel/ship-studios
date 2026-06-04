@@ -1,6 +1,6 @@
 ---
 name: song-mix
-description: Use when the user wants to mix a full multi-instrument SONG (not just drums) from stems to a stereo bus — "mix these stems", "balance the song", "sum the bass/gtr/vox/drums to a stereo mix". Balances every named stem by measured loudness toward a target with optional per-stem gain/pan/mute, summed to a stereo bus. The role-agnostic cousin of [[drum-mix]]; tone-shaping and mastering stay separate. Local drum-prep CLI, not the stemmy MCP servers.
+description: Use when the user wants to mix a full multi-instrument SONG (not just drums) from stems to a stereo bus — "mix a full multi-instrument song", "balance the song", "sum the bass/gtr/vox/drums to a stereo bus". Balances every named stem by measured loudness toward a target with optional per-stem gain/pan/mute, summed to a stereo bus. The role-agnostic cousin of [[drum-mix]]; tone-shaping and mastering stay separate. Local drum-prep CLI, not the stemmy MCP servers.
 argument-hint: <stems dir> [spec.json]
 ---
 

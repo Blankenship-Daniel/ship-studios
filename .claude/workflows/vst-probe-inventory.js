@@ -82,10 +82,11 @@ let twinResults = []
 if (twinCheck) {
   phase('Twin-trap recheck')
   const suspects = all.filter(r => r.verdict === 'PASSTHROUGH')
-  const batch = suspects.slice(0, 16)   // honor ≤16 concurrency; re-invoke for overflow
-  log(`twin-trap: re-probing ${batch.length}/${suspects.length} suspected passthroughs against uaudio_* twins`)
-  if (suspects.length > 16) log(`NOTE: ${suspects.length - 16} more passthroughs — re-invoke twinCheck on the remainder or raise chunkSize`)
-  twinResults = (await parallel(batch.map(s => () =>
+  // Chunk ALL suspects into ≤16-wide batches and run them via pipeline — drop nothing in one pass.
+  const twinBatches = []
+  for (let i = 0; i < suspects.length; i += 16) twinBatches.push(suspects.slice(i, i + 16))
+  log(`twin-trap: re-probing ${suspects.length} suspected passthroughs against uaudio_* twins in ${twinBatches.length} batch(es)`)
+  twinResults = (await pipeline(twinBatches, batch => parallel(batch.map(s => () =>
     agent(
       `A plugin probed PASSTHROUGH: "${s.plugin}". If it is a UAD title, the UADx NATIVE build ` +
       `(/Library/Audio/Plug-Ins/VST3/uaudio_*.vst3) often RENDERS where the "UAD ….component"/twin does not. ` +
@@ -95,7 +96,7 @@ if (twinCheck) {
       `return a single row with verdict NO-PARAMS and path "".`,
       { label: `twin:${s.plugin}`, phase: 'Twin-trap recheck', schema: PROBE_RESULT, agentType: 'general-purpose' },
     ).then(r => ({ plugin: s.plugin, twin: (r && r.results && r.results[0]) || null })),
-  )).filter(Boolean))
+  )))).flat().filter(Boolean)
 }
 
 // ---- Phase 3: merge → inventory -----------------------------------------------------------------

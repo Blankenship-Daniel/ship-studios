@@ -19,8 +19,10 @@ import math
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
+
+np = pytest.importorskip("numpy")
+pytest.importorskip("pyloudnorm")
 
 _MIX_DIR = Path(__file__).resolve().parents[1] / "scripts" / "mix"
 

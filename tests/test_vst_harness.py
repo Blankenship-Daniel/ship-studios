@@ -31,6 +31,9 @@ def _load_harness():
     return mod
 
 
+pytest.importorskip("numpy")
+pytest.importorskip("soundfile")
+
 harness = _load_harness()
 
 

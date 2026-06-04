@@ -208,6 +208,8 @@ def _resolve_main_root(root: Path) -> Path:
         # ``root`` on anything that isn't the canonical ``.git`` directory.
         if not (cg.is_dir() and cg.name == ".git"):
             return root
+        # NB: this rejects a non-".git" redirect but TRUSTS any dir literally named
+        # ".git" — a name check, not a containment/sandbox check.
         return cg.parent  # parent of the canonical .git dir
     except OSError:
         return root

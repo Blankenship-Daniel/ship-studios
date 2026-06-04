@@ -2,8 +2,7 @@ export const meta = {
   name: 'warm-bus-shootout',
   description: 'Score N pre-rendered drum-bus (or any audio) variants for the user\'s WARM + tight-bottom drum-bus preference. A thin PRESET over the `audio-shootout` workflow: injects the warm-drum-bus intent + warmth/tightness/life criteria, then delegates the multi-lens Gemini judge panel. Hybrid: render the variants inline first (deterministic DSP), then fan out the perceptual judging. args = { variants:[{name,spec?,path(ABSOLUTE),meters?}], criteria?:[{key,q}], intent?, genre?, anchorPath? }.',
   phases: [
-    { title: 'Judge', detail: 'one independent Gemini lens agent per (variant × criterion)' },
-    { title: 'Rank',  detail: 'aggregate lens scores, pick the winner' },
+    { title: 'Delegate', detail: 'forward the warm preset to the audio-shootout workflow' },
   ],
 }
 

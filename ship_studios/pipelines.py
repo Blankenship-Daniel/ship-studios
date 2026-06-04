@@ -806,7 +806,12 @@ async def loops_to_deliverables(
     loop_paths = _loop_paths(manifest)
     if max_total_loops is not None:
         loop_paths = loop_paths[:max_total_loops]
-    if not loop_paths:
+    loops_found = len(loop_paths)
+    # When the manifest parsed empty (a shape change, or genuinely no loops), the
+    # chain degrades to running once on the source — surface that so a 1-loop
+    # fallback isn't mistaken for a real 1-loop find.
+    fell_back_to_input = not loop_paths
+    if fell_back_to_input:
         loop_paths = [input_path]
     manifest_out = manifest.get("out_dir") if isinstance(manifest, dict) else None
 
@@ -868,6 +873,8 @@ async def loops_to_deliverables(
         "pipeline": "loops-to-deliverables",
         "input": input_path,
         "bpm": bpm,
+        "loops_found": loops_found,  # loops parsed from the manifest (0 on fallback)
+        "fell_back_to_input": fell_back_to_input,  # True == processed the source, not loops
         "loops": deliverables,
         "steps": rec.steps,
     }

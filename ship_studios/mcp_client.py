@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from types import TracebackType
 from typing import TYPE_CHECKING, Any
 
 from ship_studios import config, perf
@@ -80,9 +81,18 @@ class Hub:
             raise
         return self
 
-    async def __aexit__(self, *exc_info: object) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         if self._stack is not None:
-            await self._stack.aclose()
+            # Forward the active exception into the nested CM teardown (not aclose(),
+            # which passes (None, None, None)) — so the SDK context managers see the
+            # body's exception, and a teardown error chains onto it instead of
+            # masking it.
+            await self._stack.__aexit__(exc_type, exc, tb)
             self._stack = None
         self._sessions.clear()
 

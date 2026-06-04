@@ -73,6 +73,27 @@ def test_subtype_mismatch_reported(tmp_path) -> None:
     assert io.subtype_of(m["out"]) == "PCM_24"              # output follows the left
 
 
+def test_lone_single_char_side_not_paired(tmp_path) -> None:
+    # A lone 'tom r.wav' (no single-char partner 'tom l.wav') is more likely
+    # "right-of-kit tom" than half a stereo pair — it must NOT be mis-read as a side.
+    rng = np.random.default_rng(4)
+    x = (rng.standard_normal(SR) * 0.3).astype(np.float32)
+    _w(tmp_path / "tom r.wav", x)
+    _w(tmp_path / "kick in.wav", x)
+    assert stereo_merge.find_pairs(str(tmp_path)) == []
+
+
+def test_single_char_pair_honoured(tmp_path) -> None:
+    # But a genuine single-char 'room l'/'room r' pair (both halves present) still
+    # merges — the single-char token counts when its single-char partner exists.
+    rng = np.random.default_rng(5)
+    x = (rng.standard_normal(SR) * 0.3).astype(np.float32)
+    _w(tmp_path / "room l.wav", x)
+    _w(tmp_path / "room r.wav", x)
+    assert stereo_merge.find_pairs(str(tmp_path)) == [
+        ("room", "room l.wav", "room r.wav")]
+
+
 def test_align_phase_locks_right_to_left(tmp_path) -> None:
     # align=True opts into phase-locking R to L (collapsing a spaced image); after
     # it, the two output channels are time-aligned (near-zero inter-channel lag).

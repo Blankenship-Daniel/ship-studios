@@ -74,13 +74,17 @@ you sync the extras it needs.** From `../stemmy-loops-mcp`:
 # Minimal: MCP server + the mix/master measurement & render tools
 uv sync --extra loops-mcp --extra mixing
 
-# Full: every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed)
+# Full: every optional capability (LLM, Gemini listen, Demucs, classify, quantize, beats, viz, embed, vst)
 uv sync --extra loops-mcp --extra mixing --extra llm --extra listen \
-        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed
+        --extra separate --extra classify --extra quantize --extra beats --extra viz --extra embed --extra vst
 
-# Or the convenience superset (everything above in one extra):
-uv sync --extra loops-mcp --extra mixing --extra ml
+# Or the convenience superset for everything EXCEPT vst (separate+embed+classify+quantize+viz+llm+listen+beats):
+uv sync --extra loops-mcp --extra mixing --extra ml   # add --extra vst on top if you want VST hosting
 ```
+
+The `vst` extra adds `apply-vst-chain` + `list-vst-plugins` (host your own VST3/AU
+*effect* plugins offline/headless via Pedalboard; VST3 cross-platform, AU
+macOS-only). `--extra ml` does **not** include it — add `--extra vst` explicitly.
 
 The Gemini server bundles all its deps — no extras. From
 `../stemmy-gemini-mcp`:
@@ -257,6 +261,17 @@ Pure filesystem. Creates `projects/<slug>/` with `stems/`, `mix/`, `masters/`,
 
 - **Interactive:** `/new-track` or *"start a new song called …"*
 - **Headless:** create the dirs yourself, or run the skill from Claude Code.
+
+### Workflows (parallel fan-out)
+
+The pipelines above are sequential. For **parallel fan-out** — a whole album, a
+folder of stems, a plugin sweep, a variant shootout, a judge panel — reach for a
+Claude Code **workflow** instead. These live in `.claude/workflows/*.js` (15 of
+them: `batch-master`, `house-curve`, `stem-process`, `audio-shootout`,
+`vst-probe-inventory`, the famous-drum bus-tuning twins, the repo audits, …) and
+are invoked interactively as `/<name>` slash commands. See the **Workflows**
+section of [`CLAUDE.md`](CLAUDE.md) for the full table (what each fans out and
+what to render/gather inline first).
 
 ## drum-prep — multi-mic drum stem prep (local DSP)
 

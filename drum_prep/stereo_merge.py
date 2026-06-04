@@ -30,36 +30,61 @@ def _db(v: float) -> float:
     return 20.0 * np.log10(v) if v > 0 else float("-inf")
 
 
-def _split_side(filename: str) -> tuple[str, str | None]:
-    """('overhead', 'L') from 'overhead - left.wav'; (base, None) if no side token."""
+def _split_side(filename: str) -> tuple[str, str | None, bool]:
+    """``('overhead', 'L', False)`` from 'overhead - left.wav'; ``(base, None, False)``
+    if no side token. The third field flags a single-char ``l``/``r`` token — a weak
+    match (a lone 'tom r' is more likely "tom right-of-kit" than a stereo side), so
+    :func:`find_pairs` only honours it when its single-char partner side also exists.
+    """
     base = os.path.splitext(filename)[0]
     m = _SIDE_RE.search(base)
     if not m:
-        return base, None
+        return base, None, False
+    tok = m.group(1).lower()
     stem = base[: m.start()].rstrip(" _-")
-    return stem, ("L" if m.group(1).lower() in ("left", "l") else "R")
+    return stem, ("L" if tok in ("left", "l") else "R"), tok in ("l", "r")
 
 
 def find_pairs(directory: str) -> list[tuple[str, str, str]]:
     """Sorted ``(stem, left_file, right_file)`` for every complete L/R pair.
 
+    A single-char ``l``/``r`` side only counts when its single-char partner side
+    exists for the same stem — a lone ``tom r.wav`` (no ``tom l.wav``) is left
+    untouched rather than mis-read as half a stereo pair. Multi-char
+    ``left``/``right`` tokens are always honoured.
+
     Raises ``ValueError`` when two files collapse to the same ``(stem, side)``
     (e.g. ``oh - l.wav`` and ``oh - left.wav``) — silently keeping only one and
     dropping the other would build the merge from the wrong file with no warning.
     """
-    sides: dict[str, dict[str, str]] = {}
+    # Per stem, per side: (filename, was_single_char). The single-char flag drives
+    # the conservative pruning below; the collision check still fires on any stem+side.
+    sides: dict[str, dict[str, tuple[str, bool]]] = {}
     for f in io.list_audio(directory):
-        stem, side = _split_side(f)
+        stem, side, single = _split_side(f)
         if side is not None:
             existing = sides.setdefault(stem, {}).get(side)
             if existing is not None:
                 raise ValueError(
-                    f"ambiguous {side} side for stem {stem!r}: {existing!r} and {f!r} "
+                    f"ambiguous {side} side for stem {stem!r}: {existing[0]!r} and {f!r} "
                     "— rename one so each side resolves to a single file"
                 )
-            sides[stem][side] = f
-    return [(stem, d["L"], d["R"]) for stem, d in sorted(sides.items())
-            if "L" in d and "R" in d]
+            sides[stem][side] = (f, single)
+
+    pairs: list[tuple[str, str, str]] = []
+    for stem, d in sorted(sides.items()):
+        if "L" not in d or "R" not in d:
+            continue
+        (lf, l_single), (rf, r_single) = d["L"], d["R"]
+        # A single-char l/r is a weak match (a lone 'tom r' is likely "right-of-kit",
+        # not a stereo side), so honour it only when its single-char partner also
+        # exists — i.e. accept a pair only when BOTH halves are single-char or BOTH
+        # are multi-char. A mixed 'left'/'r' pair is skipped: the single-char half's
+        # single-char partner is absent.
+        if l_single != r_single:
+            continue
+        pairs.append((stem, lf, rf))
+    return pairs
 
 
 def _best_lag(a: np.ndarray, b: np.ndarray, sr: int, max_ms: float = 50.0) -> tuple[int, float]:

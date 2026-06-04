@@ -52,6 +52,8 @@ no DAW/GUI/audio-device. This skill is the map; reach for a specific `vst-*` ski
 
 ### Per-plugin deep-dives (measured)
 
+> **Naming convention:** each plugin skill is named by its most recognizable identifier — the model number when iconic (`[[la-3a]]`, `[[dbx-160]]`), else vendor-product (`[[fabfilter-pro-q-4]]`) — so a new deep-dive's name is a deliberate call, not a guess.
+
 | Skill | Use it to |
 |---|---|
 | `[[studer-a800]]` | drive the **UAD Studer A800** tape machine — warmth/glue/de-harsh, grounded in the real param surface + isolation numbers ([`docs/vst/studer-a800.md`](../../../docs/vst/studer-a800.md)) |

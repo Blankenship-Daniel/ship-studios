@@ -19,6 +19,7 @@ import numpy as np
 
 from drum_prep import dsp, io
 from drum_prep.kit import Kit, overhead_reference
+from drum_prep.overheads import MERGED_OH_NAME
 
 THIRD = dsp.THIRD_OCT
 
@@ -33,7 +34,7 @@ def _kit_keep(kit: Kit) -> set[str] | None:
     if not keep:
         return None
     oh = overhead_reference(kit)
-    keep.add(oh.name if oh is not None else "overheads-merged.aif")  # lr_pair merge name
+    keep.add(oh.name if oh is not None else MERGED_OH_NAME)  # lr_pair merge name
     return keep
 
 

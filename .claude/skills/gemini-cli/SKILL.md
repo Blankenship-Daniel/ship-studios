@@ -1,6 +1,6 @@
 ---
 name: gemini-cli
-description: Use when the user wants to drive Google's standalone `gemini` terminal CLI (the @google/gemini-cli npm binary) non-interactively for text/codebase queries or scripting — "run the gemini cli", "gemini -p / headless gemini", "non-interactive / script gemini from the shell", "drive the @google/gemini-cli binary from a script", "pipe a file into gemini", "have gemini read/summarize a file or codebase from the shell", "gemini json output", "gemini cli vs the gemini MCP tools". The shell CLI for ad-hoc Gemini text/codebase Q&A and scripting — SEPARATE from this repo's stemmy-gemini `[G]` audio tools (those go through the Python SDK). Reference, not a pipeline — it explains the CLI binary, it does not process audio.
+description: Use when the user wants to drive Google's standalone `gemini` terminal CLI (the @google/gemini-cli npm binary) non-interactively for text/codebase queries or scripting — "run the gemini cli", "gemini -p / headless gemini", "pipe a file into gemini", "gemini cli vs the gemini MCP tools". The shell CLI for ad-hoc text/codebase Q&A — SEPARATE from this repo's stemmy-gemini `[G]` audio tools. Reference, not a pipeline; it touches no audio.
 argument-hint: [topic, e.g. "headless -p" | "json output" | "trust gate" | "vs the MCP tools"]
 ---
 

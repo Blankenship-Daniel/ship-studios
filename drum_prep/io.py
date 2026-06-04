@@ -5,9 +5,10 @@ The alignment/match flows read/write 24-bit AIFF via :func:`write_aiff24`
 :func:`write_wav24` (matching ship-studios' render-ab convention).
 :func:`write_wav` is the generic *bit-depth/subtype-preserving* writer (default
 subtype FLOAT) used by the normalize/stereo-merge flows that carry the source
-SUBTYPE through; the output CONTAINER follows the destination extension (no
-``format=`` is passed), so a ``.wav`` name always yields a real WAV regardless
-of the source container. Everything is float64 in memory.
+SUBTYPE through; the output CONTAINER follows the destination extension (derived
+to an explicit ``format=`` so a 3-letter ``.aif`` name — which soundfile can't
+infer — still writes a real AIFF, and a ``.wav`` name a real WAV, regardless of
+the source container). Everything is float64 in memory.
 """
 from __future__ import annotations
 
@@ -17,6 +18,12 @@ import numpy as np
 import soundfile as sf
 
 AUDIO_EXTS = (".wav", ".aif", ".aiff", ".flac")
+
+#: Output extension -> libsndfile container. soundfile infers the container from
+#: the extension, but the 3-letter ``.aif`` is NOT recognised (only ``.aiff`` is)
+#: -> it raises a raw TypeError mid-batch. Derive ``format=`` explicitly so a
+#: ``.aif`` name still writes a real AIFF; an unknown ext falls back to inference.
+_EXT_FORMAT = {".wav": "WAV", ".aif": "AIFF", ".aiff": "AIFF", ".flac": "FLAC"}
 
 
 def list_audio(directory: str) -> list[str]:
@@ -128,8 +135,15 @@ def write_wav(path: str, data: np.ndarray, sr: int, subtype: str = "FLOAT") -> N
 
     Used by the bit-depth/subtype-preserving flows (stereo-merge, normalize) to
     keep the source SUBTYPE (bit depth) rather than forcing the 24-bit AIFF the
-    alignment/match flows write. No ``format=`` is passed, so the output
-    CONTAINER follows the destination extension — a ``.wav`` name yields a real
-    WAV even when the source was a (mislabeled) AIFF.
+    alignment/match flows write. The output CONTAINER is derived from the
+    destination extension (so a ``.wav`` name yields a real WAV even when the
+    source was a mislabeled AIFF) — passed explicitly via ``format=`` because
+    soundfile can't infer the 3-letter ``.aif`` container and would otherwise
+    crash with a raw TypeError mid-batch. An unknown extension falls back to
+    soundfile's own inference.
     """
-    sf.write(path, collapse_if_mono(data), sr, subtype=subtype)
+    fmt = _EXT_FORMAT.get(os.path.splitext(path)[1].lower())
+    if fmt is None:
+        sf.write(path, collapse_if_mono(data), sr, subtype=subtype)
+    else:
+        sf.write(path, collapse_if_mono(data), sr, subtype=subtype, format=fmt)

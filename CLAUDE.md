@@ -177,7 +177,15 @@ You **mix** the stems (correct + sum), then **master** the bus. This stage does 
 7. Re-run `[G] analyze-stem-masking` + `[L] measure-spectrum` — confirm the overlaps shrank.
 8. Hand the summed bus to **master-track** for loudness / limiting / compliance / export.
 
-unmask-stems is the masking-only subset (steps 2 + 4 + re-score), when you don't need the sum or master.
+### unmask-stems — masking-only subset of stem-master (no sum, no master)
+
+The corrective core of stem-master when you only need to carve cross-stem collisions — no per-stem baseline, no tone/dynamics shaping, no summing, no mastering.
+
+1. `[G] analyze-stem-masking` — the collision map (dominant stem, stem-to-cut, center Hz, cut dB, Q). Optional `[L] detect-masking` cross-check.
+2. `[L] apply-eq` (or `[L] apply-dynamic-eq`, [[dynamic-eq]]) — one complementary cut **per losing stem**; cut the loser, don't boost the winner.
+3. `[G] analyze-stem-masking` — re-score to prove the overlap shrank.
+
+stem-master adds the per-stem baseline, tone/dynamics shaping, the `drum-prep stem-mix` sum, and the master-track hand-off on top of these three steps. ([[unmask-stems]])
 
 ### mix-check — diagnose a mix (perceptual + measurement) → concrete moves
 
@@ -206,6 +214,14 @@ unmask-stems is the masking-only subset (steps 2 + 4 + re-score), when you don't
 6. `[L] render-ab` — `processed`=corrected mix (the match-eq output, or the apply-eq output if step 5 ran), `reference`=ref → single A/B WAV in `projects/<track>/mix/`. Report residual deltas (`[L] compare-tonality` again; `match-eq` also returns `residual_delta_db`).
 
 For a whole EP/album, capture **one shared house curve** with `[L] build-target-profile` over the references, then match each mix to it with `[L] match-to-profile` → `[L] match-eq` — a single consistent target across the set ([[house-curve]]).
+
+### house-curve — one shared tonal target across an EP/album
+
+The reusable-profile path branching off reference-match: build a single house curve from a set of references, then match each mix to it (reuse the one profile JSON across the set for a consistent sound).
+
+1. `[L] build-target-profile` — power-average the reference paths into a reusable profile JSON.
+2. `[L] match-to-profile` — the mix's per-band delta vs the profile.
+3. `[L] match-eq` — render the delta as a min/linear-phase FIR correction (runs only when a per-band delta is recoverable; `match_strength` ~0.5, `phase` min/linear) → `projects/<track>/mix/`. Follow with `[L] apply-eq` for surgical residuals.
 
 ### loops-to-deliverables — stem/mix → tagged, mastered loop deliverables
 
@@ -259,9 +275,11 @@ raw multitrack (a Logic session, an interface dump) two **local-DSP skills**
 - **"Dead" is per-song** — a channel silent in one song may be a real mic in
   another; cross-check across takes before deleting.
 - **Format/CLI traps:** drum-prep writes 24-bit AIFF with `.wav` names (ffmpeg
-  misreads → use sox / `aiff2wav.sh`); `kit.json` file fields need the `.wav`
-  extension; `adeclip` overshoots 0 dBFS (renormalize); multi-input ffmpeg trims
-  need `atrim` in the filtergraph (input `-ss/-t` only affects the first input).
+  misreads → use sox / `aiff2wav.sh`); `kit.json` file fields must name the real
+  on-disk file *with its actual extension* (`.wav`/`.aif`/`.aiff`/`.flac` — the
+  example uses `.aif`; validated against the files on disk, not forced to `.wav`);
+  `adeclip` overshoots 0 dBFS (renormalize); multi-input ffmpeg trims need
+  `atrim` in the filtergraph (input `-ss/-t` only affects the first input).
 
 ---
 
@@ -420,7 +438,7 @@ ship-studios owns no DSP — **except** the `drum_prep/` package, a deliberate l
 
 Roles auto-detect from filenames: `overhead` (or `overhead_l`+`overhead_r`), `room`, `kick_in`/`kick_beater`/`kick_out`/`kick_sub`, `snare_top`/`snare_bottom`, `hihat`, `ride`, `crash`, `tom`, and `fx` (effect returns like a snare plate auto-detect as `fx` and are excluded from phase-align). Commit a `kit.json` (see `drum_prep/examples/kit.json`) to pin/override roles, partner links, per-mic low-pass, ambience, or polarity. The manifest (JSON) is committable; audio is gitignored. Keep the reference file outside the stems folder (or pass it via `--reference`, which excludes it from detection).
 
-### Flows (each a `/drum-*` skill + `drum-prep` subcommand)
+### Flows (each a `drum-prep` subcommand; many also have a `/drum-*` skill)
 
 1. `drum-prep detect <dir>` — show/confirm roles; `--write-manifest` scaffolds a `kit.json`.
 2. `drum-prep stereo-merge <dir>` — merge every `<name> - left`/`right` pair into format-preserving stereo + image review; generalizes `overheads`.

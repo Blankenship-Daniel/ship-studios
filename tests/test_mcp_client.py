@@ -59,6 +59,16 @@ async def test_hub_only_opens_requested_servers(fake_hub) -> None:
             hub.session(LOOPS_SERVER)
 
 
+async def test_hub_rejects_reentry(fake_hub) -> None:
+    # Re-entering an already-open Hub would overwrite the live AsyncExitStack and
+    # orphan the first set of sessions/subprocesses. The second __aenter__ must
+    # fail loud rather than leak.
+    hub = fake_hub()
+    async with hub:
+        with pytest.raises(RuntimeError, match="already open"):
+            await hub.__aenter__()
+
+
 async def test_hub_list_tools(fake_hub) -> None:
     hub = fake_hub(canned={"find-loops": {}, "measure-loudness": {}})
     async with hub:

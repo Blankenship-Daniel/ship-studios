@@ -35,7 +35,7 @@ Probe: `uaudio_api_vision_channel_strip.vst3` via Pedalboard, processing
 `projects/drums-kit/mix/bus_70s_balanced.wav` (60 s dry, measured-balanced drum bus) at +6 dB input gain,
 peak-normalized before measuring so only **spectral shape / crest** is compared.
 
-### The real parameter surface (Pedalboard-exposed — authoritative)
+### The real parameter surface (Pedalboard-exposed — authoritative; ~52 params)
 
 Six API modules in series. Default flow: **212 input → 215 filters → 235 gate → 225 comp → 550/560 EQ → out.**
 Every module has an `_on` switch (**all off by default** → near-passthrough).

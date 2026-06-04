@@ -689,6 +689,13 @@ async def test_loops_to_deliverables_processes_every_loop() -> None:
     assert hub.tool_sequence.count("render-mastered") == 3
     assert hub.tool_sequence.count("export-deliverables") == 3
     assert [d["loop"] for d in result["loops"]] == ["out/a.wav", "out/b.wav", "out/c.wav"]
+    # ...and each loop is processed with ITS OWN path, in order — a regression that
+    # ran the first loop three times would still pass the count checks above.
+    clean_paths = [c.args["path"] for c in hub.calls if c.tool == "clean-loop"]
+    assert clean_paths == ["out/a.wav", "out/b.wav", "out/c.wav"]
+    master_paths = [c.args["path"] for c in hub.calls if c.tool == "render-mastered"]
+    assert master_paths == [pipelines._suffix_path(p, "seam")
+                            for p in ("out/a.wav", "out/b.wav", "out/c.wav")]
 
 
 async def test_loops_to_deliverables_falls_back_when_manifest_unparseable() -> None:

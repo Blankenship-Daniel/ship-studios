@@ -145,13 +145,8 @@ ship-studios --help
 
 ## Pipelines
 
-Five audio pipelines, each available as a Claude Code skill/command **and** as a
-CLI subcommand (these are the five in `ship_studios/pipelines.py` driven by the
-CLI). A sixth, `new-track`, is filesystem-only scaffolding — a skill/command with
-**no CLI subcommand** (it calls no MCP tools). *(`pipelines.py` also carries four
-async helpers — `batch_master`, `house_curve`, `stem_master`, `unmask_stems` —
-used by their own skills/commands; they're not counted among the five core CLI
-pipelines.)*
+Nine pipelines, each available as a Claude Code skill/command and (where it
+processes audio) as a CLI subcommand.
 
 ### `master-track` — mix → platform-ready master
 
@@ -165,6 +160,19 @@ matrix.
   `check-clipping` / `measure-distortion` → gemini `mastering-feedback` →
   loops `render-mastered` → gemini `check-streaming-targets` →
   loops `export-deliverables`
+
+### `batch-master` — folder of mixes → consistent masters
+
+Master every mix in a folder to one shared platform target, then emit a
+cross-track loudness/true-peak consistency table (Δ-from-album-median, outliers
+flagged) — the album-level read a single-file master can't give.
+
+- **Interactive:** `/batch-master` or *"master this whole EP for Spotify"*
+- **Headless:** `ship-studios batch-master projects/<album>/mix/*.wav --platform spotify`
+- **Chain (per track):** loops `measure-loudness` / `measure-spectrum` /
+  `check-clipping` → gemini `mastering-feedback` → loops `render-mastered` →
+  gemini `check-streaming-targets` → loops `export-deliverables`, then a
+  cross-track `measure-loudness` consistency pass (+ `analyze-album-normalization`)
 
 ### `mix-check` — diagnose a mix before mastering
 
@@ -187,6 +195,39 @@ loudness-matched A/B audition.
 - **Headless:** `ship-studios reference-match projects/<track>/mix/mix.wav --reference path/to/ref.wav`
 - **Chain:** gemini `match-reference-numeric` / `compare-to-reference` →
   loops `compare-tonality` → loops `apply-eq` → loops `render-ab`
+
+### `house-curve` — one shared tonal target across an EP/album
+
+Build a single house curve from a set of references, then match each mix to it —
+reuse the one profile across the set for a consistent sound.
+
+- **Interactive:** `/house-curve` or *"give the EP one consistent tonal balance"*
+- **Headless:** `ship-studios house-curve projects/<track>/mix/mix.wav --reference refs/a.wav --reference refs/b.wav`
+- **Chain:** loops `build-target-profile` → loops `match-to-profile` →
+  loops `match-eq`
+
+### `stem-master` — per-stem corrective access before the limiter
+
+Treat each stem correctively (resolve cross-stem masking, de-harsh,
+transient-shape), then sum (`drum-prep stem-mix`) and hand the bus to
+`master-track` — corrective access a stereo-bus master physically can't do.
+
+- **Interactive:** `/stem-master` or *"master from stems"*
+- **Headless:** `ship-studios stem-master projects/<track>/stems/kick.wav projects/<track>/stems/bass.wav`
+  (then `drum-prep stem-mix`, then `ship-studios master`)
+- **Chain:** loops `measure-loudness` / `measure-spectrum` (per stem) → gemini
+  `analyze-stem-masking` / `find-resonances` / `find-sibilance` → loops `apply-eq`
+  / `de-ess` / `compress-loop` → re-score with gemini `analyze-stem-masking`
+
+### `unmask-stems` — carve cross-stem frequency clashes (corrective only)
+
+The masking-only subset of stem-master: score cross-stem masking, cut the losing
+stem of each collision, re-score. No summing, no mastering.
+
+- **Interactive:** `/unmask-stems` or *"the kick and bass are masking"*
+- **Headless:** `ship-studios unmask-stems projects/<track>/stems/kick.wav projects/<track>/stems/bass.wav`
+- **Chain:** gemini `analyze-stem-masking` → loops `apply-eq` / `apply-dynamic-eq`
+  (losing stem) → gemini `analyze-stem-masking` (re-score)
 
 ### `loops-to-deliverables` — stem/mix → tagged mastered loops
 
@@ -219,7 +260,7 @@ Pure filesystem. Creates `projects/<slug>/` with `stems/`, `mix/`, `masters/`,
 
 ## drum-prep — multi-mic drum stem prep (local DSP)
 
-Unlike the pipelines above, **`drum-prep` is local DSP, not the MCP servers.**
+Unlike the nine pipelines above, **`drum-prep` is local DSP, not the MCP servers.**
 It lives in a separate `drum_prep/` package (numpy/scipy/soundfile/pyloudnorm)
 behind an optional extra, and covers a job neither stemmy server does: taking a
 folder of *individual drum mics* (overheads, snare top/bottom, kick in/beater,
@@ -275,7 +316,7 @@ ship-studios/
 ├── ship_studios/              headless CLI package
 │   ├── config.py              sibling paths, server keys, stdio params
 │   ├── mcp_client.py          async hub over both ClientSessions
-│   ├── pipelines.py           the five pipelines as async functions
+│   ├── pipelines.py           the nine pipeline async functions
 │   └── cli.py                 `ship-studios` console script
 ├── drum_prep/                 local drum-stem DSP (opt-in `drum-prep` extra)
 │   ├── dsp.py io.py roles.py kit.py qc.py     shared DSP + role/kit model + QC

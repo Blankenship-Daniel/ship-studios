@@ -170,6 +170,38 @@ def test_unset_keys_are_not_forwarded_as_empty(
     assert params.env == {}
 
 
+def test_forwarded_env_is_secrets_plus_overrides() -> None:
+    # FORWARDED_ENV is the union mcp_launch.py uses to strip empty interactive
+    # forwards; it must stay = secrets + both servers' documented overrides.
+    assert config.FORWARDED_ENV == (
+        *config.ENV_VARS, *config.LOOPS_OVERRIDE_ENV, *config.GEMINI_OVERRIDE_ENV
+    )
+
+
+def test_mcp_json_env_matches_the_forwarded_contract() -> None:
+    # Regression guard for the INTERACTIVE path: Claude Code gives a stdio MCP
+    # server only its .mcp.json `env` block (+ CLAUDE_PROJECT_DIR), nothing from
+    # the parent shell — so .mcp.json must forward EXACTLY the vars each server
+    # consumes, or a documented override is silently dropped (the original bug).
+    # Each value uses the ${VAR:-} empty-default form (Claude Code refuses to parse
+    # a bare ${VAR} when unset); mcp_launch.py then strips the empties.
+    import json
+
+    data = json.loads((config.repo_root() / ".mcp.json").read_text())
+    servers = data["mcpServers"]
+    expected = {
+        config.LOOPS_SERVER: {
+            config.ANTHROPIC_API_KEY, config.GEMINI_API_KEY, *config.LOOPS_OVERRIDE_ENV,
+        },
+        config.GEMINI_SERVER: {config.GEMINI_API_KEY, *config.GEMINI_OVERRIDE_ENV},
+    }
+    for key, want in expected.items():
+        env = servers[key]["env"]
+        assert set(env) == want, f"{key}: .mcp.json env drifted from the config contract"
+        for var, val in env.items():
+            assert val == f"${{{var}:-}}", f"{key}:{var} must use the ${{VAR:-}} form"
+
+
 def test_documented_overrides_reach_the_server_env(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

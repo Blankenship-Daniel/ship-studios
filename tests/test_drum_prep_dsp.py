@@ -32,6 +32,14 @@ def test_estimate_clamps_short_segment_without_crashing() -> None:
     assert abs(d) <= nfft                      # within the clamped range, not wrapped garbage
 
 
+def test_estimate_empty_arrays_return_zero_without_overflow() -> None:
+    # n == 0 hits log2(0) -> int(ceil(-inf)) -> OverflowError. Both-empty inputs
+    # must degrade to (0.0, 0.0): stereo_merge/overheads call align_to (-> estimate)
+    # without an explicit non-empty guard of their own.
+    d, peak = dsp.estimate(np.array([]), np.array([]), 100)
+    assert (d, peak) == (0.0, 0.0)
+
+
 def test_align_recovers_delay_and_polarity() -> None:
     n = SR
     ref = np.random.default_rng(1).standard_normal(n)

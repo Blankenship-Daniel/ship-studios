@@ -89,9 +89,11 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     With ``halfwidth`` the peak is sought only within ``center +/- halfwidth``
     (refine a coarse envelope estimate without slipping a half-period).
     """
+    n = max(len(a), len(b))
+    if n == 0:  # both excerpts empty: log2(0) below overflows int(); no lag to find
+        return 0.0, 0.0
     a = a - a.mean()
     b = b - b.mean()
-    n = max(len(a), len(b))
     nfft = 1 << int(np.ceil(np.log2(2 * n)))
     # Clamp the search to the available correlation range. For normal inputs
     # nfft >> 2*max_lag so this is a no-op; it only guards pathologically short

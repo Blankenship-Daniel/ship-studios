@@ -35,6 +35,8 @@ async def test_master_track_sequence(recording_hub) -> None:
         (LOOPS_SERVER, "export-deliverables"),
     ]
     assert result["pipeline"] == "master-track"
+    assert result["input"] == "projects/song/mix/mix.wav"
+    assert "streaming_compliant" in result  # contract field (True/False/None)
 
 
 async def test_master_track_render_uses_verified_arg_keys(recording_hub) -> None:
@@ -505,7 +507,7 @@ async def test_mix_check_multiband_is_a_compress_alternative(recording_hub) -> N
 
 
 async def test_reference_match_sequence(recording_hub) -> None:
-    await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
+    result = await pipelines.reference_match(recording_hub, "mix.wav", "ref.wav")
     assert recording_hub.server_tool_sequence == [
         (GEMINI_SERVER, "match-reference-numeric"),
         (GEMINI_SERVER, "compare-to-reference"),
@@ -513,6 +515,8 @@ async def test_reference_match_sequence(recording_hub) -> None:
         (LOOPS_SERVER, "match-eq"),
         (LOOPS_SERVER, "render-ab"),
     ]
+    assert result["input"] == "mix.wav"
+    assert result["reference"] == "ref.wav"
 
 
 async def test_reference_match_numeric_uses_mix_and_reference_keys(
@@ -589,7 +593,7 @@ async def test_loops_to_deliverables_sequence() -> None:
     from tests.conftest import RecordingHub
 
     hub = RecordingHub(canned=_find_loops_canned("out", "loop_01.wav"))
-    await pipelines.loops_to_deliverables(
+    result = await pipelines.loops_to_deliverables(
         hub, "drums.wav", 120.0, bars=[4], key="Am", out_dir="out"
     )
     assert hub.tool_sequence == [
@@ -603,6 +607,9 @@ async def test_loops_to_deliverables_sequence() -> None:
     # the loop "wav" basename must be joined to the manifest out_dir, and the
     # chain operates on a real loop WAV (NOT the output directory — the C2 bug).
     assert hub.args_for("clean-loop")["path"] == "out/loop_01.wav"
+    # the result echoes the input + bpm it was driven with (round-trip contract).
+    assert result["input"] == "drums.wav"
+    assert result["bpm"] == 120.0
 
 
 async def test_loops_to_deliverables_processes_every_loop() -> None:

@@ -28,6 +28,10 @@ touches audio. For *doing* perceptual analysis use `[[understand-audio]]` / `[[m
 - **In this repo**: only **audio understanding** is wired (the `stemmy-gemini` perceptual
   tools). TTS, Live, and Lyria are documented as reference + wire-up notes — `stemmy-gemini`
   is read-only and stdio-shaped.
+- **Not audio — the standalone `gemini` CLI**: driving Google's `gemini` terminal binary
+  headless (text/codebase Q&A, scripting) is a *different surface* from everything here —
+  same `GEMINI_API_KEY`, but a shell CLI (`gemini -p`), **not** the MCP audio server, and it
+  hears no audio. If the ask is "run/script the gemini command", that's `[[gemini-cli]]`, not this suite.
 - **The one caveat that governs everything**: Gemini downsamples to ~16 kbps and **sums to
   mono** before hearing — so it **cannot judge stereo, true-peak, or absolute loudness**. Use
   meters for those (`[L] measure-stereo` / `[G] analyze-phase-mono` / `[L] measure-loudness`);
@@ -54,4 +58,5 @@ corresponding doc directly and answer with the cited figure (flag ⚠️ preview
 
 - `[[gemini-audio-understanding]]` · `[[gemini-speech-generation]]` · `[[gemini-live-audio]]` · `[[gemini-music-generation]]`
 - `[[understand-audio]]` (uses the understanding tools) · `[[mix-check]]` · `[[master-track]]`
+- `[[gemini-cli]]` — the standalone `gemini` terminal CLI (headless text/codebase Q&A + scripting); a *separate* surface from this audio suite, not an audio tool
 - Proposal for *future* DSP capabilities: [`docs/mix-master-capability-roadmap.md`](../../../docs/mix-master-capability-roadmap.md)

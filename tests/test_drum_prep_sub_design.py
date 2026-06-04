@@ -32,5 +32,21 @@ def test_add_sub_increases_low_end(tmp_path) -> None:
     res = add_sub(str(src), str(out), amount_db=-3.0)
     assert res["low_60_gain_db"] > 0.5                       # measurably more sub
     assert 30.0 <= res["sub_hz"] <= 80.0
+    # full return-dict contract: flow tag, the gain/trim it applied, and the
+    # before/after low-band measurements it reports.
+    assert res["flow"] == "sub-design"
+    assert res["amount_db"] == -3.0
+    assert isinstance(res["sub_gain_db"], float)
+    assert isinstance(res["anti_clip_trim_db"], float)
+    assert res["low_60_after_db"] > res["low_60_before_db"]
     y, _ = sf.read(str(out), always_2d=True)
     assert np.max(np.abs(y)) <= 10 ** (-1.0 / 20.0) + 1e-3   # anti-clipped
+
+
+def test_add_sub_honors_sub_hz_override(tmp_path) -> None:
+    # An explicit sub_hz must win over the estimated fundamental.
+    src = tmp_path / "kick.wav"
+    sf.write(str(src), _kick(f0=70.0), SR, subtype="FLOAT")
+    out = tmp_path / "kick_sub.wav"
+    res = add_sub(str(src), str(out), sub_hz=50.0, amount_db=-3.0)
+    assert res["sub_hz"] == 50.0

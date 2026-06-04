@@ -1,6 +1,6 @@
 ---
 name: tomorrow-never-knows
-description: "Use when the user wants The Beatles 'Tomorrow Never Knows' / Ringo / Geoff Emerick 1966 drum sound from a FOLDER of multi-mic drum stems — 'Tomorrow Never Knows drums', 'that Beatles/Revolver drum sound', 'Ringo TNK', 'heavily compressed pumping drums', 'lo-fi 60s mono drums', 'Emerick close-mic drum sound', 'crushed tom-forward drums'. The composite end-to-end recipe (#2 in the famous-drum-sound series): phase-align → per-stem process (DARK) → tom-FORWARD balance → Fairchild-pump + Studer-15IPS-dark-tape + mono-narrow bus → loops. The OPPOSITE axis from [[fool-in-the-rain]]: CRUSH/pump (not glue), DARK/lo-fi (not warm-open), MONO/narrow (not wide-room). This is the TONE, not Ringo's tom GROOVE, and it wants TOM mics. Local DSP + the stemmy MCP servers; needs the `vst` extra (Fairchild/Studer/LA-3A/Vibe) + optional GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user wants The Beatles 'Tomorrow Never Knows' / Ringo / Geoff Emerick 1966 drum sound from a FOLDER of multi-mic drum stems — 'Tomorrow Never Knows drums', 'that Beatles/Revolver drum sound', 'Ringo TNK', 'heavily compressed pumping drums', 'lo-fi 60s mono drums', 'crushed tom-forward drums'. CRUSH/pump, DARK/lo-fi, MONO/narrow — the OPPOSITE axis from [[fool-in-the-rain]], and it WANTS tom mics. Local DSP + the stemmy MCP servers; needs the `vst` extra + optional GEMINI_API_KEY."
 argument-hint: <stems-folder> [slug] [bpm]
 ---
 
@@ -31,13 +31,13 @@ corrective + Stage 4 dark tilt) · use the VST plugins + sum (Stage 4: Fairchild
 
 ## Inputs & setup
 
-- **`$1` = stems folder**; **`$2` = slug** (else slugify); **`$3` = BPM** (for Stage-5 loops).
+- Inputs (in `$ARGUMENTS`, the whole string): the **stems folder** the user provided (may contain SPACES — treat the whole path as ONE argument and QUOTE it in every command), an optional **slug** (else slugify), and an optional **BPM** (for Stage-5 loops). Don't rely on positional `$1`/`$2`/`$3` — the harness space-splits, so a spaced folder path expands to garbage tokens.
 - Prereqs: `uv sync --extra drum-prep`; in `../stemmy-loops-mcp`: `uv sync --extra vst --extra mixing`. UADx
   `uaudio_fairchild_660.vst3` + `uaudio_studer_a800.vst3` (+ `uaudio_la3a.vst3` / `uaudio_verve.vst3` for the
   optional stages) installed/authorized (`uaudio_*` builds render headless). `GEMINI_API_KEY` only for the
   optional Stage-4b A/B.
-- **Run scripts with the stemmy-loops vst venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python`. `drum-prep` via
-  `uv run --no-sync drum-prep`. ABSOLUTE paths for find-loops / Gemini tools; in a worktree, `projects/`/`artifacts/`
+- **Run scripts with the stemmy-loops vst venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python` (default for a normal main checkout). **In a git worktree under `.claude/worktrees/<name>/` the `../` does NOT resolve** — unlike the `.mcp.json` servers, the scripts take this path literally and fail (`MISSING ../stemmy-loops-mcp/.venv/bin/python`). The sibling lives next to the MAIN checkout: resolve it there and pass the ABSOLUTE venv path. `drum-prep` via
+  `uv run --extra drum-prep drum-prep` (NOT `--no-sync` — that skips installing the extra, so the console script is missing in a fresh/worktree env). ABSOLUTE paths for find-loops / Gemini tools; in a worktree, `projects/`/`artifacts/`
   live in the canonical checkout.
 
 ## Stage 0 — convert + baseline measure
@@ -48,8 +48,8 @@ corrective + Stage 4 dark tilt) · use the VST plugins + sum (Stage 4: Fairchild
 
 ## Stage 1 — phase-align close mics → overheads (gated)
 
-- `uv run --no-sync drum-prep detect <stems-dir>` (FX/reverb returns auto-detect as `fx`, excluded; OH = stereo
-  anchor; room = polarity-only) → `phase-align` → `phase-aligned/`. Stereo-image gate as in [[drum-phase-align]]
+- `uv run --extra drum-prep drum-prep detect <stems-dir>` (FX/reverb returns auto-detect as `fx`, excluded; OH = stereo
+  anchor; room = polarity-only) → `phase-align` → `phase-aligned/`. A mic with a non-standard NAME (e.g. "Crotch Mic") detects as role `unknown` — identify its role by SIGNAL not name (a ~70 Hz LF-dominant mic is a `kick_sub`), pin it in a `kit.json`, and pass `--manifest` to `phase-align`. Stereo-image gate as in [[drum-phase-align]]
   (toms/kick/snare mono-collapse if dual-mono; OH/room stay stereo).
 
 ## Stage 2 — process the stems (DARK, gentle)
@@ -65,7 +65,7 @@ weight (no low-mid scoop in the API EQ). declick OFF. Run `process_stems.py … 
 Measured-LUFS balance with **toms + kick + snare FORWARD** and **overheads/room pulled back** (TNK is close &
 dark; the heavy bus comp brings the ambience UP as the pump — so the room is *pump fuel*, not the star). Targets
 in `presets/mix/tomorrow-never-knows.json` (`balance_targets_lufs`); a **no-toms fallback** is documented there
-(kick+snare lead). `balance_stems.py … → bus_tnk_pre.wav`. A balance problem is not an EQ problem ([[mix-balance]]).
+(kick+snare lead). If the kit has two kick-family mics (kick + kick_sub), TUCK the secondary ~6–8 dB UNDER the main kick so the correlated LF doesn't double up and bloat the low end, and phase-align BOTH to the overheads for coherence. `balance_stems.py … → bus_tnk_pre.wav`. A balance problem is not an EQ problem ([[mix-balance]]).
 
 ## Stage 4 — TNK bus (Fairchild pump → Studer 15 IPS dark tape → dark EQ → mono narrow)
 

@@ -609,7 +609,9 @@ def loops(
     preset_list = _parse_presets(presets)
 
     async def _go() -> dict[str, Any]:
-        async with open_hub() as hub:
+        # loops_to_deliverables only ever talks to stemmy-loops — open just that
+        # server so a headless run doesn't spawn the unused gemini subprocess.
+        async with open_hub([config.LOOPS_SERVER]) as hub:
             return await loops_to_deliverables(
                 hub,
                 input_path,
@@ -695,7 +697,9 @@ def understand(
         transcribe = False
 
     async def _go() -> dict[str, Any]:
-        async with open_hub() as hub:
+        # understand_audio only ever talks to stemmy-gemini — open just that
+        # server so a headless run doesn't spawn the unused loops subprocess.
+        async with open_hub([config.GEMINI_SERVER]) as hub:
             return await understand_audio(
                 hub,
                 path,

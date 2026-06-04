@@ -1,6 +1,6 @@
 ---
 name: ampex-atr-102
-description: "Use when running the UAD/UADx Ampex ATR-102 Master Tape for 2-bus / mastering / mixdown tape glue, warmth, and 'gloss' on a stereo mix, drum bus, or master — 'Ampex ATR-102', 'master tape', 'tape on the 2-bus / mix bus', 'tape glue on the mix', 'tape mastering', 'glossy 2-track tape', 'mastering tape machine', or when you want the smooth mastering-tape character (vs the punchier Studer A800). The measured, plugin-specific deep-dive of [[vst-saturate]] / [[vst-master]] — grounded in the real 30-param surface + isolation/harmonic numbers in docs/vst/ampex-atr-102.md. Stemmy MCP, the `vst` extra. UADx native (no iLok)."
+description: "Use when running the UAD/UADx Ampex ATR-102 Master Tape for 2-bus / mastering tape glue, warmth, and 'gloss' on a stereo mix, drum bus, or master — 'Ampex ATR-102', 'master tape', 'tape on the 2-bus / mix bus', 'tape mastering', 'glossy 2-track tape', or the smooth mastering-tape character (vs the punchier [[studer-a800]]). Plugin-specific deep-dive of [[vst-saturate]] / [[vst-master]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: master-glue/warm-2bus/drum-glue/tame-harsh]
 ---
 

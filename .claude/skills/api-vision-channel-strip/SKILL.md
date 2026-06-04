@@ -1,6 +1,6 @@
 ---
 name: api-vision-channel-strip
-description: "Use when running the UAD/UADx API Vision Channel Strip for tight/punchy/forward drums or bus tone — 'API channel strip on the drums', 'API Vision', 'punchy American console sound', 'tight aggressive drum bus', 'use the API strip', or when you need the 215/235/225/550/560 modules dialed for punch without harshness. The measured, plugin-specific deep-dive of [[vst-channel-strip]] — grounded in the real param surface + isolation/shootout numbers in docs/vst/api-vision-channel-strip.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UAD/UADx API Vision Channel Strip for tight/punchy/forward drums or bus tone — 'API Vision', 'API channel strip on the drums', 'punchy American console sound', 'tight aggressive drum bus', 'use the API strip'. The plugin-specific deep-dive of [[vst-channel-strip]]. Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: punchy-bus/glue/de-harsh]
 ---
 

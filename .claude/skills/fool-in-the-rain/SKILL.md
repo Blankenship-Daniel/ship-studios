@@ -1,6 +1,6 @@
 ---
 name: fool-in-the-rain
-description: "Use when the user wants the Led Zeppelin 'Fool In The Rain' / John Bonham drum sound from a FOLDER of multi-mic drum stems (with ROOM + overhead mics) — 'Bonham drums', 'Fool In The Rain drum sound', 'room-forward 70s rock drums', 'make the room the star', 'big warm dark Bonham kit', 'that Zeppelin drum tone', 'do the whole Bonham drums workflow'. The composite end-to-end pipeline (the first of the 'famous drum sound' recipes): phase-align → per-stem process → ROOM-FORWARD balance → Helios+tape+SSL Bonham bus → loops. Room-DOMINANT, warm/dark, fat low-mids, breathing glue; the room mic IS the reverb. This is the TONE, not the shuffle GROOVE, and it NEEDS room mics. Local DSP + the stemmy MCP servers; needs the `vst` extra (Helios/Studer/SSL) + optional GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user wants the Led Zeppelin 'Fool In The Rain' / John Bonham drum sound from a FOLDER of multi-mic drum stems (which must include ROOM + overhead mics) — 'Bonham drums', 'Fool In The Rain drum sound', 'room-forward 70s rock drums', 'make the room the star', 'big warm dark Bonham kit', 'that Zeppelin drum tone'. Room-dominant, warm/dark, fat low-mids, breathing glue; the room mic IS the reverb. The TONE, not the shuffle groove, and it NEEDS room mics. Local DSP + the stemmy MCP servers; needs the `vst` extra + optional GEMINI_API_KEY (perceptual A/B)."
 argument-hint: <stems-folder> [slug] [bpm]
 ---
 
@@ -31,9 +31,9 @@ balance problem ([[mix-balance]]).
 
 ## Inputs & setup
 
-- **`$1` = stems folder**; **`$2` = slug** (optional; else slugify the folder name); **`$3` = BPM** (optional, for Stage 5 loops).
+- Inputs (prose — **`$ARGUMENTS`** is the whole string): the **stems folder** the user provided (it may contain SPACES, e.g. "Ship Studios - Drum Stems" — treat the WHOLE path as ONE argument and QUOTE it in every command); an optional **slug** (else slugify the folder name); an optional **BPM** (for Stage 5 loops). Do NOT rely on positional `$1`/`$2`/`$3` — a spaced path space-splits and they expand to garbage tokens.
 - Prereqs: `uv sync --extra drum-prep` (this repo); in `../stemmy-loops-mcp`: `uv sync --extra vst --extra mixing`. UADx `uaudio_helios_type_69.vst3` + `uaudio_studer_a800.vst3` + `SSL Native Bus Compressor 2.vst3` installed/authorized (the `uaudio_*` builds render headless; never the `UAD ….component` twins). `GEMINI_API_KEY` only for the optional Stage-4b A/B.
-- **Run scripts with the stemmy-loops vst venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python`. `drum-prep` via `uv run --no-sync drum-prep`.
+- **Run scripts with the stemmy-loops vst venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python` (normal main-checkout default). **In a git worktree the `../` is WRONG** — unlike the `.mcp.json` servers, these scripts take the path literally and fail (`MISSING ../stemmy-loops-mcp/.venv/bin/python`); the sibling lives next to the MAIN checkout, so resolve it and pass the ABSOLUTE venv path. `drum-prep` via `uv run --extra drum-prep drum-prep`.
 - **Always pass ABSOLUTE paths** to `find-loops` / `stemmy-gemini` tools (they resolve relative to the server cwd). In a git worktree, `artifacts/`/`projects/` live in the canonical checkout.
 
 ## Stage 0 — convert + baseline measure
@@ -43,7 +43,7 @@ balance problem ([[mix-balance]]).
 
 ## Stage 1 — phase-align close mics → overheads (gated)
 
-- `uv run --no-sync drum-prep detect <stems-dir>` → confirm roles (FX/reverb returns auto-detect as `fx`, excluded; overheads = stereo anchor; room = polarity-only). → `uv run --no-sync drum-prep phase-align <stems-dir>` → `phase-aligned/`.
+- `uv run --extra drum-prep drum-prep detect <stems-dir>` → confirm roles (FX/reverb returns auto-detect as `fx`, excluded; overheads = stereo anchor; room = polarity-only; an UNKNOWN role from a non-standard mic NAME, e.g. "Crotch Mic", must be identified by SIGNAL not name — a ~70 Hz LF-dominant channel is a `kick_sub` — and pinned in a `kit.json`, passed with `--manifest`). → `uv run --extra drum-prep drum-prep phase-align <stems-dir>` → `phase-aligned/`.
 - **Stereo-image gate** (same as [[drum-phase-align]]): drum-prep mono-collapses close mics — lossless only if dual-mono; **OH/room MUST stay stereo** (the room/OH width is the Bonham image). See [[drum-stems-warm-loops]] Stage 1 for the full gate.
 
 ## Stage 2 — process the stems (GENTLE, warmth-preserving)

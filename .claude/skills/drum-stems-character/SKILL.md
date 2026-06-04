@@ -1,6 +1,6 @@
 ---
 name: drum-stems-character
-description: "Use when the user has a FOLDER of drum stems and wants the whole kit corrected then shaped to a CHOSEN tonal character end-to-end — 'process my drum stems and give them a character', 'EQ+normalize+soothe each stem then make the kit warm/punchy/crushed/aggressive/clean', 'apply a tonal character to my drum bus', 'Bonham or Tomorrow-Never-Knows character on these stems', 'reusable drum-stems character pipeline'. Fans out a PURE-DSP per-stem corrective, ASKS the user a character (Clean/Warm/Punchy/Crushed/Aggressive/Bonham/TNK), fans out per-stem PLANNING of a character-aware UADx chain then applies it one stem at a time (serial — concurrent UADx is non-deterministic), phase-aligns the processed stems, balances + colors the bus to that character, finalizes the bus, and hands to [[master-track]]. Local DSP + the stemmy MCP servers; needs the `vst` extra (Studer/API + the bus scripts' Fairchild/Helios/SSL/Vibe) + optional GEMINI_API_KEY (perceptual A/B)."
+description: "Use when the user has a FOLDER of drum stems and wants the whole kit corrected then shaped to a CHOSEN tonal character end-to-end — 'process my drum stems and give them a character', 'make the kit warm/punchy/crushed/aggressive/clean', 'apply a tonal character to my drum bus', 'Bonham or Tomorrow-Never-Knows character on these stems', 'reusable drum-stems character pipeline'. Per-stem corrective then a user-chosen character (Clean/Warm/Punchy/Crushed/Aggressive/Bonham/TNK) per-stem + on the bus, then hands to [[master-track]]. Local DSP + the stemmy MCP servers; needs the `vst` extra + optional GEMINI_API_KEY (perceptual A/B)."
 argument-hint: <stems-folder> [character] [slug]
 ---
 
@@ -12,9 +12,9 @@ One reusable pipeline that takes a **folder of drum stems**, corrects each stem,
 
 ## Inputs & setup
 
-- **`$1` = stems folder** (e.g. `~/Desktop/<Name> - Drum Stems` or `projects/<slug>/stems`). **`$2` = character** (optional; else ask in Stage 2). **`$3` = slug** (optional; else slugify the folder name).
+- **Stems folder** = the path the user provided (e.g. `~/Desktop/<Name> - Drum Stems` or `projects/<slug>/stems`) — **it may contain spaces, so treat the whole path as ONE argument and QUOTE it in every command**. Don't rely on positional `$1`/`$2`/`$3` (the harness space-splits them, so a spaced path becomes garbage tokens — observed: `$1` → "Studios"); use `$ARGUMENTS` (the whole raw string) if you need a placeholder. **Character** (optional; else ask in Stage 2). **Slug** (optional; else slugify the folder name).
 - Prereqs: `uv sync --extra drum-prep` (this repo); in `../stemmy-loops-mcp`: `uv sync --extra vst --extra mixing`. The `vst` extra + UADx plugins authorized: `uaudio_studer_a800.vst3`, `uaudio_api_vision_channel_strip.vst3` (per-stem), plus the bus scripts' `uaudio_fairchild_660` / `uaudio_helios_type_69` / SSL / Vibe for the famous characters. `GEMINI_API_KEY` only for the optional Stage-6 A/B.
-- **Run scripts with the stemmy-loops venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python`. `drum-prep` via `uv run --no-sync drum-prep`.
+- **Run scripts with the stemmy-loops venv:** `VENV=../stemmy-loops-mcp/.venv/bin/python`. **In a git worktree (`.claude/worktrees/<name>/`) the `../` is WRONG** — unlike the `.mcp.json` servers, these scripts take the path literally; resolve `stemmy-loops-mcp` next to the MAIN checkout and pass the ABSOLUTE venv path. `drum-prep` via `uv run --extra drum-prep drum-prep` (NOT `--no-sync` — that skips installing the extra, so the console script is missing in a fresh/worktree env).
 - **MCP tools resolve relative paths to the SERVER's cwd → always pass ABSOLUTE paths.**
 
 ## Stage 0 — convert + baseline measure
@@ -31,12 +31,12 @@ Workflow drum-stems-character { mode:'correct',
   stems:[<ls the kit dir>], srcDir:"<ABS projects/<slug>/stems>", outDir:"<ABS …/stems/corrected>" }
 ```
 
-- `process_stems.py` **always** runs the API strip at `line_gain 0` (near-passthrough) **and peak-normalizes each stem to −1 dBFS** (= the "normalize" step) — harmless; Stage 5 re-levels by LUFS. declick stays OFF (percussive). `suppress_resonances` (the "soothe") only catches **narrow** ringing.
+- `process_stems.py` **always** runs the API strip at `line_gain 0` (near-passthrough) **and peak-normalizes each stem to −1 dBFS** (= the "normalize" step) — harmless; Stage 5 re-levels by LUFS. declick stays OFF (percussive). `suppress-resonances` (the "soothe") only catches **narrow** ringing.
 - **Confirm-point A:** show the returned per-stem before→after table (LUFS / crest / centroid / tilt); proceed on user OK.
 
 ## Stage 2 — ask the tonal character
 
-If `$2` wasn't given, the **session** (not the workflow — workflows can't prompt) calls **AskUserQuestion** with these options (each maps to a proven bus chain):
+If the character wasn't given, the **session** (not the workflow — workflows can't prompt) calls **AskUserQuestion** with these options (each maps to a proven bus chain). **"Other" may be a record/era reference, not a built-in** (e.g. "the Aja sound") — map it to the NEAREST built-in + a tuning: Aja (Steely Dan / Gadd, warm-tight hi-fi) → **Warm**, tuned brighter (`warm_bus --hs-gain 0 --repro-hf 3 --tape-in-gain 4` + the Stage-6 top lift).
 
 | Option | Character | Per-stem | Bus signature |
 |---|---|---|---|
@@ -62,11 +62,11 @@ Workflow drum-stems-character { mode:'character', character:"<chosen>",
 
 ## Stage 4 — phase-align the processed stems
 
-`uv run --no-sync drum-prep phase-align <ABS …/stems/character> [--kick-lowpass 180]` → `…/stems/character/phase-aligned/`. Aligning the **processed** stems means drum-prep cross-correlates exactly the audio that will be summed. **HPF'd-overheads gate:** if Stage 2/3 high-passed the overheads, the kick (LP180) has nothing in the OH to lock to → a bogus delay. In that case derive the delays from the **full-band originals** and apply them to the processed stems (a pure time-shift commutes with the zero-phase EQ/gating already applied — all LTI), or keep an un-HPF'd OH for the correlation ([[drum-phase-align]] Pitfalls). **Stereo-image gate** (these are usually stereo bounces): drum-prep mono-collapses close mics — lossless only if they're dual-mono (`measure-stereo`: `is_mono`, `max|L−R|=0`); OH/room stay stereo. **AIFF-as-.wav trap:** `phase-aligned/` files are 24-bit AIFF with `.wav` names — soundfile reads them; never feed that dir to ffmpeg ([[drum-phase-align]]).
+`uv run --extra drum-prep drum-prep phase-align <ABS …/stems/character> [--kick-lowpass 180]` → `…/stems/character/phase-aligned/`. Aligning the **processed** stems means drum-prep cross-correlates exactly the audio that will be summed. **HPF'd-overheads gate:** if Stage 2/3 high-passed the overheads, the kick (LP180) has nothing in the OH to lock to → a bogus delay; derive the delays from the **full-band originals** and apply them to the processed stems (a pure time-shift commutes with the zero-phase EQ/gating already applied — all LTI), or keep an un-HPF'd OH for the correlation ([[drum-phase-align]] Pitfalls). **Unknown-role gate:** a non-standard mic NAME (e.g. "Crotch Mic") detects as role `unknown` — identify it by SIGNAL not name (a sub-kick reads ~70 Hz, LF-dominant = `kick_sub`), write a `kit.json` pinning the role, and pass `--manifest`. **Stereo-image gate** (these are usually stereo bounces): drum-prep mono-collapses close mics — lossless only if they're dual-mono (`measure-stereo`: `is_mono`, `max|L−R|=0`); OH/room stay stereo. **AIFF-as-.wav trap:** `phase-aligned/` files are 24-bit AIFF with `.wav` names — soundfile reads them; never feed that dir to ffmpeg ([[drum-phase-align]]).
 
 ## Stage 5 — balance + character bus color (mix to a bus targeting the character)
 
-Set levels by **measured LUFS** (`$VENV scripts/mix/balance_stems.py <spec.json>` — bright stems down, body/room per character; one global −6 dBFS headroom; `pan 0`, stereo stems keep their image), then run the character's bus script on the pre-bus. **Never peak-normalize the sum; never balance by eyeballed dB/RMS** ([[mix-balance]]).
+Set levels by **measured LUFS** (`$VENV scripts/mix/balance_stems.py <spec.json>` — bright stems down, body/room per character; one global −6 dBFS headroom; `pan 0`, stereo stems keep their image), then run the character's bus script on the pre-bus. **Two kick-family mics** (kick + kick-sub): TUCK the secondary ~6–8 dB UNDER the main kick so the correlated LF doesn't double up and bloat the low end (phase-align BOTH to the overheads in Stage 4 first). **Never peak-normalize the sum; never balance by eyeballed dB/RMS** ([[mix-balance]]).
 
 | Character | balance targets | Bus script + flags |
 |---|---|---|
@@ -80,7 +80,7 @@ Set levels by **measured LUFS** (`$VENV scripts/mix/balance_stems.py <spec.json>
 
 ## Stage 6 — finalize the bus (EQ + normalize + soothe on the bus)
 
-The character is already on — this is gentle corrective only ([[finalize-mix]], **no limiting**): `apply-eq` (corrective shelves/cuts), `suppress-resonances` (soothe any bus ring), and the −1 dBFS the bus scripts already emit. **Verify against the character's approved signature** (`measure-spectrum`/`measure-loudness`) — if centroid/tilt overshoots, back off the **per-stem** drive first (Stage 3), not the bus (double-coloring guard). Optional: a Gemini A/B for the famous characters (cross-check every claim against the meters — Gemini hears ~16 kbps mono).
+The character is already on — this is gentle corrective only ([[finalize-mix]], **no limiting**): `apply-eq` (corrective shelves/cuts), `suppress-resonances` (soothe any bus ring), and the −1 dBFS the bus scripts already emit. **Verify against the character's approved signature** (`measure-spectrum`/`measure-loudness`) — if centroid/tilt overshoots, back off the **per-stem** drive first (Stage 3), not the bus (double-coloring guard). **Double-tape darkening guard:** per-stem Studer (Stage 3) STACKED on a tape/dark bus script (Warm/Bonham/Crushed/TNK) cumulatively over-darkens (observed bus centroid 2997→2352, ~−12%, tilt more negative), and a warm/dark bus tilt can only CUT highs — you CANNOT recover the top at the bus, so restore presence/air HERE with a zero-phase high-shelf lift (e.g. bell +1.5@4k below the 5–7k harsh zone + high-shelf +3@8k via `apply-eq`) and re-verify centroid/tilt; if still dark, also back off the per-stem tape in Stage 3. Optional: a Gemini A/B for the famous characters (cross-check every claim against the meters — Gemini hears ~16 kbps mono).
 
 ## Stage 7 — master the bus
 
@@ -111,7 +111,7 @@ Per-stage before→after metrics; the chosen character; the final bus signature 
 
 ## Unattended / batch
 
-For no-checkpoint runs, pass `$2` (character) up front and skip the Gemini A/B. Interactive runs should keep both confirm-points (the per-stem tables).
+For no-checkpoint runs, pass the character up front (as the 2nd arg) and skip the Gemini A/B. Interactive runs should keep both confirm-points (the per-stem tables).
 
 ## Related
 [[drum-stems-warm-loops]] · [[stem-process]] · [[format-fix]] · [[mix-balance]] · [[drum-phase-align]] · [[warm-drum-bus]] · [[fool-in-the-rain]] · [[tomorrow-never-knows]] · [[finalize-mix]] · [[master-track]] · [[studer-a800]] · [[api-vision-channel-strip]] · [[fairchild-660]] · [[helios-type-69]] · [[vst-preset]]

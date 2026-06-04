@@ -1,6 +1,6 @@
 ---
 name: pultec-meq-5
-description: "Use when running the UAD/UADx Pultec MEQ-5 Mid-Range Equalizer for broad, musical MIDRANGE shaping on drums, drum bus, guitars, vocals, bass, or a mix bus — 'Pultec MEQ-5', 'MEQ-5', 'Pultec midrange EQ', 'de-honk / de-box this', 'scoop the mids', 'midrange presence / attack', 'add presence to the snare', 'that passive Pultec mid EQ', or when you want forgiving low-mid/mid/high-mid moves from a passive LC + tube EQ. The measured, plugin-specific deep-dive of [[vst-eq]] — three overlapping sections (LOW PEAK boost 200-1000 Hz · DIP cut 200-7000 Hz · HIGH PEAK boost 1.5-5 kHz) + an output trim; grounded in the real 10-param surface + transfer-function / THD / render numbers in docs/vst/pultec-meq-5.md. The MIDRANGE companion to [[pultec-eqp-1a]] (lows + air) and [[pultec-hlf-3c]] (filters). BROAD/musical, not surgical (pair with [[fabfilter-pro-q-4]] for notches). Stemmy MCP, the `vst` extra. UADx native (iLok account; verified-headless on this rig)."
+description: "Use when running the UAD/UADx Pultec MEQ-5 Mid-Range Equalizer for broad, musical MIDRANGE shaping on drums, guitars, vocals, or a bus — 'Pultec MEQ-5', 'MEQ-5', 'de-honk / de-box this', 'scoop the mids', 'midrange presence / attack', 'add presence to the snare'. The plugin-specific deep-dive of [[vst-eq]]; the midrange companion to [[pultec-eqp-1a]] (lows + air). Stemmy MCP, the `vst` extra."
 argument-hint: <audio.wav> [goal: de-box|presence|warm-body|scoop|attack]
 ---
 

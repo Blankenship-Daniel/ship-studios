@@ -27,6 +27,8 @@ per-element volumes by **integrated LUFS** first; only then reach for tone.
 
 - `scripts/mix/balance_stems.py` run with the stemmy-loops `mixing` venv
   (`../stemmy-loops-mcp/.venv/bin/python`, has pyloudnorm + soundfile). Or `[L] measure-loudness` per stem.
+  **In a git worktree** (`.claude/worktrees/<name>/`) the `../` does **not** resolve — the sibling lives
+  next to the **main** checkout; resolve it there and pass the **absolute** venv path.
 - Time/phase-aligned stems for a multi-mic kit (run `[[drum-phase-align]]` first).
 
 ## Recipe
@@ -35,9 +37,12 @@ per-element volumes by **integrated LUFS** first; only then reach for tone.
    correlated source like the hi-hat out of the overheads). Turning a mic up turns its bleed up too.
 2. **Measure** each stem's integrated LUFS (the balancer does this and prints the table; or `[L] measure-loudness`).
 3. **Set deliberate per-role targets** — kick/snare forward, **overhead under them**, room/ambience subtle,
-   support mics (snare-bottom, kick-beater) low. Pan by perspective.
+   support mics (snare-bottom, kick-beater) low. With **two kick-family mics** (kick + kick-sub), tuck the
+   secondary **~6–8 dB UNDER** the main kick so the correlated LF doesn't double up and bloat the low end
+   (phase-align both to the overheads first). Pan by perspective.
 4. **Balance** —
    ```bash
+   # in a git worktree, ../ is wrong — use the ABSOLUTE venv next to the MAIN checkout
    ../stemmy-loops-mcp/.venv/bin/python scripts/mix/balance_stems.py \
      '{"out":"projects/<track>/mix/bus.wav","headroom_db":-6,"stems":[
         {"file":"…/overhead.wav","target_lufs":-22},{"file":"…/kick in.wav","target_lufs":-17}, …]}'

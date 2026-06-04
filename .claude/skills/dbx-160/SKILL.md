@@ -1,6 +1,6 @@
 ---
 name: dbx-160
-description: "Use when running the UADx dbx 160 Compressor for punchy/aggressive VCA compression on drums (kick/snare/room), bass, or a drum bus — 'dbx 160', 'dbx compressor', 'put the dbx on the snare/kick/drums/bass', 'that dbx snare thwack/knock', 'punchy VCA compression', 'add punch to the drums', 'parallel-smash the drum bus', 'New York compression', '4:1 on everything'. The measured, plugin-specific deep-dive of [[vst-compress]] — a feed-forward, true-RMS, hard-knee Blackmer-VCA compressor that on drums ADDS punch (RAISES crest) rather than leveling it, and is exceptionally CLEAN (its character is dynamic, not harmonic), grounded in the real 8-enum-param Pedalboard surface + ratio/threshold/sidechain/parallel/THD render numbers in docs/vst/dbx-160.md. Stemmy MCP, the `vst` extra."
+description: "Use when running the UADx dbx 160 Compressor for punchy VCA compression on drums, bass, or a drum bus — 'dbx 160', 'that dbx snare thwack/knock', 'add punch to the drums', 'parallel-smash the drum bus', 'New York compression'. The measured deep-dive of [[vst-compress]] — on drums it ADDS punch rather than leveling. Stemmy MCP, the `vst` extra."
 argument-hint: <wav-or-bus> [goal: drum-punch|bus-glue|parallel|snare|bass]
 ---
 

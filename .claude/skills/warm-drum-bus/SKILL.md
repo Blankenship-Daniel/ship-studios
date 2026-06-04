@@ -19,7 +19,7 @@ bottom end** — the user's approved signature drum sound. The recipe is saved a
   low band so the kick doesn't pump the bus.
 
 **Local DSP + VST** — runs the stemmy-loops tools + the Studer A800 (`uaudio_studer_a800.vst3`) through the
-stemmy-loops **`vst` venv** (`../stemmy-loops-mcp/.venv`). Not the MCP servers directly.
+stemmy-loops **`vst` venv** (`../stemmy-loops-mcp/.venv`). Not the MCP servers directly. **Git-worktree caveat:** from a worktree under `.claude/worktrees/<name>/` the `../` does NOT resolve — unlike the `.mcp.json` servers, these scripts take the venv path literally. Resolve the sibling next to the **MAIN** checkout and pass the **ABSOLUTE** venv path (`/…/code/stemmy-loops-mcp/.venv/bin/python`).
 
 ## Prerequisites
 
@@ -33,7 +33,9 @@ stemmy-loops **`vst` venv** (`../stemmy-loops-mcp/.venv`). Not the MCP servers d
 1. **Warm balance** (if starting from stems) — `scripts/mix/balance_stems.py` with the preset's per-role
    targets: bright stems **down** (snare-bottom −32, hi-hat −28, kick-beater −26), body/room **up**
    (kick-in −16, snare-top −18, overhead −22, room −26); measured LUFS, one global −6 dBFS headroom trim.
-   → `bus_warm_pre.wav`. (Already have a bus? skip to 2.)
+   → `bus_warm_pre.wav`. **Two low-end mics** (e.g. kick-in + a kick-sub/sub mic): tuck the secondary ~6–8 dB
+   UNDER the main kick so the correlated LF doesn't double up and bloat the bottom, and phase-align BOTH to
+   the overheads for coherence. (Already have a bus? skip to 2.)
 2. **Warm/tight chain** — `scripts/mix/warm_bus.py <bus_warm_pre.wav> <bus_warm.wav>`. It applies, in order:
    HPF 35 + warm tilt (low-shelf +1.5 @ 180, bell −1.5 @ 2.5 k, high-shelf −4 @ 6 k, zero-phase) → multiband
    compressing the **<110 Hz** band (3:1, the controlled bottom) → **Studer A800 30 IPS / 456 / repro_hf_eq 2**
@@ -65,6 +67,12 @@ warmth isn't a loudness illusion.
 - **It's a MIX bus, not a master** — peak −1, no limiting. Loudness is [[master-track]]'s job.
 - **Watch the crest** — if it collapses below ~20, back off the multiband ratio / tape drive (it's getting
   over-glued, losing life).
+- **Double tape darkening** — if the input is a per-stem-processed kit that already carries per-stem tape
+  ([[stem-process]] / [[studer-a800]]), the bus Studer here STACKS on it and cumulatively over-darkens
+  (centroid/tilt drop further than expected). A warm/dark bus tilt can only CUT highs, so you can't recover
+  the top at the bus — restore presence/air at finalize with a zero-phase high-shelf lift (e.g. bell +1.5 @ 4 k
+  below the 5–7 k harsh zone + high-shelf +3 @ 8 k) and re-check centroid/tilt; if still dark, back off the
+  per-stem tape too.
 
 ## Related
 

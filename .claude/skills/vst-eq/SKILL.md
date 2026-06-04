@@ -13,8 +13,9 @@ plugin's curve/character.
 
 ## Prerequisites
 
-- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-resonances` (optional,
-  needs `GEMINI_API_KEY`). Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)):
+- `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-resonances` (optional;
+  pure DSP — no `GEMINI_API_KEY`, it lives on the stemmy-gemini server but makes no model call).
+  Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)):
   `FabFilter Pro-Q 4`, `Maag EQ4`, `UAD Pultec EQP-1A`, `UAD Pultec MEQ-5`, `UAD Neve 1073`, `EQP-1A`.
 
 ## Recipe

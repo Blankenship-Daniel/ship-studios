@@ -17,11 +17,29 @@ Both servers are registered in `.mcp.json` and launched as stdio subprocesses vi
 
 > **Gemini audio reference:** what *every* Gemini model can do with audio — understanding (the part this repo wires up) plus speech/TTS, the Live API, and Lyria music generation, with models, pricing, SDK patterns, and limits — is documented in [`docs/gemini-audio/`](docs/gemini-audio/README.md) and surfaced as the **`[[gemini-audio]]`** skill suite (`gemini-audio` index + `gemini-audio-understanding` / `gemini-speech-generation` / `gemini-live-audio` / `gemini-music-generation`). Reach for it whenever you need to know what Gemini can/can't hear or which model/format/limit/price applies. The governing fact: Gemini downmixes to ~16 kbps mono, so **meters own loudness/peak/stereo**.
 
-> **VST plugin hosting:** `apply-vst-chain` + `list-vst-plugins` (`[L]`, the `vst` extra → Spotify **Pedalboard**) let the pipeline run third-party **VST3 / Audio Unit *effect*** plugins fully **offline & headless** (no DAW, no GUI, no audio device) — e.g. as a stage-5 insert before `render-mastered`. This is the **one** part of the surface that loads external, **non-deterministic** plugin binaries: opt-in, effects-only (instruments are rejected), **VST3 is cross-platform / AU is macOS-only**, and the editor GUI is never opened. Set parameters in code or, for a reproducible render, restore an opaque `dump_state` blob rather than a `.vstpreset`/`.fxp` (Pedalboard's preset loader is VST3-only and flaky). iLok/PACE-protected plugins are render-farm landmines. Discover installed plugins read-only with `list-vst-plugins` (no `vst` extra needed). **Loads ≠ renders** — a plugin can load yet pass audio through or ignore its params; verify with `[[vst-verify]]` (measure *detail*, not just `changed:true`). **UAD has two builds:** load `/Library/Audio/Plug-Ins/VST3/uaudio_*.vst3` (UADx native — renders headless), never the `UAD ….component`/`.vst3` twins (passthrough offline). `apply-vst-chain` can't gain-stage or set enum/bool params → use the preset harness (`presets/vst/`). Wrapped as the **`[[vst]]` skill suite** (15 skills: `vst` index + `vst-chain`/`vst-browse`/`vst-verify`/`vst-preset`/`vst-shootout` + per-task `vst-channel-strip`/`vst-eq`/`vst-compress`/`vst-saturate`/`vst-reverb`/`vst-delay`/`vst-de-ess`/`vst-master`/`vst-amp`), each a measured workflow over `apply-vst-chain` grounded in the **headless-safe inventory** ([`docs/vst/README.md`](docs/vst/README.md)) — load *and* render verified. On top of the generic suite sit **per-plugin measured deep-dives** — each a `docs/vst/<plugin>.md` field guide + a matching `[[<plugin>]]` skill, grounded in the real Pedalboard param surface + our own isolation/shootout renders, and each carrying its own load-and-render verification, headless build (`uaudio_*` vs the passthrough `.component` twin), and param / preset-harness notes. They cover the console **channel strips** ([[ssl-4k-e]], [[ssl-native-channel-strip-2]], [[api-vision-channel-strip]], [[kit-bb-a5]], [[kit-bb-n105]], [[kit-bb-n73]], [[la-6176]], [[helios-type-69]], [[manley-voxbox]]), the **compressors** ([[ssl-bus-compressor-2]], [[fairchild-660]], [[manley-variable-mu]], [[la-3a]], [[dbx-160]], [[distressor]], [[fabfilter-pro-mb]]), the **EQs** ([[fabfilter-pro-q-4]], [[pultec-eqp-1a]], [[pultec-meq-5]], [[pultec-hlf-3c]], [[manley-massive-passive]], [[hitsville-eq]], [[hitsville-eq-mastering]]), the **saturation / tape** ([[fabfilter-saturn-2]], [[studer-a800]], [[ampex-atr-102]], [[softube-tape]], [[oxide-tape]], [[vibe-analog-machines]]), the **transient** shaper ([[softube-transient-shaper]]), and the mastering **limiter** ([[fabfilter-pro-l-2]]). One **passthrough trap**: Arturia **Tape J-37** loads but self-bypasses offline (DAW-only) — see [[tape-j-37]]. Reach for the per-plugin skill when you know which box you're driving; the generic `vst-*` skills ([[vst-eq]] / [[vst-compress]] / [[vst-saturate]] / …) otherwise.
+> **VST plugin hosting:** `apply-vst-chain` + `list-vst-plugins` (`[L]`, the `vst` extra → **Pedalboard**) run third-party **VST3 / AU *effect*** plugins **offline & headless** (no DAW/GUI/device) — e.g. a stage-5 insert before `render-mastered`. The **one** part of the surface that loads external, **non-deterministic** binaries: opt-in, effects-only, VST3 cross-platform / AU macOS-only (`list-vst-plugins` is read-only and needs no extra). Two traps an agent must respect: **loads ≠ renders** (a plugin can load yet pass audio through unchanged — verify with `[[vst-verify]]`, measuring *detail* not just `changed:true`), and for **UAD** load the `uaudio_*.vst3` build, never the passthrough `UAD ….component` twin. The **full doctrine, the ~32 per-plugin measured deep-dives, and the headless-safe inventory live in the `[[vst]]` skill suite** ([`docs/vst/README.md`](docs/vst/README.md)) — reach for a specific `[[<plugin>]]` skill when you know the box, the generic `[[vst-eq]]` / `[[vst-compress]]` / `[[vst-saturate]]` / … otherwise.
 
 ### Philosophy
 
 A track moves left-to-right through the lifecycle: **understand** the source → **create loops** (optional) → **measure** → **perceptual critique** → **corrective + render** → **deliver**. Measure before you move; let Gemini's ears and the DSP meters cross-check each other; never master inside the mix stage. Pipelines below encode the canonical orderings.
+
+### By goal — request → skill
+
+Most work starts from a **skill**, not a raw tool — match the request here, then let the skill drive the tools. (The lifecycle-ordered tool tables follow; the [Canonical pipelines](#canonical-pipelines) are the hand-typed recipes the skills wrap.)
+
+- **Master a track / "streaming-ready / -14 LUFS for Spotify"** → `[[master-track]]`; a whole EP/folder → `[[batch-master]]`; assemble already-mastered tracks → `[[release-package]]`.
+- **Diagnose a mix / "what's wrong / too harsh / muddy / boomy"** → `[[mix-check]]` (hands off to `[[master-track]]`); glue before mastering → `[[finalize-mix]]`.
+- **Sound like a reference** → `[[reference-match]]`; one shared tone across an EP → `[[house-curve]]`.
+- **Balance levels / "the hi-hat's too loud / X is buried"** → `[[mix-balance]]` FIRST (a balance problem is not an EQ problem); de-spill a close mic → `[[bleed-gate]]`.
+- **Work from stems** → `[[stem-master]]` (correct→sum→master); carve clashes only → `[[unmask-stems]]`; per-stem correct+color → `[[stem-process]]`; split a mixdown → `[[stem-split]]`.
+- **A multi-mic drum kit** (overheads/room/close mics) → `[[drum-prep]]`; a raw Logic/interface dump → `[[logic-extract]]` → `[[multitrack-triage]]`.
+- **A drum-bus character / a famous drum tone** → `[[warm-drum-bus]]` · `[[drum-stems-character]]` · `[[fool-in-the-rain]]` (Bonham) · `[[home-at-last]]` (Aja) · `[[tomorrow-never-knows]]` (Beatles).
+- **A targeted corrective move** → `[[de-ess]]` · `[[de-harsh]]` · `[[dynamic-eq]]` · `[[excite]]` · `[[multiband-compress]]` · `[[drum-punch]]` · `[[sub-design]]` · `[[groove-tighten]]`.
+- **Use your own VST3/AU plugins** → `[[vst]]` (index + doctrine), then a `vst-*` task skill or a per-plugin deep-dive.
+- **Loops / one-shots / a pack** → `[[loops-to-deliverables]]` · `[[slice-oneshots]]` · `[[sample-pack]]` · `[[sampler-kit]]`.
+- **Understand a reference** (transcribe / events / compare) → `[[understand-audio]]`. **New project** → `[[new-track]]`. **QC before shipping** → `[[delivery-qc]]`.
+
+For batch / parallel runs (a whole album, a folder of stems, a plugin sweep, a variant shootout) reach for the matching **workflow** — `/batch-master`, `/house-curve`, `/stem-process`, `/audio-shootout`, … — see [Workflows](#workflows-multi-agent-fan-out) below.
 
 ---
 
@@ -309,11 +327,16 @@ script returns a structured object the session writes out.
 | `house-curve` | one agent per mix → match-to-profile → match-eq → re-measure; cross-track spread reduce (tonal companion to `batch-master`) | the references (or a prebuilt profile JSON) + the mix list |
 | `stem-process` | one agent per stem diagnoses + authors a corrective plan (parallel reads); the executor then runs as ONE serial UADx-safe pass | the kit's stem dir (`srcDir`/`outDir`); a prebuilt plans list is optional |
 | `drum-stems-character` | two-mode per-stem fan-out: `mode:'correct'` → one agent per stem authors a pure-DSP corrective plan, then ONE serial `process_stems.py`; `mode:'character'` → one agent per stem plans a role+character-aware UADx chain, then ONE serial `character_stems.py` (one stem at a time, UADx-safe). The `drum-stems-character` skill drives it twice with an AskUserQuestion (the chosen character) in between | the kit's stem dir (`srcDir`/`outDir`), the chosen `character` (Clean/Warm/Punchy/Crushed/Aggressive/Bonham/TNK) |
-| `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / frontmatter drift | the skill-dir list + valid-target sets |
+| `fool-in-the-rain` / `home-at-last` / `tomorrow-never-knows` | the famous-drum **bus-tuning** twins: render N drum-bus variants → a parallel multi-lens Gemini judge panel against that recipe's brief → pick the winner (whose meters become the preset's `approved_signature`). The same-named skill calls this to lock its chain | the balanced pre-bus + `out_dir` (+ the variant flags) |
+| `audit-skill-consistency` | one agent per skill → wikilink / tool-name / doc / key-label / **mono-caveat** / **argument-hint** / frontmatter drift | the skill-dir list + valid-target sets |
 | `audit-pipeline-lockstep` | one agent per coded pipeline → CLAUDE.md prose ↔ `pipelines.py` ↔ tests drift | (agents read the files themselves) |
 
 Reference a workflow in prose as `name` / `/name` (a slash command) — **not** as
-a `[[name]]` wikilink (those resolve to skills/docs only).
+a `[[name]]` wikilink (those resolve to skills/docs only). **Workflows are NOT in
+the auto-injected skill list** an agent sees each turn — only this table (and the
+`/name` slash surface) advertises them, so consult it whenever a task wants
+parallel fan-out. Three more are **dev/meta** workflows for working *on* this repo
+(`create-skill`, `repo-review`, `repo-review-fix`) — see [Developing this repo](#developing-this-repo-tests--lint--types).
 
 ---
 
@@ -415,11 +438,13 @@ uv run pytest -k drum_prep                       # the drum_prep DSP subset (nee
 uv run ruff check        # lint (line-length 100; scripts/ + presets/ are EXCLUDED by design — terse one-off probe/sweep helpers)
 uv run ruff format       # format
 uv run mypy              # types — checks ship_studios + drum_prep only
+uv run python scripts/lint_skills.py   # skill-contract lint: [G]-keyless labels, wikilinks, frontmatter (CI-gated)
 ```
 
 - **`uv run pytest -k drum_prep` without `--extra drum-prep` fails to import** (numpy/scipy missing) — the hub stays DSP-free, so the DSP deps are opt-in. Hub tests (pipelines/cli/config/mcp_client) run on base deps alone.
 - **Editing a pipeline = editing `ship_studios/pipelines.py`**; the matching `tests/test_pipelines.py` asserts the *ordered tool-call log* (server, tool, args) against a `RecordingHub`/`FakeSession`, not live output — so a pipeline change that reorders/renames a tool call will fail loudly. Keep the call order in lockstep with the **Canonical pipelines** section above.
 - **VST plugin work** (the `[[vst]]` deep-dives): iterate with the harness/probe scripts under `presets/vst/` (`probe_plugin.py` · `dump_params.py` · `apply_vst_preset.py`) and `scripts/mix/*_sweep.py`, run with the **sibling** loops `vst` venv — `../stemmy-loops-mcp/.venv/bin/python presets/vst/dump_params.py <plugin.vst3>`. These live outside ruff/mypy coverage on purpose.
+- **Skill/doc contract guards** keep the ~102 `SKILL.md` files + CLAUDE.md in lockstep in two layers. (1) `scripts/lint_skills.py` — a deterministic, dependency-light, **CI-gated** check (the recurring `[G]`-keyless label bug — `find-sibilance`/`find-resonances`/`check-streaming-targets` are pure DSP, no key — plus wikilink resolution + frontmatter presence). (2) The deeper **agent workflows**, run on demand: `/audit-skill-consistency` (per skill: wikilinks · tool-name drift · doc paths · key-labels · the Gemini **mono-caveat** on `[G]`-critique skills · **argument-hint** drift · frontmatter) and `/audit-pipeline-lockstep` (CLAUDE.md ↔ `pipelines.py` ↔ tests). Author a new skill with `/create-skill`; review the whole repo with `/repo-review` → `/repo-review-fix`.
 
 ## Headless alternative — the `ship-studios` CLI
 

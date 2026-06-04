@@ -14,7 +14,8 @@ one) for cohesive console tone. A task preset of `[[vst-chain]]` — same headle
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). Input = one WAV stem/bus.
 - Headless-safe candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)): `British Channel`,
   `bx_console SSL 4000 E`, `bx_console AMEK 200`, `SSL Native Channel Strip 2`,
-  `UAD API Vision Channel Strip`, `UAD Neve 1073`.
+  `UAD API Vision Channel Strip`, `UAD Neve 1073`, `Nectar 3` (iZotope's all-in-one **vocal** channel
+  strip — renders & engages headless → [[nectar-3]]).
 
 ## Recipe
 

@@ -16,7 +16,10 @@ plugin's curve/character.
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-resonances` (optional;
   pure DSP — no `GEMINI_API_KEY`, it lives on the stemmy-gemini server but makes no model call).
   Candidates ([`docs/vst/README.md`](../../../docs/vst/README.md)):
-  `FabFilter Pro-Q 4`, `Maag EQ4`, `UAD Pultec EQP-1A`, `UAD Pultec MEQ-5`, `UAD Neve 1073`, `EQP-1A`.
+  `FabFilter Pro-Q 4`, `Maag EQ4`, `UAD Pultec EQP-1A`, `UAD Pultec MEQ-5`, `UAD Neve 1073`, `EQP-1A`,
+  `Neutron 4 Equalizer` (iZotope — dynamic EQ + M/S → [[neutron-4-equalizer]]) / `Neutron 4 Sculptor`
+  (iZotope — target spectral leveler → [[neutron-4-sculptor]]) — both render & engage headless. (iZotope's
+  `Ozone 11 Equalizer` is **DAW-only** — its EQ is inert offline → [[ozone-11-equalizer]].)
 
 ## Recipe
 

@@ -15,7 +15,8 @@ band and threshold **grounded by `[G] find-sibilance`** rather than guessed. A t
 - `[L] apply-vst-chain` / `list-vst-plugins` (`uv sync --extra vst`). `[G] find-sibilance` is **pure
   DSP — no `GEMINI_API_KEY`** (gemini server, no model call). Candidates
   ([`docs/vst/README.md`](../../../docs/vst/README.md)):
-  `FabFilter Pro-DS`, `SSL DeEss`, `Lindell 902 De-esser`, `De Esser`. (Thin category — 4 safe titles.)
+  `FabFilter Pro-DS`, `SSL DeEss`, `Lindell 902 De-esser`, `De Esser`,
+  `RX 10 De-ess` (iZotope — spectral de-ess, renders & engages headless → [[rx-10-de-ess]]).
 
 ## Recipe
 

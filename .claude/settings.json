@@ -21,5 +21,19 @@
       "Read(./**/.env)",
       "Read(./**/.env.local)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run ship-studios doctor || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }

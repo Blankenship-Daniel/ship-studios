@@ -66,8 +66,17 @@ profile path so it's reusable, and point at `[[batch-master]]` for loudness.
 - **Profile is peak/shape-referenced.** It compares spectral *shape*, not
   absolute level — don't read the deltas as loudness.
 
+## Fan-out
+
+The profile build (step 1) is one call; **after it, each mix is independent** — the
+per-mix match-to-profile → match-eq → re-measure (steps 2–4) fans out one agent per
+mix (pure DSP, no UADx, no key → fully parallel), then the cross-track spread is the
+reduce that proves the set tightened. The `house-curve` workflow implements exactly
+this — the tonal companion to the `batch-master` workflow (loudness).
+
 ## Related
 
+- `house-curve` (workflow) — the parallel per-mix form of steps 2–4 + the cross-track spread reduce
 - [[reference-match]] — single mix ↔ single reference (the per-track version)
 - [[batch-master]] — the loudness-consistency companion for the same set
 - [[release-package]] — assemble the consistent set for distribution

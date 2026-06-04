@@ -106,6 +106,15 @@ exported file paths. If you re-rendered, say what you changed and why.
   `out_path` from step 7, never the original mix.
 - **Targets are numbers.** `target_lufs: -14`, not `"-14 LUFS"`.
 
+## Fan-out
+
+The **baseline measurement is parallel** — steps 1–6 (`measure-loudness` /
+`measure-spectrum` / `measure-stereo`, `check-clipping`, `measure-distortion`, and
+the `mastering-feedback` read) all read the source independently. Run them as
+concurrent Agent calls, then render. The render → verify → re-render → export tail
+(steps 7–10) is a sequential mutate-chain and stays serial. For a whole folder,
+the `batch-master` workflow already fans this out one-agent-per-track.
+
 ## Related
 
 - [[mastering-plan]] — design the chain (typed EQ/comp/limiter targets) before rendering step 7

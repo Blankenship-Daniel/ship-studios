@@ -96,6 +96,14 @@ green loudness numbers — surface it.
 - **Verify the written files, not the source.** Steps 1–5 must point at the
   exported deliverable, never the pre-export master/loop.
 
+## Fan-out
+
+The gate is **read-only and parallel** — steps 1–4 (`check-streaming-targets`,
+`check-clipping`, `check-delivery-spec`, `inspect-loop`) are independent checks,
+and across a directory each file is independent too. Run the checks (and/or the
+per-file passes) as concurrent Agent calls, then reconcile into the single
+ship / don't-ship verdict. `verify-tags` (step 5) takes the whole dir in one call.
+
 ## Related
 
 - [[loops-to-deliverables]] — produces the loop deliverables this gate checks; holds the tagging step to re-run if untagged

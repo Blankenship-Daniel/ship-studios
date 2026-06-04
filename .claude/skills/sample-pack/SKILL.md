@@ -95,6 +95,14 @@ path and the README path.
   same key labels, same BPM in the name across the whole pack.
 - **BPM is a number.** `bpm: 120`, not `"120 BPM"`.
 
+## Fan-out
+
+Two independent extraction branches — `extract-oneshots` (step 1) and `find-loops`
+(step 2) — can run concurrently, and **after extraction each item is independent**,
+so the per-item tag → export (steps 3–4) fans out one agent per oneshot/loop over
+the (often dozens of) items. The pack-tree assembly + README (step 5) is the reduce
+that runs once after the join.
+
 ## Related
 
 - [[loops-to-deliverables]] — the clean → seam → master → tag → export loop chain this pulls from

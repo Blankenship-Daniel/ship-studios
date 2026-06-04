@@ -69,6 +69,12 @@ is a tagged, tuned **one-shot kit**, not a mapped sampler instrument file.
 - **Not a sampler instrument patch** — no `.sfz`/`.exs`; it's a tuned, tagged
   multiformat one-shot set.
 
+## Fan-out
+
+Slicing (step 1) is the barrier; **each designated pitched hit is independent**, so
+the measure → retune → QC → tag chain (steps 3–6) fans out one agent per hit. Small
+N, but it parallelizes cleanly. Don't split a single hit's own chain.
+
 ## Related
 
 - [[slice-oneshots]] — the same chop without tuning

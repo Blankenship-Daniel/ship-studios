@@ -157,9 +157,18 @@ const editPrompt = g =>
   GROUND + '\n\n' +
   'METHOD: read each owned file in full -> apply the minimal edit for each finding -> (for .py) confirm it still parses with python3 ast -> record each change. If a finding is genuinely already satisfied, put it in skipped[] with the reason. Return applied + skipped + notes.'
 
-const results = await parallel(GROUPS.map(g => () =>
-  agent(editPrompt(g), { label: `fix:${g.id}`, phase: 'Apply', schema: EDITLOG, agentType: 'general-purpose' })
-    .then(r => ({ id: g.id, ...(r || { applied: [], skipped: [], notes: 'no result' }) }))))
+// Batch the disjoint groups to the repo's ≤16 concurrency cap (matches batch-master /
+// vst-probe-inventory). Groups are disjoint within AND across batches → still safe; batches run
+// sequentially, groups within a batch in parallel. (Heavyweight edit agents are exactly what the cap is for.)
+const GROUP_BATCH = 16
+const gbatches = []
+for (let i = 0; i < GROUPS.length; i += GROUP_BATCH) gbatches.push(GROUPS.slice(i, i + GROUP_BATCH))
+const results = (await pipeline(
+  gbatches,
+  b => parallel(b.map(g => () =>
+    agent(editPrompt(g), { label: `fix:${g.id}`, phase: 'Apply', schema: EDITLOG, agentType: 'general-purpose' })
+      .then(r => ({ id: g.id, ...(r || { applied: [], skipped: [], notes: 'no result' }) })))),
+)).flat().filter(Boolean)
 
 const ok = results.filter(Boolean)
 const totalApplied = ok.reduce((n, r) => n + (r.applied || []).length, 0)

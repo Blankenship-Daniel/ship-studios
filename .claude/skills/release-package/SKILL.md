@@ -78,6 +78,14 @@ so nobody assumes machine-parsed distributor metadata was embedded.
 - **Verify tags survived export** (RIFF INFO drop) via [[delivery-qc]].
 - **Keep `originator` identical across tracks** — consistency is the deliverable.
 
+## Fan-out
+
+Each track is independent — **steps 2–5 (tag → compliance → export → verify-tags)
+fan out one agent per track**, exactly the `batch-master` workflow shape (model
+this on it). The consistency manifest (step 6, `measure-loudness` over all +
+`analyze-album-normalization`) is the cross-track reduce and runs once after the
+join. Keep the `originator` identical across the track agents.
+
 ## Related
 
 - [[batch-master]] — master the folder first if the tracks aren't final

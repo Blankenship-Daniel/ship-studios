@@ -69,6 +69,14 @@ was gutted. If you summed an A/B, give its path.
 - **Cut, don't boost.** Carve the loser; piling gain on the winner just
   re-creates the collision louder.
 
+## Fan-out
+
+The collision map (step 1) is the barrier; **the complementary cuts (step 3) are
+one independent `apply-eq` per losing stem** — each writes its own file, no
+conflict — so fan them out one agent per stem. Re-score (step 4) is the single
+reduce that proves the overlap shrank. (`apply-eq` is still one call per file —
+fan-out parallelizes the stems, it doesn't batch them into one call.)
+
 ## Related
 
 - [[stem-master]] — the full per-stem correct → sum → master workflow this feeds

@@ -1,0 +1,4170 @@
+{
+  "stemmy-gemini": {
+    "analyze-mix-balance": {
+      "properties": {
+        "genre": {
+          "anyOf": [
+            {
+              "enum": [
+                "pop",
+                "rock",
+                "edm",
+                "hiphop",
+                "jazz",
+                "classical",
+                "ambient",
+                "metal",
+                "acoustic",
+                "other"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Genre"
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intent"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "analyze_mix_balanceArguments",
+      "type": "object"
+    },
+    "analyze-phase-mono": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "analyze_phase_monoArguments",
+      "type": "object"
+    },
+    "analyze-stem-masking": {
+      "properties": {
+        "max_conflicts": {
+          "default": 8,
+          "title": "Max Conflicts",
+          "type": "integer"
+        },
+        "stems": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Stems",
+          "type": "object"
+        }
+      },
+      "required": [
+        "stems"
+      ],
+      "title": "analyze_stem_maskingArguments",
+      "type": "object"
+    },
+    "audio-to-json": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "string"
+        },
+        "schema": {
+          "additionalProperties": true,
+          "title": "Schema",
+          "type": "object"
+        }
+      },
+      "required": [
+        "path",
+        "prompt",
+        "schema"
+      ],
+      "title": "audio_to_jsonArguments",
+      "type": "object"
+    },
+    "check-delivery-spec": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "target": {
+          "default": "streaming_master",
+          "enum": [
+            "streaming_master",
+            "mastering_engineer",
+            "broadcast"
+          ],
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "check_delivery_specArguments",
+      "type": "object"
+    },
+    "check-streaming-targets": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "platforms": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Platforms"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "check_streaming_targetsArguments",
+      "type": "object"
+    },
+    "classify-audio": {
+      "properties": {
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Labels",
+          "type": "array"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "multi_label": {
+          "default": true,
+          "title": "Multi Label",
+          "type": "boolean"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "labels"
+      ],
+      "title": "classify_audioArguments",
+      "type": "object"
+    },
+    "compare-audio-files": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Paths",
+          "type": "array"
+        },
+        "prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt"
+        },
+        "schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Schema"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "compare_audio_filesArguments",
+      "type": "object"
+    },
+    "compare-to-reference": {
+      "properties": {
+        "genre": {
+          "anyOf": [
+            {
+              "enum": [
+                "pop",
+                "rock",
+                "edm",
+                "hiphop",
+                "jazz",
+                "classical",
+                "ambient",
+                "metal",
+                "acoustic",
+                "other"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Genre"
+        },
+        "goal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Goal"
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intent"
+        },
+        "mix_path": {
+          "title": "Mix Path",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "reference_path": {
+          "title": "Reference Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mix_path",
+        "reference_path"
+      ],
+      "title": "compare_to_referenceArguments",
+      "type": "object"
+    },
+    "critique-region": {
+      "properties": {
+        "end_s": {
+          "title": "End S",
+          "type": "number"
+        },
+        "focus": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focus"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "snap_to_onset": {
+          "default": true,
+          "title": "Snap To Onset",
+          "type": "boolean"
+        },
+        "start_s": {
+          "title": "Start S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "start_s",
+        "end_s"
+      ],
+      "title": "critique_regionArguments",
+      "type": "object"
+    },
+    "describe-audio-region": {
+      "properties": {
+        "end_s": {
+          "title": "End S",
+          "type": "number"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "string"
+        },
+        "start_s": {
+          "title": "Start S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "start_s",
+        "end_s",
+        "prompt"
+      ],
+      "title": "describe_audio_regionArguments",
+      "type": "object"
+    },
+    "detect-mix-issues": {
+      "properties": {
+        "genre": {
+          "anyOf": [
+            {
+              "enum": [
+                "pop",
+                "rock",
+                "edm",
+                "hiphop",
+                "jazz",
+                "classical",
+                "ambient",
+                "metal",
+                "acoustic",
+                "other"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Genre"
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intent"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "severity_threshold": {
+          "default": "any",
+          "enum": [
+            "any",
+            "moderate",
+            "serious"
+          ],
+          "title": "Severity Threshold",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "detect_mix_issuesArguments",
+      "type": "object"
+    },
+    "extract-audio-events": {
+      "properties": {
+        "event_description": {
+          "title": "Event Description",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "event_description"
+      ],
+      "title": "extract_audio_eventsArguments",
+      "type": "object"
+    },
+    "find-resonances": {
+      "properties": {
+        "freq_range_hz": {
+          "default": [
+            50.0,
+            12000.0
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Freq Range Hz",
+          "type": "array"
+        },
+        "max_resonances": {
+          "default": 8,
+          "title": "Max Resonances",
+          "type": "integer"
+        },
+        "min_prominence_db": {
+          "default": 6.0,
+          "title": "Min Prominence Db",
+          "type": "number"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "find_resonancesArguments",
+      "type": "object"
+    },
+    "find-sibilance": {
+      "properties": {
+        "band_hz": {
+          "default": [
+            4000.0,
+            10000.0
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Band Hz",
+          "type": "array"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "find_sibilanceArguments",
+      "type": "object"
+    },
+    "master-assistant": {
+      "properties": {
+        "intensity": {
+          "default": "medium",
+          "enum": [
+            "subtle",
+            "medium",
+            "strong"
+          ],
+          "title": "Intensity",
+          "type": "string"
+        },
+        "intent": {
+          "default": "balanced",
+          "enum": [
+            "loud",
+            "dynamic",
+            "warm",
+            "bright",
+            "balanced",
+            "punchy"
+          ],
+          "title": "Intent",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "target_platform": {
+          "default": "streaming",
+          "enum": [
+            "general",
+            "streaming",
+            "club",
+            "broadcast",
+            "vinyl"
+          ],
+          "title": "Target Platform",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "master_assistantArguments",
+      "type": "object"
+    },
+    "mastering-feedback": {
+      "properties": {
+        "genre": {
+          "anyOf": [
+            {
+              "enum": [
+                "pop",
+                "rock",
+                "edm",
+                "hiphop",
+                "jazz",
+                "classical",
+                "ambient",
+                "metal",
+                "acoustic",
+                "other"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Genre"
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intent"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "target_platform": {
+          "default": "general",
+          "enum": [
+            "general",
+            "streaming",
+            "club",
+            "broadcast",
+            "vinyl"
+          ],
+          "title": "Target Platform",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "mastering_feedbackArguments",
+      "type": "object"
+    },
+    "match-reference-numeric": {
+      "properties": {
+        "mix_path": {
+          "title": "Mix Path",
+          "type": "string"
+        },
+        "reference_path": {
+          "title": "Reference Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mix_path",
+        "reference_path"
+      ],
+      "title": "match_reference_numericArguments",
+      "type": "object"
+    },
+    "measure-loudness": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_loudnessArguments",
+      "type": "object"
+    },
+    "measure-spectrum": {
+      "properties": {
+        "band_resolution": {
+          "default": "third_octave",
+          "enum": [
+            "octave",
+            "third_octave"
+          ],
+          "title": "Band Resolution",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_spectrumArguments",
+      "type": "object"
+    },
+    "recommend-mastering-chain": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "target_platform": {
+          "default": "streaming",
+          "enum": [
+            "streaming",
+            "club",
+            "broadcast",
+            "vinyl"
+          ],
+          "title": "Target Platform",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "recommend_mastering_chainArguments",
+      "type": "object"
+    },
+    "summarize-long-audio": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "style": {
+          "default": "bullets",
+          "enum": [
+            "bullets",
+            "narrative",
+            "outline"
+          ],
+          "title": "Style",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "summarize_long_audioArguments",
+      "type": "object"
+    },
+    "transcribe-audio": {
+      "properties": {
+        "diarize": {
+          "default": false,
+          "title": "Diarize",
+          "type": "boolean"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "transcribe_audioArguments",
+      "type": "object"
+    }
+  },
+  "stemmy-loops": {
+    "adjust-stereo": {
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24), or 32 (FLOAT). Default 24.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "mono_amount": {
+          "default": 1.0,
+          "description": "How much to collapse the Side bass, 0.0..1.0. 0 = no collapse, 1 = full collapse (~48 dB Side cut below the crossover). The depth scales linearly with this value. Only active when mono_below_hz > 0. Default 1.0.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Mono Amount",
+          "type": "number"
+        },
+        "mono_below_hz": {
+          "default": 0.0,
+          "description": "Crossover frequency (Hz) below which the SIDE signal is cut so bass collapses to the centre while highs keep their width. Set to 0 to disable bass mono. Default 0 Hz.",
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Mono Below Hz",
+          "type": "number"
+        },
+        "mono_slope_db_oct": {
+          "default": 24,
+          "description": "Transition steepness of the bass-mono collapse in dB/octave: 12, 24, or 48 (1 / 2 / 4 cascaded low shelves). Steeper keeps more width just above the crossover. Default 24.",
+          "enum": [
+            12,
+            24,
+            48
+          ],
+          "title": "Mono Slope Db Oct",
+          "type": "integer"
+        },
+        "out_path": {
+          "description": "Absolute path where the adjusted WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "width": {
+          "default": 1.0,
+          "description": "M/S width multiplier applied to the SIDE signal. 1.0 = identity, 0.0 = full mono, >1 = wider. Default 1.0.",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "adjust_stereo_toolArguments",
+      "type": "object"
+    },
+    "analyze-album-normalization": {
+      "properties": {
+        "ceiling_dbtp": {
+          "default": -1.0,
+          "description": "True-peak ceiling in dBTP (default -1.0). If a positive shared offset would push the hottest track's true-peak above this ceiling, the offset is bounded so the hottest track just hits the ceiling and the mode is flagged.",
+          "maximum": 0.0,
+          "minimum": -12.0,
+          "title": "Ceiling Dbtp",
+          "type": "number"
+        },
+        "dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute path to a directory of master WAVs. Used when `paths` is omitted; all .wav/.aif/.aiff/.flac files in the directory are analyzed in sorted order.",
+          "title": "Dir"
+        },
+        "paths": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute paths to the near-final master WAVs to analyze as an album set. Provide either `paths` or `dir` (not both required). Each file is measured for integrated LUFS + true-peak; the concatenation is measured for the album-integrated value.",
+          "title": "Paths"
+        },
+        "target_lufs": {
+          "default": -14.0,
+          "description": "Album playback target in LUFS-I (default -14, Spotify/YouTube/Apple-ish). Both shared offsets are derived toward this target.",
+          "maximum": 0.0,
+          "minimum": -40.0,
+          "title": "Target Lufs",
+          "type": "number"
+        }
+      },
+      "title": "analyze_album_normalization_toolArguments",
+      "type": "object"
+    },
+    "analyze-loops": {
+      "properties": {
+        "bars": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 64,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bar lengths to enumerate as candidate loops, e.g. [1, 2, 4]. Defaults to [1, 2, 4] when omitted. Each entry must be >= 1.",
+          "title": "Bars"
+        },
+        "bpm": {
+          "description": "Known tempo of the audio in beats per minute. stemmy does not auto-detect \u2014 supply a tap-tempo or DAW value. Must be in [20, 400].",
+          "maximum": 400,
+          "minimum": 20,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "llm_rerank": {
+          "default": false,
+          "description": "If True, run `stemmy rerank` before select so Claude picks the top loops per role from an oversampled pool. Requires stemmy installed with --extra llm and ANTHROPIC_API_KEY set; falls back to DSP score ordering on failure.",
+          "title": "Llm Rerank",
+          "type": "boolean"
+        },
+        "llm_sections": {
+          "default": false,
+          "description": "If True, run `stemmy label-sections` after characterize so detected sections get LLM-authored labels. Requires stemmy installed with --extra llm and ANTHROPIC_API_KEY set; falls back to heuristic labels on failure.",
+          "title": "Llm Sections",
+          "type": "boolean"
+        },
+        "llm_tiebreak": {
+          "default": false,
+          "description": "If True, run `stemmy tiebreak-roles` after assign-roles to refine ambiguous 'unknown' role verdicts. Requires stemmy installed with --extra llm and ANTHROPIC_API_KEY set; falls back to heuristic verdicts on failure.",
+          "title": "Llm Tiebreak",
+          "type": "boolean"
+        },
+        "llm_weights": {
+          "default": false,
+          "description": "If True, run `stemmy classify-file` + `stemmy weights` before find-candidates so score weights become genre-conditional. Requires stemmy installed with --extra llm + --extra classify and ANTHROPIC_API_KEY set; falls back to DSP defaults on any LLM failure.",
+          "title": "Llm Weights",
+          "type": "boolean"
+        },
+        "out_dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where to write loop WAVs, manifest.json, and analysis.json. If omitted, a tempdir is created and removed on failure. User-supplied directories are never deleted on the error path. Must be an absolute path.",
+          "title": "Out Dir"
+        },
+        "path": {
+          "description": "Path to the audio file (WAV) to analyze. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        },
+        "separate": {
+          "default": false,
+          "description": "If True, run Demucs first to extract the drum stem from a full mix. Requires stemmy installed with --extra separate.",
+          "title": "Separate",
+          "type": "boolean"
+        },
+        "top_n": {
+          "default": 3,
+          "description": "How many loops to keep per role after MMR-diverse selection. Defaults to 3.",
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Top N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "bpm"
+      ],
+      "title": "analyze_loops_toolArguments",
+      "type": "object"
+    },
+    "apply-dynamic-eq": {
+      "$defs": {
+        "DynEqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "attack_ms": {
+              "default": 10.0,
+              "title": "Attack Ms",
+              "type": "number"
+            },
+            "freq_hz": {
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "knee_db": {
+              "default": 6.0,
+              "title": "Knee Db",
+              "type": "number"
+            },
+            "mode": {
+              "default": "cut",
+              "enum": [
+                "cut",
+                "boost"
+              ],
+              "title": "Mode",
+              "type": "string"
+            },
+            "q": {
+              "default": 1.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "range_db": {
+              "default": 6.0,
+              "title": "Range Db",
+              "type": "number"
+            },
+            "ratio": {
+              "default": 4.0,
+              "title": "Ratio",
+              "type": "number"
+            },
+            "release_ms": {
+              "default": 120.0,
+              "title": "Release Ms",
+              "type": "number"
+            },
+            "threshold_dbfs": {
+              "default": -24.0,
+              "title": "Threshold Dbfs",
+              "type": "number"
+            }
+          },
+          "required": [
+            "freq_hz"
+          ],
+          "title": "DynEqBand",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bands": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/DynEqBand"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of dynamic-EQ bands. Each band specifies freq_hz, q (bandpass selectivity), threshold_dbfs, ratio, range_db (max gain change clamp), attack_ms, release_ms, knee_db, and mode (cut | boost). mode='cut' reduces the band only when its level rises ABOVE threshold (e.g. de-mud only when the kick hits); mode='boost' raises the band only when its level falls BELOW threshold. Processing uses the difference-signal method (fixed bandpass + per-sample band gain mixed back into the dry signal) to avoid zipper distortion. Any band whose freq_hz <= 0 or >= 0.99 \u00d7 Nyquist is silently skipped.",
+          "title": "Bands"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "out_path": {
+          "description": "Absolute path where the dynamic-EQ'd WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "apply_dynamic_eq_toolArguments",
+      "type": "object"
+    },
+    "apply-eq": {
+      "$defs": {
+        "EqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "freq_hz": {
+              "exclusiveMinimum": 0.0,
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "gain_db": {
+              "default": 0.0,
+              "maximum": 24.0,
+              "minimum": -24.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "q": {
+              "default": 0.707,
+              "exclusiveMinimum": 0.0,
+              "maximum": 50.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "type": {
+              "enum": [
+                "low_shelf",
+                "high_shelf",
+                "bell",
+                "high_pass",
+                "low_pass"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "freq_hz"
+          ],
+          "title": "EqBand",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bands": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EqBand"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of parametric EQ bands to apply. Each band specifies type (low_shelf | high_shelf | bell | high_pass | low_pass), freq_hz (>0), gain_db (-24..24, ignored for high_pass/low_pass), and q (0..50). Bands are applied in order. Any band whose freq_hz >= 0.99 \u00d7 Nyquist is silently skipped.",
+          "title": "Bands"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "out_path": {
+          "description": "Absolute path where the EQ'd WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "phase": {
+          "default": "min",
+          "description": "Filter phase response: 'min' (default) = minimum-phase causal IIR (analog-modeled biquads); 'zero' = zero-phase IIR (forward+backward, no phase shift, latency-free); 'linear' = linear-phase FIR (constant group delay, no phase distortion). Use 'zero'/'linear' for transparent mastering EQ, 'min' for musical/corrective EQ.",
+          "enum": [
+            "min",
+            "zero",
+            "linear"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "tilt_db_per_octave": {
+          "default": 0.0,
+          "description": "Broadband spectral tilt in dB/octave. Positive values boost highs and cut lows (tilts the spectrum upward). Implemented as a low-shelf + high-shelf pair pivoting at 1 kHz. 0.0 = no tilt.",
+          "maximum": 12.0,
+          "minimum": -12.0,
+          "title": "Tilt Db Per Octave",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "apply_eq_toolArguments",
+      "type": "object"
+    },
+    "apply-eq-batch": {
+      "$defs": {
+        "EqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "freq_hz": {
+              "exclusiveMinimum": 0.0,
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "gain_db": {
+              "default": 0.0,
+              "maximum": 24.0,
+              "minimum": -24.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "q": {
+              "default": 0.707,
+              "exclusiveMinimum": 0.0,
+              "maximum": 50.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "type": {
+              "enum": [
+                "low_shelf",
+                "high_shelf",
+                "bell",
+                "high_pass",
+                "low_pass"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "freq_hz"
+          ],
+          "title": "EqBand",
+          "type": "object"
+        },
+        "EqBatchItem": {
+          "additionalProperties": false,
+          "properties": {
+            "bands": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/EqBand"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Parametric EQ bands to apply, in order (see apply-eq).",
+              "title": "Bands"
+            },
+            "bit_depth": {
+              "default": 24,
+              "description": "Output bit depth.",
+              "enum": [
+                16,
+                24,
+                32
+              ],
+              "title": "Bit Depth",
+              "type": "integer"
+            },
+            "out_path": {
+              "description": "Absolute path where the EQ'd WAV is written.",
+              "title": "Out Path",
+              "type": "string"
+            },
+            "path": {
+              "description": "Absolute path to the input WAV.",
+              "title": "Path",
+              "type": "string"
+            },
+            "phase": {
+              "default": "min",
+              "description": "Filter phase: 'min' | 'zero' | 'linear' (see apply-eq).",
+              "enum": [
+                "min",
+                "zero",
+                "linear"
+              ],
+              "title": "Phase",
+              "type": "string"
+            },
+            "tilt_db_per_octave": {
+              "default": 0.0,
+              "description": "Broadband spectral tilt in dB/octave (see apply-eq). 0 = none.",
+              "maximum": 12.0,
+              "minimum": -12.0,
+              "title": "Tilt Db Per Octave",
+              "type": "number"
+            }
+          },
+          "required": [
+            "path",
+            "out_path"
+          ],
+          "title": "EqBatchItem",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "items": {
+          "description": "Per-file EQ jobs (path, out_path, bands, tilt, phase, bit_depth).",
+          "items": {
+            "$ref": "#/$defs/EqBatchItem"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "apply_eq_batch_toolArguments",
+      "type": "object"
+    },
+    "apply-vst-chain": {
+      "$defs": {
+        "VstPluginSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "bypass": {
+              "default": false,
+              "description": "Keep this plugin in the chain definition but skip processing through it.",
+              "title": "Bypass",
+              "type": "boolean"
+            },
+            "parameters": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional {parameter_name: value} overrides applied before processing. Names are Pedalboard's cleaned snake_case identifiers (many plugins expose 0..1 ranges); values are in the parameter's native range. Applied AFTER state_path. Unknown names error out. For enum/string params use state_path instead.",
+              "title": "Parameters"
+            },
+            "plugin_name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "For a 'shell' file that bundles multiple plugins, the exact sub-plugin name to load. Leave null for single-plugin files.",
+              "title": "Plugin Name"
+            },
+            "plugin_path": {
+              "description": "Absolute path to a .vst3 (any OS) or .component / Audio Unit (macOS only) plugin. Use list-vst-plugins to discover installed paths.",
+              "title": "Plugin Path",
+              "type": "string"
+            },
+            "state_path": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional path to an opaque plugin-state blob previously captured with dump_state=True. Restores the exact patch (works for VST3 and AU) and is more reliable than .vstpreset/.fxp loading.",
+              "title": "State Path"
+            }
+          },
+          "required": [
+            "plugin_path"
+          ],
+          "title": "VstPluginSpec",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth. 16 = PCM_16, 24 = PCM_24 (default), 32 = FLOAT.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "dump_state": {
+          "default": false,
+          "description": "If true, write each plugin's resulting opaque state next to the output (<out>.<idx>.<name>.state). Feed those paths back via a spec's state_path to reproduce the exact render later.",
+          "title": "Dump State",
+          "type": "boolean"
+        },
+        "out_path": {
+          "description": "Absolute path where the processed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "plugins": {
+          "description": "Ordered list of effect plugins to run, in chain order. Each entry: plugin_path (.vst3 any-OS / .component macOS-only), optional plugin_name (for multi-plugin shell files), optional parameters {name: value}, optional state_path (restore an opaque patch captured via dump_state), and bypass.",
+          "items": {
+            "$ref": "#/$defs/VstPluginSpec"
+          },
+          "title": "Plugins",
+          "type": "array"
+        }
+      },
+      "required": [
+        "path",
+        "out_path",
+        "plugins"
+      ],
+      "title": "apply_vst_chain_toolArguments",
+      "type": "object"
+    },
+    "ask-about-output": {
+      "properties": {
+        "out_dir": {
+          "description": "Path to a finished stemmy output directory (one that has manifest.json or analysis.json, typically written by `stemmy write-loops` / `write-analysis`). Must be an absolute path.",
+          "title": "Out Dir",
+          "type": "string"
+        },
+        "question": {
+          "description": "Free-form natural-language question about the loops in `out_dir`. Examples: 'why did bar 24 not make the cut?', 'which loop is the cleanest fill?', 'are any of these likely to drift in tempo?'.",
+          "title": "Question",
+          "type": "string"
+        }
+      },
+      "required": [
+        "out_dir",
+        "question"
+      ],
+      "title": "ask_about_output_toolArguments",
+      "type": "object"
+    },
+    "build-target-profile": {
+      "properties": {
+        "out_json": {
+          "description": "Absolute path where the versioned target-profile JSON should be written.",
+          "title": "Out Json",
+          "type": "string"
+        },
+        "paths": {
+          "description": "List of absolute paths to reference WAVs (one or more). Their third-octave spectra are power-averaged into one house curve, and their loudness / dynamics / width scalars are averaged.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "paths",
+        "out_json"
+      ],
+      "title": "build_target_profile_toolArguments",
+      "type": "object"
+    },
+    "caption-loops": {
+      "properties": {
+        "out_dir": {
+          "description": "Path to an output directory previously produced by `analyze-loops` (must contain a `session/` subdirectory with features.json + roles.json + selection.json). `caption-loops` writes `captions.json` next to it. Must be an absolute path.",
+          "title": "Out Dir",
+          "type": "string"
+        }
+      },
+      "required": [
+        "out_dir"
+      ],
+      "title": "caption_loops_toolArguments",
+      "type": "object"
+    },
+    "check-clipping": {
+      "properties": {
+        "path": {
+          "description": "Path to the audio file (WAV) to inspect. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "check_clipping_toolArguments",
+      "type": "object"
+    },
+    "clean-loop": {
+      "properties": {
+        "dc_remove": {
+          "default": true,
+          "description": "Subtract the per-channel DC mean. Default True.",
+          "title": "Dc Remove",
+          "type": "boolean"
+        },
+        "declick": {
+          "default": true,
+          "description": "Detect and repair sample-level click spikes. Default True.",
+          "title": "Declick",
+          "type": "boolean"
+        },
+        "declick_threshold_db": {
+          "default": 12.0,
+          "description": "Click threshold in dB above local RMS. Higher = fewer clicks flagged. Default 12 dB.",
+          "maximum": 60,
+          "minimum": 0,
+          "title": "Declick Threshold Db",
+          "type": "number"
+        },
+        "denoise": {
+          "default": false,
+          "description": "Apply spectral subtraction denoising. Estimates the noise floor from the quietest frames and subtracts it from every frame. Default False.",
+          "title": "Denoise",
+          "type": "boolean"
+        },
+        "denoise_db": {
+          "default": 12.0,
+          "description": "Over-subtraction factor in dB for spectral denoising. Higher = more aggressive noise removal (may introduce musical noise at extremes). Default 12 dB.",
+          "maximum": 40,
+          "minimum": 1,
+          "title": "Denoise Db",
+          "type": "number"
+        },
+        "gate": {
+          "default": false,
+          "description": "Apply a noise gate between hits. Uses an envelope follower to suppress bleed and hiss in the gaps. Default False.",
+          "title": "Gate",
+          "type": "boolean"
+        },
+        "gate_attack_ms": {
+          "default": 1.0,
+          "description": "Gate envelope attack time in ms. Faster = tighter open on transients. Default 1 ms.",
+          "maximum": 100,
+          "minimum": 0.1,
+          "title": "Gate Attack Ms",
+          "type": "number"
+        },
+        "gate_release_ms": {
+          "default": 80.0,
+          "description": "Gate envelope release time in ms. Slower = longer tail before closing. Default 80 ms.",
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Gate Release Ms",
+          "type": "number"
+        },
+        "gate_threshold_db": {
+          "default": -50.0,
+          "description": "Gate open threshold in dBFS. Signal below this level is attenuated. Default -50 dB.",
+          "maximum": 0,
+          "minimum": -80,
+          "title": "Gate Threshold Db",
+          "type": "number"
+        },
+        "hpf_hz": {
+          "default": 30.0,
+          "description": "Sub-rumble high-pass cutoff in Hz (2nd-order Butterworth). Set to 0 to disable. Default 30 Hz.",
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Hpf Hz",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path where the cleaned WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "clean_loop_toolArguments",
+      "type": "object"
+    },
+    "compare-runs": {
+      "properties": {
+        "bars": {
+          "default": 0,
+          "description": "Filter to loops of this bar length (0 = all). Matches `stemmy compare --bars`.",
+          "minimum": 0,
+          "title": "Bars",
+          "type": "integer"
+        },
+        "by_position": {
+          "default": false,
+          "description": "Group results by (bars, bar_index) instead of by run; useful for directly diffing the same loop position across runs.",
+          "title": "By Position",
+          "type": "boolean"
+        },
+        "paths": {
+          "description": "Absolute paths to one or more finished stemmy output directories (each must already contain manifest.json or analysis.json). Order is preserved in the returned comparison.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        },
+        "shared": {
+          "default": false,
+          "description": "Only include loops appearing in >=2 runs (implies --by-position output).",
+          "title": "Shared",
+          "type": "boolean"
+        },
+        "top": {
+          "default": 0,
+          "description": "Only include the top N loops per run (0 = all). Matches `stemmy compare --top`.",
+          "minimum": 0,
+          "title": "Top",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "compare_runs_toolArguments",
+      "type": "object"
+    },
+    "compare-tonality": {
+      "properties": {
+        "loop_path": {
+          "description": "Absolute path to the loop WAV being evaluated.",
+          "title": "Loop Path",
+          "type": "string"
+        },
+        "reference_path": {
+          "description": "Absolute path to the reference WAV the loop should resemble tonally.",
+          "title": "Reference Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "loop_path",
+        "reference_path"
+      ],
+      "title": "compare_tonality_toolArguments",
+      "type": "object"
+    },
+    "compress-loop": {
+      "properties": {
+        "attack_ms": {
+          "default": 10.0,
+          "description": "Attack time in milliseconds \u2014 how fast gain clamps on loud transients. Default 10 ms.",
+          "maximum": 1000.0,
+          "minimum": 0.1,
+          "title": "Attack Ms",
+          "type": "number"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24), or 32 (FLOAT). Default 24.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "knee_db": {
+          "default": 6.0,
+          "description": "Soft-knee width in dB around the threshold. 0 = hard knee. Default 6 dB.",
+          "maximum": 24.0,
+          "minimum": 0.0,
+          "title": "Knee Db",
+          "type": "number"
+        },
+        "makeup_db": {
+          "anyOf": [
+            {
+              "maximum": 24.0,
+              "minimum": -24.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Makeup gain in dB applied after compression. If omitted, gain is auto-set so output RMS matches input RMS.",
+          "title": "Makeup Db"
+        },
+        "mix": {
+          "default": 1.0,
+          "description": "Parallel (dry/wet) blend. 0.0 = fully dry, 1.0 = fully compressed. Default 1.0.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Mix",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path where the compressed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "ratio": {
+          "default": 4.0,
+          "description": "Compression ratio (e.g. 4 = 4:1). 1.0 = no compression. Default 4.0.",
+          "maximum": 100.0,
+          "minimum": 1.0,
+          "title": "Ratio",
+          "type": "number"
+        },
+        "release_ms": {
+          "default": 120.0,
+          "description": "Release time in milliseconds \u2014 how fast gain recovers after a transient. Default 120 ms.",
+          "maximum": 5000.0,
+          "minimum": 1.0,
+          "title": "Release Ms",
+          "type": "number"
+        },
+        "threshold_db": {
+          "default": -18.0,
+          "description": "Compression threshold in dBFS. Signals above this are reduced. Default -18 dB.",
+          "maximum": 0,
+          "minimum": -80,
+          "title": "Threshold Db",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "compress_loop_toolArguments",
+      "type": "object"
+    },
+    "de-ess": {
+      "properties": {
+        "attack_ms": {
+          "default": 2.0,
+          "description": "Detector attack time in ms.",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Attack Ms",
+          "type": "number"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "center_hz": {
+          "default": 6500.0,
+          "description": "Center frequency (Hz) of the sibilant band to compress \u2014 feed find-sibilance's center_hz.",
+          "maximum": 20000.0,
+          "minimum": 1000.0,
+          "title": "Center Hz",
+          "type": "number"
+        },
+        "mode": {
+          "default": "split",
+          "description": "split (default): duck only the sibilant band and recombine with the untouched rest. wide: duck the whole signal when the band trips.",
+          "enum": [
+            "split",
+            "wide"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "out_path": {
+          "description": "Absolute path where the de-essed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "q": {
+          "default": 2.0,
+          "description": "Q of the detection/extraction bandpass. Bandwidth = center_hz / q; higher q = narrower band \u2014 feed find-sibilance's q.",
+          "maximum": 20.0,
+          "minimum": 0.1,
+          "title": "Q",
+          "type": "number"
+        },
+        "ratio": {
+          "default": 4.0,
+          "description": "Compression ratio above threshold.",
+          "maximum": 20.0,
+          "minimum": 1.0,
+          "title": "Ratio",
+          "type": "number"
+        },
+        "reduction_db": {
+          "default": 6.0,
+          "description": "Maximum gain reduction in dB (the GR curve is clamped here; this is a ceiling, NOT makeup) \u2014 feed find-sibilance's reduction_db.",
+          "maximum": 24.0,
+          "minimum": 0.0,
+          "title": "Reduction Db",
+          "type": "number"
+        },
+        "release_ms": {
+          "default": 80.0,
+          "description": "Detector release time in ms.",
+          "maximum": 1000.0,
+          "minimum": 1.0,
+          "title": "Release Ms",
+          "type": "number"
+        },
+        "threshold_dbfs": {
+          "default": -28.0,
+          "description": "Detector threshold in dBFS. Band energy above this is ducked \u2014 feed find-sibilance's threshold_dbfs.",
+          "maximum": 0.0,
+          "minimum": -80.0,
+          "title": "Threshold Dbfs",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "de_ess_toolArguments",
+      "type": "object"
+    },
+    "describe-loops": {
+      "properties": {
+        "out_dir": {
+          "description": "Path to a finished stemmy output directory (one that has manifest.json + loop WAVs, typically written by `stemmy write-loops` / the `find-loops` or `analyze-loops` MCP tools). Must be an absolute path.",
+          "title": "Out Dir",
+          "type": "string"
+        }
+      },
+      "required": [
+        "out_dir"
+      ],
+      "title": "describe_loops_toolArguments",
+      "type": "object"
+    },
+    "detect-masking": {
+      "properties": {
+        "paths": {
+          "description": "Absolute paths to 2+ loop WAVs. Every pair is scored for frequency-band overlap; loops are zero-padded to equal length at 44.1 kHz internally.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "detect_masking_toolArguments",
+      "type": "object"
+    },
+    "diagnose-output": {
+      "properties": {
+        "out_dir": {
+          "description": "Path to a finished stemmy output directory (one that has manifest.json or analysis.json, typically written by `stemmy write-loops` / `write-analysis`). Must be an absolute path.",
+          "title": "Out Dir",
+          "type": "string"
+        }
+      },
+      "required": [
+        "out_dir"
+      ],
+      "title": "diagnose_output_toolArguments",
+      "type": "object"
+    },
+    "excite-loop": {
+      "properties": {
+        "band": {
+          "default": "air",
+          "description": "Target band preset: 'air' (6000\u201316000 Hz, top-end sheen) or 'presence' (1000\u20133000 Hz, vocal/instrument forwardness). Ignored when both low_hz and high_hz are supplied.",
+          "enum": [
+            "air",
+            "presence"
+          ],
+          "title": "Band",
+          "type": "string"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "drive_db": {
+          "default": 12.0,
+          "description": "Waveshaper drive in dB applied to the band-limited copy. Higher drive generates more harmonics. Default 12.",
+          "maximum": 48.0,
+          "minimum": 0.0,
+          "title": "Drive Db",
+          "type": "number"
+        },
+        "high_hz": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom high edge (Hz) of the excited band. Overrides the band preset's high edge when set. Clamped to \u2264 0.99 \u00d7 Nyquist.",
+          "title": "High Hz"
+        },
+        "low_hz": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom low edge (Hz) of the excited band. Overrides the band preset's low edge when set. Clamped to \u2264 0.99 \u00d7 Nyquist.",
+          "title": "Low Hz"
+        },
+        "mix": {
+          "default": 0.3,
+          "description": "Parallel blend amount of the harmonic (wet) copy over the untouched dry signal, 0.0\u20131.0. Default 0.3.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Mix",
+          "type": "number"
+        },
+        "model": {
+          "default": "tanh",
+          "description": "Waveshaper model: 'tanh' (smooth odd harmonics, default), 'tape' (asymmetric even-harmonic warmth + HF rolloff), or 'soft_clip' (cubic).",
+          "enum": [
+            "tanh",
+            "tape",
+            "soft_clip"
+          ],
+          "title": "Model",
+          "type": "string"
+        },
+        "out_path": {
+          "description": "Absolute path where the excited WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "oversample": {
+          "default": 4,
+          "description": "Oversampling factor for the waveshaper (1, 2, 4, or 8) to suppress aliasing of the generated harmonics. Default 4.",
+          "enum": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "title": "Oversample",
+          "type": "integer"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "excite_loop_toolArguments",
+      "type": "object"
+    },
+    "export-deliverables": {
+      "properties": {
+        "out_dir": {
+          "description": "Absolute path to the output directory for the deliverable files.",
+          "title": "Out Dir",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the source WAV to export.",
+          "title": "Path",
+          "type": "string"
+        },
+        "presets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "List of preset names to export. Valid values: 'distribution_44k_16' (44.1 kHz / 16-bit), 'production_48k_24' (48 kHz / 24-bit), 'master_96k_24' (96 kHz / 24-bit). Defaults to ['distribution_44k_16', 'production_48k_24'].",
+          "title": "Presets"
+        },
+        "tag": {
+          "default": true,
+          "description": "If True (default), call tag_deliverable on each output to write a RIFF INFO LIST chunk and JSON sidecar. Tagging is best-effort and will not abort the export if it fails; the per-output 'tagged' bool (and 'tag_error') report whether it landed, so you can verify rather than assume.",
+          "title": "Tag",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path",
+        "out_dir"
+      ],
+      "title": "export_deliverables_toolArguments",
+      "type": "object"
+    },
+    "extract-drums": {
+      "properties": {
+        "bpm": {
+          "description": "Known tempo of the audio in beats per minute. stemmy requires this on ingest even when only separating drums. Must be in [20, 400].",
+          "maximum": 400,
+          "minimum": 20,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "device": {
+          "default": "cpu",
+          "description": "Device for Demucs separation. 'cpu' is the safe default; 'mps' (Apple Silicon) or 'cuda' (NVIDIA) cut runtime substantially when available.",
+          "enum": [
+            "cpu",
+            "mps",
+            "cuda"
+          ],
+          "title": "Device",
+          "type": "string"
+        },
+        "path": {
+          "description": "Path to the input audio file (WAV) to separate. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        },
+        "session_dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where to write the stemmy session (including drums.wav). If omitted, a tempdir is created and removed on failure. User-supplied directories are never deleted on the error path. Must be an absolute path.",
+          "title": "Session Dir"
+        }
+      },
+      "required": [
+        "path",
+        "bpm"
+      ],
+      "title": "extract_drums_toolArguments",
+      "type": "object"
+    },
+    "extract-oneshots": {
+      "properties": {
+        "min_separation_ms": {
+          "default": 50.0,
+          "description": "Minimum gap between consecutive hits in ms. Default 50 ms.",
+          "maximum": 5000,
+          "minimum": 0,
+          "title": "Min Separation Ms",
+          "type": "number"
+        },
+        "out_dir": {
+          "description": "Absolute directory to write hit_NN.wav files into. Created if missing.",
+          "title": "Out Dir",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input loop WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "post_pad_ms": {
+          "default": 300.0,
+          "description": "Pad after each onset in ms. Default 300 ms.",
+          "maximum": 5000,
+          "minimum": 0,
+          "title": "Post Pad Ms",
+          "type": "number"
+        },
+        "pre_pad_ms": {
+          "default": 5.0,
+          "description": "Pad before each onset in ms. Default 5 ms.",
+          "maximum": 200,
+          "minimum": 0,
+          "title": "Pre Pad Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_dir"
+      ],
+      "title": "extract_oneshots_toolArguments",
+      "type": "object"
+    },
+    "find-loops": {
+      "properties": {
+        "bars": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 64,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bar lengths to enumerate as candidate loops, e.g. [1, 2, 4]. Defaults to [1, 2, 4] when omitted. Each entry must be >= 1.",
+          "title": "Bars"
+        },
+        "bpm": {
+          "description": "Known tempo of the audio in beats per minute. stemmy does not auto-detect \u2014 supply a tap-tempo or DAW value. Must be in [20, 400].",
+          "maximum": 400,
+          "minimum": 20,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "out_dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where to write loop WAVs and manifest.json. If omitted, a tempdir is created and removed on failure. User-supplied directories are never deleted on the error path. Must be an absolute path.",
+          "title": "Out Dir"
+        },
+        "path": {
+          "description": "Path to the audio file (WAV) to slice. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        },
+        "separate": {
+          "default": false,
+          "description": "If True, run Demucs first to extract the drum stem from a full mix. Requires stemmy installed with --extra separate.",
+          "title": "Separate",
+          "type": "boolean"
+        },
+        "top_n": {
+          "default": 3,
+          "description": "How many loops to keep per bar length after MMR-diverse selection. Defaults to 3.",
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Top N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "bpm"
+      ],
+      "title": "find_loops_toolArguments",
+      "type": "object"
+    },
+    "inspect-loop": {
+      "properties": {
+        "path": {
+          "description": "Path to the audio file (WAV) to inspect. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "inspect_loop_toolArguments",
+      "type": "object"
+    },
+    "list-vst-plugins": {
+      "properties": {
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional case-insensitive substring filter on the plugin name.",
+          "title": "Name Contains"
+        },
+        "search_dirs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of directories to scan instead of the per-OS defaults (macOS: /Library/Audio/Plug-Ins/VST3 + ~/... + the Components AU dirs; Windows: Common Files\\VST3 + %LOCALAPPDATA%\\Programs\\Common\\VST3; Linux: ~/.vst3, /usr/lib/vst3, /usr/local/lib/vst3).",
+          "title": "Search Dirs"
+        }
+      },
+      "title": "list_vst_plugins_toolArguments",
+      "type": "object"
+    },
+    "match-eq": {
+      "$defs": {
+        "DeltaPoint": {
+          "additionalProperties": false,
+          "properties": {
+            "delta_db": {
+              "title": "Delta Db",
+              "type": "number"
+            },
+            "freq_hz": {
+              "title": "Freq Hz",
+              "type": "number"
+            }
+          },
+          "required": [
+            "freq_hz",
+            "delta_db"
+          ],
+          "title": "DeltaPoint",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "delta_db_curve": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/DeltaPoint"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Precomputed per-frequency delta curve: a list of {freq_hz, delta_db} points where delta = source minus reference (positive = source has more energy there). Supply this OR reference_path. The correction applied is -delta * match_strength, so the source moves toward the reference.",
+          "title": "Delta Db Curve"
+        },
+        "match_strength": {
+          "default": 0.5,
+          "description": "How much of the delta to correct, 0..1. 0.5 (default) halves the gap; 1.0 fully flattens toward the reference curve.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Match Strength",
+          "type": "number"
+        },
+        "max_boost_db": {
+          "default": 12.0,
+          "description": "Clip the per-band correction to +/- this many dB (default 12) so an extreme delta can't request a wild boost/cut.",
+          "maximum": 24.0,
+          "minimum": 0.0,
+          "title": "Max Boost Db",
+          "type": "number"
+        },
+        "n_taps": {
+          "default": 2049,
+          "description": "Prototype FIR length (forced odd). Higher = finer frequency resolution / longer impulse. Ignored for tilt_only.",
+          "maximum": 16385,
+          "minimum": 15,
+          "title": "N Taps",
+          "type": "integer"
+        },
+        "out_path": {
+          "description": "Absolute path where the corrected WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "phase": {
+          "default": "minimum",
+          "description": "Filter realization: 'minimum' (default; minimum-phase FIR, near-zero latency, asymmetric ringing), 'linear' (linear-phase FIR, symmetric ringing, latency compensated), or 'tilt_only' (fit the correction with a 1 kHz low+high shelf pair instead of an FIR \u2014 gentle broadband only).",
+          "enum": [
+            "minimum",
+            "linear",
+            "tilt_only"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "reference_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute path to the reference WAV. When given (with no delta_db_curve), source and reference are each measured to third-octave and the delta is computed as source minus reference.",
+          "title": "Reference Path"
+        },
+        "source_path": {
+          "description": "Absolute path to the source WAV to correct (the audio that gets rendered to out_path). Required.",
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "out_path",
+        "source_path"
+      ],
+      "title": "match_eq_toolArguments",
+      "type": "object"
+    },
+    "match-loudness": {
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "ceiling_dbtp": {
+          "default": -1.0,
+          "description": "True-peak ceiling in dBTP used when peak_safe is true (default -1.0).",
+          "maximum": 0.0,
+          "minimum": -24.0,
+          "title": "Ceiling Dbtp",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path where the loudness-matched WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "peak_safe": {
+          "default": true,
+          "description": "If true (default), clamp the gain so the post-gain 4x-oversampled true peak stays at or below ceiling_dbtp. This is a hard CLAMP on the single linear gain, not a limiter \u2014 set peak_capped in the result when it bites.",
+          "title": "Peak Safe",
+          "type": "boolean"
+        },
+        "reference_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute path to a reference WAV; its integrated LUFS becomes the target. Provide EXACTLY one of target_lufs or reference_path.",
+          "title": "Reference Path"
+        },
+        "target_lufs": {
+          "anyOf": [
+            {
+              "maximum": 0.0,
+              "minimum": -70.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Target integrated loudness in LUFS to normalize toward. Provide EXACTLY one of target_lufs or reference_path.",
+          "title": "Target Lufs"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "match_loudness_toolArguments",
+      "type": "object"
+    },
+    "match-to-profile": {
+      "properties": {
+        "path": {
+          "description": "Absolute path to the input WAV to compare against the profile.",
+          "title": "Path",
+          "type": "string"
+        },
+        "profile_json": {
+          "description": "Absolute path to a target-profile JSON previously written by build-target-profile.",
+          "title": "Profile Json",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "profile_json"
+      ],
+      "title": "match_to_profile_toolArguments",
+      "type": "object"
+    },
+    "measure-distortion": {
+      "properties": {
+        "fundamental_hz": {
+          "anyOf": [
+            {
+              "maximum": 20000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fundamental frequency in Hz. None auto-detects the dominant partial via Welch PSD (correct for tones; for program material the THD figure is indicative rather than exact).",
+          "title": "Fundamental Hz"
+        },
+        "path": {
+          "description": "Absolute path to the WAV to analyze.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_distortion_toolArguments",
+      "type": "object"
+    },
+    "measure-loudness": {
+      "properties": {
+        "path": {
+          "description": "Path to the audio file (WAV) to measure. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_loudness_toolArguments",
+      "type": "object"
+    },
+    "measure-loudness-batch": {
+      "properties": {
+        "paths": {
+          "description": "Absolute paths to the WAV files to measure. Each is measured independently and concurrently; a missing/unreadable path is reported in its own result rather than failing the batch.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Paths",
+          "type": "array"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "measure_loudness_batch_toolArguments",
+      "type": "object"
+    },
+    "measure-microdynamics": {
+      "properties": {
+        "crossovers_hz": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Crossover frequencies in Hz that split the signal into bands (strictly ascending, each > 0 and < Nyquist). N crossovers \u2192 N+1 bands. Default [120, 2000, 8000] \u2192 4 bands (sub/low, low-mid/body, presence, air).",
+          "title": "Crossovers Hz"
+        },
+        "path": {
+          "description": "Path to the audio file (WAV) to measure. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_microdynamics_toolArguments",
+      "type": "object"
+    },
+    "measure-spectrum": {
+      "properties": {
+        "path": {
+          "description": "Path to the audio file (WAV) to measure. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_spectrum_toolArguments",
+      "type": "object"
+    },
+    "measure-stereo": {
+      "properties": {
+        "path": {
+          "description": "Path to the audio file (WAV) to measure. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "measure_stereo_toolArguments",
+      "type": "object"
+    },
+    "multiband-compress": {
+      "properties": {
+        "attack_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band detector attack time in ms (one entry per band, length N+1). Defaults to 10 ms for every band.",
+          "title": "Attack Ms"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "crossovers_hz": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Crossover frequencies in Hz, strictly ascending. N crossovers produce N+1 bands (low \u2192 high). Default [120, 2000] \u2192 3 bands. Each crossover uses a 4th-order Linkwitz-Riley (LR4) low/high pair (-6 dB at the crossover) so the bands sum back flat.",
+          "title": "Crossovers Hz"
+        },
+        "knee_db": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band soft-knee width in dB (one entry per band, length N+1). Defaults to 6 dB for every band.",
+          "title": "Knee Db"
+        },
+        "makeup_db": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band static makeup gain in dB applied after compression (one entry per band, length N+1). Defaults to 0 dB for every band.",
+          "title": "Makeup Db"
+        },
+        "out_path": {
+          "description": "Absolute path where the compressed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "ratio": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band compression ratio (one entry per band, length N+1). 1.0 = no compression. Defaults to 4.0 for every band.",
+          "title": "Ratio"
+        },
+        "release_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band detector release time in ms (one entry per band, length N+1). Defaults to 120 ms for every band.",
+          "title": "Release Ms"
+        },
+        "threshold_db": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band compression threshold in dBFS (one entry per band, length N+1). Defaults to -18 dB for every band.",
+          "title": "Threshold Db"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "multiband_compress_toolArguments",
+      "type": "object"
+    },
+    "optimize-seam": {
+      "properties": {
+        "fade_samples": {
+          "default": 64,
+          "description": "Equal-power crossfade length in samples (centered on the wrap). Default 64. Set to 0 to disable the crossfade and only apply the trim.",
+          "maximum": 8192,
+          "minimum": 0,
+          "title": "Fade Samples",
+          "type": "integer"
+        },
+        "out_path": {
+          "description": "Absolute path where the seam-optimized WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input loop WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "optimize_seam_toolArguments",
+      "type": "object"
+    },
+    "plan-chain": {
+      "properties": {
+        "session_dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional absolute path to a stemmy session directory. When provided, the response includes a `missing` list of primitives whose declared output files are not yet present in that directory.",
+          "title": "Session Dir"
+        }
+      },
+      "title": "plan_chain_toolArguments",
+      "type": "object"
+    },
+    "process-stems": {
+      "$defs": {
+        "BandShape": {
+          "additionalProperties": false,
+          "properties": {
+            "gain_db": {
+              "default": 0.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "transient": {
+              "default": 0.0,
+              "title": "Transient",
+              "type": "number"
+            }
+          },
+          "title": "BandShape",
+          "type": "object"
+        },
+        "CleanPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "denoise": {
+              "default": false,
+              "title": "Denoise",
+              "type": "boolean"
+            },
+            "denoise_db": {
+              "default": 12.0,
+              "title": "Denoise Db",
+              "type": "number"
+            },
+            "hpf_hz": {
+              "default": 30.0,
+              "title": "Hpf Hz",
+              "type": "number"
+            }
+          },
+          "title": "CleanPlan",
+          "type": "object"
+        },
+        "ColorApiPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "comp": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CompPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eq": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ConsoleEqPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "hp_filter_hz": {
+              "default": 30.0,
+              "title": "Hp Filter Hz",
+              "type": "number"
+            },
+            "line_gain_db": {
+              "default": 0.0,
+              "title": "Line Gain Db",
+              "type": "number"
+            },
+            "output_peak_dbfs": {
+              "default": -1.0,
+              "title": "Output Peak Dbfs",
+              "type": "number"
+            }
+          },
+          "title": "ColorApiPlan",
+          "type": "object"
+        },
+        "CompPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "attack": {
+              "default": "Medium",
+              "title": "Attack",
+              "type": "string"
+            },
+            "on": {
+              "default": false,
+              "title": "On",
+              "type": "boolean"
+            },
+            "ratio": {
+              "default": 3.0,
+              "title": "Ratio",
+              "type": "number"
+            },
+            "release_s": {
+              "default": 0.3,
+              "title": "Release S",
+              "type": "number"
+            },
+            "thresh": {
+              "default": 0.0,
+              "title": "Thresh",
+              "type": "number"
+            },
+            "type": {
+              "default": "New (FF)",
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "title": "CompPlan",
+          "type": "object"
+        },
+        "ConsoleEqPlan": {
+          "properties": {
+            "hf_freq": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hf Freq"
+            },
+            "hf_gain": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hf Gain"
+            },
+            "hmf_freq": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hmf Freq"
+            },
+            "hmf_gain": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hmf Gain"
+            },
+            "lf_freq": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lf Freq"
+            },
+            "lf_gain": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lf Gain"
+            },
+            "lmf_freq": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lmf Freq"
+            },
+            "lmf_gain": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lmf Gain"
+            }
+          },
+          "title": "ConsoleEqPlan",
+          "type": "object"
+        },
+        "DeHarshPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "depth": {
+              "default": 0.5,
+              "title": "Depth",
+              "type": "number"
+            },
+            "focus_hi_hz": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Focus Hi Hz"
+            },
+            "focus_lo_hz": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Focus Lo Hz"
+            },
+            "max_reduction_db": {
+              "default": 6.0,
+              "title": "Max Reduction Db",
+              "type": "number"
+            }
+          },
+          "title": "DeHarshPlan",
+          "type": "object"
+        },
+        "DynEqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "attack_ms": {
+              "default": 10.0,
+              "title": "Attack Ms",
+              "type": "number"
+            },
+            "freq_hz": {
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "knee_db": {
+              "default": 6.0,
+              "title": "Knee Db",
+              "type": "number"
+            },
+            "mode": {
+              "default": "cut",
+              "enum": [
+                "cut",
+                "boost"
+              ],
+              "title": "Mode",
+              "type": "string"
+            },
+            "q": {
+              "default": 1.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "range_db": {
+              "default": 6.0,
+              "title": "Range Db",
+              "type": "number"
+            },
+            "ratio": {
+              "default": 4.0,
+              "title": "Ratio",
+              "type": "number"
+            },
+            "release_ms": {
+              "default": 120.0,
+              "title": "Release Ms",
+              "type": "number"
+            },
+            "threshold_dbfs": {
+              "default": -24.0,
+              "title": "Threshold Dbfs",
+              "type": "number"
+            }
+          },
+          "required": [
+            "freq_hz"
+          ],
+          "title": "DynEqBand",
+          "type": "object"
+        },
+        "EqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "freq_hz": {
+              "exclusiveMinimum": 0.0,
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "gain_db": {
+              "default": 0.0,
+              "maximum": 24.0,
+              "minimum": -24.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "q": {
+              "default": 0.707,
+              "exclusiveMinimum": 0.0,
+              "maximum": 50.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "type": {
+              "enum": [
+                "low_shelf",
+                "high_shelf",
+                "bell",
+                "high_pass",
+                "low_pass"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "freq_hz"
+          ],
+          "title": "EqBand",
+          "type": "object"
+        },
+        "ExcitePlan": {
+          "additionalProperties": false,
+          "properties": {
+            "band": {
+              "default": "air",
+              "enum": [
+                "air",
+                "presence"
+              ],
+              "title": "Band",
+              "type": "string"
+            },
+            "drive_db": {
+              "default": 10.0,
+              "title": "Drive Db",
+              "type": "number"
+            },
+            "mix": {
+              "default": 0.25,
+              "title": "Mix",
+              "type": "number"
+            }
+          },
+          "title": "ExcitePlan",
+          "type": "object"
+        },
+        "StemPlan": {
+          "properties": {
+            "clean": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CleanPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "color_api": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ColorApiPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "de_harsh": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/DeHarshPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dynamic_eq": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/DynEqBand"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Dynamic Eq"
+            },
+            "eq_bands": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/EqBand"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Eq Bands"
+            },
+            "excite": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExcitePlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "stem": {
+              "title": "Stem",
+              "type": "string"
+            },
+            "transient": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/TransientPlan"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "stem"
+          ],
+          "title": "StemPlan",
+          "type": "object"
+        },
+        "TransientPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "bands": {
+              "items": {
+                "$ref": "#/$defs/BandShape"
+              },
+              "title": "Bands",
+              "type": "array"
+            },
+            "crossovers_hz": {
+              "items": {
+                "type": "number"
+              },
+              "title": "Crossovers Hz",
+              "type": "array"
+            }
+          },
+          "required": [
+            "crossovers_hz",
+            "bands"
+          ],
+          "title": "TransientPlan",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "color_plugin_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute path to the API Vision-compatible console plugin for the color stage (the color_api surface is API-Vision-specific). Omit/null to skip color and run a pure-DSP pass. Use list-vst-plugins to discover paths; needs the `vst` extra.",
+          "title": "Color Plugin Path"
+        },
+        "duration_s": {
+          "default": 0.0,
+          "description": "If > 0, process only the first N seconds of each stem (fast audition). 0 = full.",
+          "minimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "out_dir": {
+          "description": "Directory where processed stems are written (created if absent).",
+          "title": "Out Dir",
+          "type": "string"
+        },
+        "plans": {
+          "description": "Per-stem plans. Each names a `stem` path and the stages to run (clean / eq_bands / de_harsh / dynamic_eq / transient / excite / color_api); absent stages are skipped. Extra diagnostic fields (role/measured/rationale) are accepted and ignored.",
+          "items": {
+            "$ref": "#/$defs/StemPlan"
+          },
+          "title": "Plans",
+          "type": "array"
+        },
+        "src_dir": {
+          "description": "Directory holding the stems (each plan's stem is looked up here by basename).",
+          "title": "Src Dir",
+          "type": "string"
+        }
+      },
+      "required": [
+        "src_dir",
+        "out_dir",
+        "plans"
+      ],
+      "title": "process_stems_toolArguments",
+      "type": "object"
+    },
+    "quantize-loop": {
+      "properties": {
+        "bars": {
+          "anyOf": [
+            {
+              "maximum": 64,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Target bar count for mode 'length'. Ignored for 'groove' and 'midi'. CRITICAL: required when mode='length'.",
+          "title": "Bars"
+        },
+        "bpm": {
+          "description": "Known tempo of the input audio in beats per minute. Must be in [20, 400].",
+          "maximum": 400,
+          "minimum": 20,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "mode": {
+          "default": "groove",
+          "description": "Quantize operation: 'groove' snaps onsets to the BPM grid (preserves length); 'length' time-stretches the file to exactly `bars` bars; 'midi' transcribes detected drum hits to a GM drum MIDI file.",
+          "enum": [
+            "groove",
+            "length",
+            "midi"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "out_path": {
+          "description": "Where to write the quantized output. .wav for modes 'groove' and 'length', .mid for mode 'midi'. Parent directory is created if missing. Must be an absolute path.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Path to the input audio file (WAV) to quantize. Must be an absolute path readable by the server.",
+          "title": "Path",
+          "type": "string"
+        },
+        "separate": {
+          "default": false,
+          "description": "If True, run Demucs first to extract the drum stem before transcribing. Only meaningful for mode='midi'.",
+          "title": "Separate",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path",
+        "out_path",
+        "bpm"
+      ],
+      "title": "quantize_loop_toolArguments",
+      "type": "object"
+    },
+    "render-ab": {
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth (16 / 24 / 32-float). Default 24.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "gap_seconds": {
+          "default": 0.5,
+          "description": "Silence gap in seconds between reference and processed sections. Default 0.5 s.",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Gap Seconds",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path to write the A/B audition WAV. Parent dirs are created.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "processed": {
+          "description": "Absolute path to the processed WAV (the candidate being auditioned).",
+          "title": "Processed",
+          "type": "string"
+        },
+        "reference": {
+          "description": "Absolute path to the reference WAV (target for loudness matching).",
+          "title": "Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "processed",
+        "reference",
+        "out_path"
+      ],
+      "title": "render_ab_toolArguments",
+      "type": "object"
+    },
+    "render-mastered": {
+      "$defs": {
+        "EqBand": {
+          "additionalProperties": false,
+          "properties": {
+            "freq_hz": {
+              "exclusiveMinimum": 0.0,
+              "title": "Freq Hz",
+              "type": "number"
+            },
+            "gain_db": {
+              "default": 0.0,
+              "maximum": 24.0,
+              "minimum": -24.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "q": {
+              "default": 0.707,
+              "exclusiveMinimum": 0.0,
+              "maximum": 50.0,
+              "title": "Q",
+              "type": "number"
+            },
+            "type": {
+              "enum": [
+                "low_shelf",
+                "high_shelf",
+                "bell",
+                "high_pass",
+                "low_pass"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "freq_hz"
+          ],
+          "title": "EqBand",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth (16 / 24 / 32-float). Default 24.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "ceiling_dbtp": {
+          "default": -1.0,
+          "description": "True-peak ceiling in dBTP. Default -1.0.",
+          "maximum": 0.0,
+          "minimum": -12.0,
+          "title": "Ceiling Dbtp",
+          "type": "number"
+        },
+        "eq_bands": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EqBand"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of EQ bands applied ZERO-PHASE (transparent, no phase shift) before the limiter. Each band: type (low_shelf | high_shelf | bell | high_pass | low_pass), freq_hz (>0), gain_db (-24..24), q (0..50). Omit or pass null for no mastering EQ (the default chain).",
+          "title": "Eq Bands"
+        },
+        "high_pass_hz": {
+          "default": 30.0,
+          "description": "High-pass cutoff in Hz; 0 disables. Default 30 Hz to clear sub-rumble.",
+          "maximum": 500,
+          "minimum": 0,
+          "title": "High Pass Hz",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path to write the mastered WAV. Parent dirs are created.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV to master.",
+          "title": "Path",
+          "type": "string"
+        },
+        "sample_rate": {
+          "anyOf": [
+            {
+              "maximum": 192000,
+              "minimum": 8000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output sample rate. None keeps the input rate.",
+          "title": "Sample Rate"
+        },
+        "target_lufs": {
+          "default": -14.0,
+          "description": "Integrated loudness target in LUFS. Default -14 (streaming-typical).",
+          "maximum": 0,
+          "minimum": -40,
+          "title": "Target Lufs",
+          "type": "number"
+        },
+        "transient_shape": {
+          "default": 0.0,
+          "description": "Transient shaping amount in [-1, +1]. 0 = bypass. Positive accentuates attacks; negative softens them.",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Transient Shape",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "render_mastered_toolArguments",
+      "type": "object"
+    },
+    "saturate-loop": {
+      "properties": {
+        "auto_gain": {
+          "default": true,
+          "description": "Scale output so peak level matches the input, preventing saturation from changing the perceived loudness. Default True.",
+          "title": "Auto Gain",
+          "type": "boolean"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth. 16 = PCM_16, 24 = PCM_24, 32 = FLOAT. Default 24.",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "drive_db": {
+          "default": 6.0,
+          "description": "Input gain fed into the waveshaper in dB. 0 = bypass. Higher values add more harmonic content and compression. Default 6 dB.",
+          "maximum": 40.0,
+          "minimum": 0.0,
+          "title": "Drive Db",
+          "type": "number"
+        },
+        "mix": {
+          "default": 1.0,
+          "description": "Dry/wet blend: 0.0 = fully dry, 1.0 = fully saturated. Default 1.0.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Mix",
+          "type": "number"
+        },
+        "model": {
+          "default": "tanh",
+          "description": "Waveshaper algorithm: 'tanh' (symmetric soft-knee), 'soft_clip' (cubic polynomial), or 'tape' (tanh with mild even-harmonic asymmetry and gentle HF rolloff). Default 'tanh'.",
+          "enum": [
+            "tanh",
+            "tape",
+            "soft_clip"
+          ],
+          "title": "Model",
+          "type": "string"
+        },
+        "out_path": {
+          "description": "Absolute path where the saturated WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "oversample": {
+          "default": 4,
+          "description": "Oversampling factor before waveshaping to suppress aliasing. 1 = none, 2 = 2\u00d7, 4 = 4\u00d7 (recommended). Default 4.",
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "title": "Oversample",
+          "type": "integer"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "saturate_loop_toolArguments",
+      "type": "object"
+    },
+    "shape-bands": {
+      "$defs": {
+        "BandShape": {
+          "additionalProperties": false,
+          "properties": {
+            "gain_db": {
+              "default": 0.0,
+              "title": "Gain Db",
+              "type": "number"
+            },
+            "transient": {
+              "default": 0.0,
+              "title": "Transient",
+              "type": "number"
+            }
+          },
+          "title": "BandShape",
+          "type": "object"
+        }
+      },
+      "properties": {
+        "bands": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/BandShape"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Per-band processing settings. Length must equal len(crossovers_hz)+1. Each entry: {\"transient\": float [-1,+1], \"gain_db\": float}. Default: all-zero (identity pass-through).",
+          "title": "Bands"
+        },
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24), or 32 (FLOAT). Default 24.",
+          "maximum": 32,
+          "minimum": 16,
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "crossovers_hz": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 20000.0,
+                "minimum": 20.0,
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Crossover frequencies in Hz (strictly ascending, each in 20..20000 and below Nyquist). Determines the number of bands: N crossovers \u2192 N+1 bands. Default [120.0, 2000.0] \u2192 3 bands (low / mid / high).",
+          "title": "Crossovers Hz"
+        },
+        "out_path": {
+          "description": "Absolute path where the processed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "shape_bands_toolArguments",
+      "type": "object"
+    },
+    "suggest-approach": {
+      "properties": {
+        "bpm": {
+          "description": "Known tempo of the audio in beats per minute. Required \u2014 stemmy does not auto-detect tempo. Must be in [20, 400].",
+          "maximum": 400,
+          "minimum": 20,
+          "title": "Bpm",
+          "type": "number"
+        },
+        "goal": {
+          "description": "Natural-language description of what loops you want (e.g. \"4-bar chorus loops\", \"sparse intro grooves\"). Drives the recommendation.",
+          "title": "Goal",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input audio file (full mix or drum stem) the recommendation should be tailored to.",
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "bpm",
+        "goal"
+      ],
+      "title": "suggest_approach_toolArguments",
+      "type": "object"
+    },
+    "suppress-resonances": {
+      "properties": {
+        "bit_depth": {
+          "default": 24,
+          "description": "Output bit depth: 16 (PCM_16), 24 (PCM_24, default), or 32 (FLOAT).",
+          "enum": [
+            16,
+            24,
+            32
+          ],
+          "title": "Bit Depth",
+          "type": "integer"
+        },
+        "depth": {
+          "default": 0.5,
+          "description": "How hard to suppress detected resonances, 0-1 (default 0.5). Scales the attenuation applied per dB of excess ring above the spectral envelope. 0.0 = no suppression.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Depth",
+          "type": "number"
+        },
+        "focus_band": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional [lo_hz, hi_hz] band to restrict suppression to. Outside this band no reduction is applied. Omit to process the full spectrum.",
+          "title": "Focus Band"
+        },
+        "max_reduction_db": {
+          "default": 6.0,
+          "description": "Hard ceiling on per-bin attenuation in dB (default 6.0). Caps how much any single resonant bin can be pulled down.",
+          "maximum": 24.0,
+          "minimum": 0.0,
+          "title": "Max Reduction Db",
+          "type": "number"
+        },
+        "out_path": {
+          "description": "Absolute path where the suppressed WAV should be written.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "selectivity": {
+          "default": 0.5,
+          "description": "How narrow a peak must be to count as a resonance, 0-1 (default 0.5). Higher = only sharp, isolated peaks are treated as excess (narrower median envelope window + higher excess threshold); lower also catches broader humps.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Selectivity",
+          "type": "number"
+        },
+        "sensitivity_tilt": {
+          "default": 0.0,
+          "description": "Sensitivity tilt biasing the 2-10 kHz harshness region (default 0.0). Positive values increase suppression sensitivity in that band (de-harsh); negative values reduce it. A raised-cosine bump centered on ~2-10 kHz.",
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Sensitivity Tilt",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "suppress_resonances_toolArguments",
+      "type": "object"
+    },
+    "tag-deliverable": {
+      "properties": {
+        "bars": {
+          "anyOf": [
+            {
+              "maximum": 128,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Loop length in bars. Optional.",
+          "title": "Bars"
+        },
+        "bpm": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 400,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tempo in beats per minute (optional).",
+          "title": "Bpm"
+        },
+        "comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Free-text comment, e.g. 'kick / chorus / room A'. Optional.",
+          "title": "Comment"
+        },
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Musical key (e.g. 'C', 'F#m'). Optional.",
+          "title": "Key"
+        },
+        "originator": {
+          "default": "stemmy",
+          "description": "Originator string (engineer / studio / tool). Defaults to 'stemmy'.",
+          "title": "Originator",
+          "type": "string"
+        },
+        "out_path": {
+          "description": "Absolute path where the tagged WAV should be written. Pass the same value as `path` to edit in place.",
+          "title": "Out Path",
+          "type": "string"
+        },
+        "path": {
+          "description": "Absolute path to the input WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "root_note": {
+          "anyOf": [
+            {
+              "maximum": 127,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "MIDI note number for the loop's root (0-127). Optional.",
+          "title": "Root Note"
+        }
+      },
+      "required": [
+        "path",
+        "out_path"
+      ],
+      "title": "tag_deliverable_toolArguments",
+      "type": "object"
+    },
+    "tune-kick": {
+      "properties": {
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional musical key (e.g. 'C', 'F#m'). Used as a fallback when `target_note` is omitted \u2014 picks the key's root in the kick octave (octave 1).",
+          "title": "Key"
+        },
+        "out_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Absolute path where the pitch-shifted WAV should be written. Only used when `target_note` or `key` is given; analysis-only when omitted.",
+          "title": "Out Path"
+        },
+        "path": {
+          "description": "Absolute path to the input kick-drum WAV.",
+          "title": "Path",
+          "type": "string"
+        },
+        "target_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional musical note for retuning (e.g. 'C1', 'F#1', 'Bb0'). When omitted, the tool only measures the kick's fundamental.",
+          "title": "Target Note"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "tune_kick_toolArguments",
+      "type": "object"
+    }
+  }
+}

@@ -71,6 +71,28 @@ jobs:
       - name: Test (pytest)
         run: uv run pytest -q
 
+  # The DSP benchmarks live outside `testpaths`, so nothing ever executed them —
+  # they could bit-rot (a renamed dsp helper, a changed signature) unnoticed until
+  # someone next ran them by hand. This leg RUNS them so they stay green. It does
+  # NOT enforce --benchmark-compare-fail: a 5% wall-clock threshold on a shared
+  # runner is noise, and would fail at random. Compare against a saved baseline
+  # locally when you need the real number (see benchmarks/test_dsp_bench.py).
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Sync (bench + drum-prep extras)
+        run: uv sync --extra bench --extra drum-prep
+
+      - name: Run DSP benchmarks (execution only, no regression gate)
+        run: uv run pytest benchmarks/ -q --benchmark-disable
+
   # Separate, additive job: the live tool-name + enum-subset contract test
   # (test_pipelines.py::test_live_tool_names_exist_on_servers) opens the REAL
   # sibling MCP servers and asserts every tool/enum a pipeline emits exists on

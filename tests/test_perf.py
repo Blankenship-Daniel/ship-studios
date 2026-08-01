@@ -37,9 +37,19 @@ def test_perf_disabled_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_perf_record_noop_when_disabled(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """With the env unset, record() must write NOTHING — to the configured path or
+    anywhere else. Asserting only that an unrelated tmp_path stayed empty proved
+    nothing: tmp_path was never wired to perf, so the test passed regardless."""
+    log = tmp_path / "perf.jsonl"
+    monkeypatch.setenv(perf.PERF_LOG_ENV, str(log))
+    perf.record({"tool": "enabled"})          # sanity: the sink DOES write when set
+    assert log.is_file() and log.read_text(encoding="utf-8").strip()
+    before = log.read_text(encoding="utf-8")
+
     monkeypatch.delenv(perf.PERF_LOG_ENV, raising=False)
-    perf.record({"tool": "x"})  # must neither write nor raise
-    assert list(tmp_path.iterdir()) == []
+    assert perf.record({"tool": "x"}) is None  # must neither write nor raise
+    assert log.read_text(encoding="utf-8") == before, "wrote while disabled"
+    assert list(tmp_path.iterdir()) == [log]
 
 
 def test_perf_record_writes_jsonl_when_enabled(
@@ -61,8 +71,13 @@ def test_perf_record_swallows_bad_path(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_sample_rss_shape() -> None:
+    """`out is None or <shape>` is trivially true on the base-deps CI leg (no
+    psutil), so pin which branch we are in and assert the real thing."""
+    psutil = pytest.importorskip("psutil")  # noqa: F841 - base-deps leg has no psutil
     out = perf.sample_rss()
-    assert out is None or set(out) == {"rss_self", "rss_children"}
+    assert out is not None, "psutil is installed, so a sample must be returned"
+    assert set(out) == {"rss_self", "rss_children"}
+    assert all(isinstance(v, int) and v >= 0 for v in out.values()), out
 
 
 def test_sample_rss_env_opt_out(monkeypatch: pytest.MonkeyPatch) -> None:

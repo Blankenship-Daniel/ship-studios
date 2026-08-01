@@ -116,11 +116,14 @@ def _streaming_compliant(result: Any) -> bool | None:
     platforms = result.get("platforms")
     if not isinstance(platforms, list) or not platforms:
         return None
-    flags = [
-        p["fully_compliant"]
-        for p in platforms
-        if isinstance(p, dict) and isinstance(p.get("fully_compliant"), bool)
-    ]
+    # An entry we cannot read is UNKNOWN, not compliant: dropping it made
+    # [{spotify: true}, {tidal: null}] report full compliance while tidal's verdict
+    # was never established. Any unreadable entry -> None (unknown overall).
+    flags = []
+    for p in platforms:
+        if not isinstance(p, dict) or not isinstance(p.get("fully_compliant"), bool):
+            return None
+        flags.append(p["fully_compliant"])
     if not flags:
         return None
     return all(flags)
@@ -231,6 +234,7 @@ async def master_track(
     intent: str = "balanced",
     intensity: str = "medium",
     style: str | None = None,
+    _recorder: _Recorder | None = None,
 ) -> dict[str, Any]:
     """Pipeline 1 — measure source, get a perceptual read, render, verify, export.
 
@@ -244,8 +248,15 @@ async def master_track(
     ``intent`` / ``intensity`` / ``style``), the doc's step-6 alternative that
     returns a complete typed mastering-chain plan. Either way the render still
     targets ``target_lufs`` / ``ceiling_dbtp`` — the plan is advisory.
+
+    ``_recorder`` lets a caller supply the step sink instead of receiving it only
+    via the return value. batch_master passes one so that when a track RAISES, the
+    steps it already completed are still in the caller's trace — otherwise `res` is
+    never bound, `steps.extend(res[...])` is skipped, and the failing track
+    contributes nothing at all, contradicting both this module's docstring and
+    ``Step``'s ("a failed step is still recorded — it is the one you most want").
     """
-    rec = _Recorder(hub)
+    rec = _recorder if _recorder is not None else _Recorder(hub)
 
     await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_LOUDNESS, {"path": mix_path})
     await rec.run(LOOPS_SERVER, LoopsTool.MEASURE_SPECTRUM, {"path": mix_path})
@@ -328,6 +339,10 @@ async def batch_master(
     masters_dir: str | None = None,
     deliverables_dir: str | None = None,
     presets: list[str] | None = None,
+    assistant: bool = False,
+    intent: str = "balanced",
+    intensity: str = "medium",
+    style: str | None = None,
     continue_on_error: bool = True,
 ) -> dict[str, Any]:
     """Pipeline 6 — master a folder of mixes to ONE shared target + album pass.
@@ -353,8 +368,9 @@ async def batch_master(
     tracks: list[dict[str, Any]] = []
     masters: list[str] = []
     steps: list[Step] = []
-    for mix in mix_paths:
-        out = _master_out(mix, masters_dir)
+    outs = _unique_master_outs(mix_paths, masters_dir)
+    for mix, out in zip(mix_paths, outs, strict=True):
+        track_rec = _Recorder(hub)
         try:
             res = await master_track(
                 hub,
@@ -369,8 +385,14 @@ async def batch_master(
                 sample_rate=sample_rate,
                 deliverables_dir=deliverables_dir,
                 presets=presets,
+                assistant=assistant,
+                intent=intent,
+                intensity=intensity,
+                style=style,
+                _recorder=track_rec,
             )
         except Exception as exc:
+            steps.extend(track_rec.steps)  # keep what this track DID do, incl. the failure
             if not continue_on_error:
                 raise
             tracks.append(
@@ -708,6 +730,10 @@ async def house_curve(
         {"path": mix_path, "profile_json": profile},
     )
 
+    # An unreadable match-to-profile result means NO correction can be rendered:
+    # house_curve then returns output == input with `matched: false`. That is a
+    # no-op, not a match — surface it as a warning so a scripted EP loop can't
+    # "match" every mix to nothing and still look successful.
     curve = _profile_delta_curve(match)
     output = mix_path
     if curve is not None:
@@ -730,6 +756,10 @@ async def house_curve(
         "profile": profile,
         "output": output,
         "matched": curve is not None,
+        "warning": None if curve is not None else (
+            "no per-band delta was recoverable from match-to-profile — NO correction "
+            "was rendered and `output` is the unmodified input"
+        ),
         "steps": rec.steps,
     }
 
@@ -921,13 +951,15 @@ async def loops_to_deliverables(
     # lengths. Slice only by the explicit, separate max_total_loops when set.
     parsed = _loop_paths(manifest)  # None = unparseable, [] = parseable-but-empty
     loop_paths = parsed if parsed is not None else []
+    # ``loops_found`` = how many the manifest actually yielded, captured BEFORE the
+    # max_total_loops slice (the slice used to run first, so a 20-loop find capped to
+    # 5 reported `loops_found: 5` — indistinguishable from a find that only located 5).
+    loops_found = len(loop_paths)
     if max_total_loops is not None:
         loop_paths = loop_paths[:max_total_loops]
     # Surface the fallback so a 1-loop run on the SOURCE isn't mistaken for a real
-    # 1-loop find. ``loops_found`` = loops parsed from the manifest (0 on fallback,
-    # captured before the mutation below); ``fell_back`` (with the
-    # ``fell_back_to_input`` alias) flags both the unparseable-shape and empty cases.
-    loops_found = len(loop_paths)
+    # 1-loop find; ``fell_back`` (with the ``fell_back_to_input`` alias) flags both
+    # the unparseable-shape and empty cases.
     fell_back = parsed is None or not loop_paths
     fell_back_to_input = fell_back
     if fell_back:
@@ -1100,6 +1132,47 @@ def _master_out(mix_path: str, masters_dir: str | None) -> str:
         return str(PurePosixPath(masters_dir) / name)
     project = p.parent.parent if p.parent.name == "mix" else p.parent
     return str(project / "masters" / name)
+
+
+def _unique_master_outs(mix_paths: list[str], masters_dir: str | None) -> list[str]:
+    """Master output path per mix, disambiguated so no two collide.
+
+    With an explicit ``masters_dir`` every master is named from the mix's BASENAME
+    alone, so ``projects/a/mix/intro.wav`` and ``projects/b/mix/intro.wav`` both
+    became ``<masters_dir>/intro.master.wav``: the second silently overwrote the
+    first, ``masters`` held the same path twice, and the album-normalization pass
+    measured one file as two "tracks", skewing the shared-gain projection. On a
+    collision, prefix the mix's project directory (the parent of ``mix/`` when the
+    documented layout is in play, else the immediate parent).
+    """
+    outs = [_master_out(m, masters_dir) for m in mix_paths]
+    seen: dict[str, int] = {}
+    for o in outs:
+        seen[o] = seen.get(o, 0) + 1
+    if all(c == 1 for c in seen.values()):
+        return outs
+
+    resolved: list[str] = []
+    used: set[str] = set()
+    for mix, out in zip(mix_paths, outs, strict=True):
+        if seen[out] == 1:
+            resolved.append(out)
+            used.add(out)
+            continue
+        p = PurePosixPath(mix)
+        project = p.parent.parent if p.parent.name == "mix" else p.parent
+        op = PurePosixPath(out)
+        cand = str(op.with_name(f"{project.name}-{op.name}")) if project.name else out
+        # still ambiguous (same project name from different trees) -> number it
+        n = 2
+        base = cand
+        while cand in used:
+            bp = PurePosixPath(base)
+            cand = str(bp.with_name(f"{bp.stem}-{n}{bp.suffix}"))
+            n += 1
+        resolved.append(cand)
+        used.add(cand)
+    return resolved
 
 
 def _deliverables_dir(out_path: str) -> str:

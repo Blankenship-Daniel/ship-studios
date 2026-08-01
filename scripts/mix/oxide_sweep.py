@@ -17,10 +17,16 @@ import os
 import numpy as np
 import soundfile as sf
 from pedalboard import load_plugin, Pedalboard
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 
 PLUG = "/Library/Audio/Plug-Ins/VST3/uaudio_oxide_tape.vst3"
-SRC = "/Users/ship/Documents/code/ship-studios/artifacts/watercolors-loops/seam/watercolors_drums_104bpm_8bar_a.wav"
-OUT = "/Users/ship/Documents/code/ship-studios/artifacts/oxide-char"
+SRC = f"{ROOT}/artifacts/watercolors-loops/seam/watercolors_drums_104bpm_8bar_a.wav"
+OUT = f"{ROOT}/artifacts/oxide-char"
 SR = 48000
 
 

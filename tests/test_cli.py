@@ -23,28 +23,39 @@ _PATH_EXTS = (".wav", ".aif", ".aiff", ".flac")
 def runner():
     """A CliRunner that pre-creates any audio-path token in an isolated CWD.
 
-    The CLI now validates input paths with ``click.Path(exists=True)``, so the
-    dispatch tests (which pass bare names like ``mix.wav``) need those files to
-    exist. Audio-extension tokens are created inside an isolated filesystem for
-    the invoke; the relative arg strings are unchanged, so the recorded-arg
-    assertions still hold. Invocations with no audio tokens (e.g. ``doctor``)
-    run unwrapped.
+    The CLI validates input paths with ``click.Path(exists=True)``, so the dispatch
+    tests (which pass bare names like ``mix.wav``) need those files to exist. Audio-
+    extension tokens are created inside an isolated filesystem for the invoke.
+    Invocations with no audio tokens (e.g. ``doctor``) run unwrapped.
+
+    Every ``click.Path`` also carries ``resolve_path=True`` — the servers are launched
+    with ``uv --directory <sibling>``, so a relative path would resolve against the
+    SIBLING repo, not the user's cwd. Recorded args are therefore absolute; use
+    ``runner.abs("mix.wav")`` to build the expected value.
     """
     base = CliRunner()
 
     class _FileMakingRunner:
+        cwd: Path | None = None
+
         def invoke(self, cli_obj, argv=None, **kwargs):
             toks = [t for t in (argv or [])
                     if isinstance(t, str) and t.endswith(_PATH_EXTS)]
             if not toks:
                 return base.invoke(cli_obj, argv, **kwargs)
-            with base.isolated_filesystem():
+            with base.isolated_filesystem() as td:
+                self.cwd = Path(td).resolve()
                 for t in toks:
                     p = Path(t)
                     if str(p.parent) != ".":
                         p.parent.mkdir(parents=True, exist_ok=True)
                     p.write_bytes(b"")
                 return base.invoke(cli_obj, argv, **kwargs)
+
+        def abs(self, token: str) -> str:
+            """The absolute path the CLI resolves ``token`` to, for assertions."""
+            assert self.cwd is not None, "call invoke() first"
+            return str(self.cwd / token)
 
         def __getattr__(self, name):
             return getattr(base, name)
@@ -106,7 +117,7 @@ def test_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert len(patched_pipelines) == 1
     name, args, kwargs = patched_pipelines[0]
     assert name == "master_track"
-    assert args == ("mix.wav", "master.wav")
+    assert args == (runner.abs("mix.wav"), runner.abs("master.wav"))
     assert kwargs["target_lufs"] == -9.0
     assert kwargs["target_platform"] == "club"
 
@@ -123,8 +134,8 @@ def test_master_defaults_out_into_masters_dir(
     assert result.exit_code == 0, result.output
     _, args, _ = patched_pipelines[0]
     assert args == (
-        "projects/song/mix/final.wav",
-        "projects/song/masters/final.master.wav",
+        runner.abs("projects/song/mix/final.wav"),
+        runner.abs("projects/song/masters/final.master.wav"),
     )
 
 
@@ -136,7 +147,8 @@ def test_master_default_out_falls_back_to_masters_sibling(
     result = runner.invoke(cli.main, ["master", "song/bounce.wav"])
     assert result.exit_code == 0, result.output
     _, args, _ = patched_pipelines[0]
-    assert args == ("song/bounce.wav", "song/masters/bounce.master.wav")
+    assert args == (runner.abs("song/bounce.wav"),
+                    runner.abs("song/masters/bounce.master.wav"))
 
 
 def test_master_default_out_parity_with_master_out_helper(
@@ -151,7 +163,7 @@ def test_master_default_out_parity_with_master_out_helper(
         result = runner.invoke(cli.main, ["master", mix])
         assert result.exit_code == 0, result.output
         _, args, _ = patched_pipelines[-1]
-        assert args == (mix, _master_out(mix, None))
+        assert args == (runner.abs(mix), _master_out(runner.abs(mix), None))
 
 
 def test_master_threads_parsed_presets(runner: CliRunner, patched_pipelines) -> None:
@@ -204,7 +216,7 @@ def test_mix_check_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "mix_check"
-    assert args == ("mix.wav",)
+    assert args == (runner.abs("mix.wav"),)
     assert kwargs["severity_threshold"] == "serious"
 
 
@@ -262,7 +274,7 @@ def test_reference_match_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "reference_match"
-    assert args == ("mix.wav", "ref.wav")
+    assert args == (runner.abs("mix.wav"), runner.abs("ref.wav"))
     assert kwargs["goal"] == "warmer low end"
 
 
@@ -290,7 +302,7 @@ def test_house_curve_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "house_curve"
-    assert args == ("mix.wav", ["a.wav", "b.wav"])
+    assert args == (runner.abs("mix.wav"), [runner.abs("a.wav"), runner.abs("b.wav")])
     assert kwargs["match_strength"] == 0.75
 
 
@@ -307,7 +319,7 @@ def test_batch_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "batch_master"
-    assert args == (["a.wav", "b.wav"],)
+    assert args == ([runner.abs("a.wav"), runner.abs("b.wav")],)
     assert kwargs["target_lufs"] == -12.0
 
 
@@ -324,7 +336,8 @@ def test_stem_master_dispatch(runner: CliRunner, patched_pipelines) -> None:
     name, args, kwargs = patched_pipelines[0]
     assert name == "stem_master"
     # the dict is keyed by filename stem (no extension).
-    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert args == ({"kick": runner.abs("kick.wav"),
+                     "bass": runner.abs("bass.wav")},)
     assert kwargs["cross_check"] is True
 
 
@@ -347,7 +360,8 @@ def test_unmask_stems_dispatch(runner: CliRunner, patched_pipelines) -> None:
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "unmask_stems"
-    assert args == ({"kick": "kick.wav", "bass": "bass.wav"},)
+    assert args == ({"kick": runner.abs("kick.wav"),
+                     "bass": runner.abs("bass.wav")},)
     assert kwargs["cross_check"] is True
 
 
@@ -365,7 +379,7 @@ def test_loops_dispatch_parses_bars(runner: CliRunner, patched_pipelines) -> Non
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "loops_to_deliverables"
-    assert args == ("drums.wav", 120.0)
+    assert args == (runner.abs("drums.wav"), 120.0)
     assert kwargs["bars"] == [1, 2, 4]
     assert kwargs["top_n"] == 5
     assert kwargs["separate"] is True
@@ -422,9 +436,9 @@ def test_understand_dispatch_parses_labels_and_compare(
     assert result.exit_code == 0, result.output
     name, args, kwargs = patched_pipelines[0]
     assert name == "understand_audio"
-    assert args == ("ref.wav",)
+    assert args == (runner.abs("ref.wav"),)
     assert kwargs["labels"] == ["house", "techno"]
-    assert kwargs["compare_paths"] == ["a.wav", "b.wav"]
+    assert kwargs["compare_paths"] == [runner.abs("a.wav"), runner.abs("b.wav")]
     assert kwargs["transcribe"] is False
 
 
@@ -618,3 +632,52 @@ def test_run_exits_130_on_keyboard_interrupt(capsys) -> None:
     out = capsys.readouterr()
     assert "Interrupted" in out.err
     assert "Error:" not in out.err
+
+
+def test_every_path_reaching_a_pipeline_is_absolute(
+    runner: CliRunner, patched_pipelines
+) -> None:
+    """No relative path may reach a pipeline — the servers run elsewhere.
+
+    Each sibling is launched with ``uv --directory <sibling-repo> run …``, which
+    chdirs the child, and every sibling tool schema documents an ABSOLUTE path. A
+    relative arg therefore resolves against the sibling repo, not the user's cwd:
+    from ``~/Music/track``, ``ship-studios master mix/song.wav`` made the loops
+    server look inside ``stemmy-loops-mcp/`` — a confusing not-found, or, if a
+    like-named file happened to exist there, the wrong audio processed and the
+    master written INTO the sibling repo.
+    """
+    import os
+
+    result = runner.invoke(
+        cli.main,
+        ["master", "projects/song/mix/final.wav", "--deliverables-dir", "deliv"],
+    )
+    assert result.exit_code == 0, result.output
+    _, args, kwargs = patched_pipelines[0]
+
+    def _check(value, where):
+        if isinstance(value, str) and value.endswith(_PATH_EXTS):
+            assert os.path.isabs(value), f"{where}: relative path {value!r}"
+        elif isinstance(value, (list, tuple)):
+            for i, v in enumerate(value):
+                _check(v, f"{where}[{i}]")
+        elif isinstance(value, dict):
+            for k, v in value.items():
+                _check(v, f"{where}[{k!r}]")
+
+    for i, a in enumerate(args):
+        _check(a, f"args[{i}]")
+    for k, v in kwargs.items():
+        _check(v, f"kwargs[{k!r}]")
+    assert os.path.isabs(kwargs["deliverables_dir"])
+
+    # batch-master's --masters-dir feeds _master_out, so it must resolve too
+    patched_pipelines.clear()
+    result = runner.invoke(
+        cli.main, ["batch-master", "a.wav", "b.wav", "--masters-dir", "out"]
+    )
+    assert result.exit_code == 0, result.output
+    _, args, kwargs = patched_pipelines[0]
+    assert all(os.path.isabs(p) for p in args[0]), args[0]
+    assert os.path.isabs(kwargs["masters_dir"]), kwargs["masters_dir"]

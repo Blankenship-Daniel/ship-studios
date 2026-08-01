@@ -17,10 +17,16 @@ import sys
 import numpy as np
 import soundfile as sf
 from pedalboard import load_plugin
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 
 PLUGIN = "/Library/Audio/Plug-Ins/VST3/uaudio_la3a.vst3"
 IN = sys.argv[1] if len(sys.argv) > 1 else \
-    "/Users/ship/Documents/code/ship-studios/projects/watercolors/mix/bus_warm.wav"
+    f"{ROOT}/projects/watercolors/mix/bus_warm.wav"
 EXCERPT = float(sys.argv[2]) if len(sys.argv) > 2 else 20.0
 
 DEFAULTS = dict(peak_reduction=3.6, gain=5.0, comp_limit="Comp", meter="GR",

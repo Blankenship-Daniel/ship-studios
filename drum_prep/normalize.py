@@ -40,11 +40,24 @@ def normalize_kit(src_dir: str, out_dir: str | None = None, target_dbfs: float =
     if mode not in ("global", "per_file"):
         raise ValueError("mode must be 'global' or 'per_file'")
     out_dir = out_dir or os.path.join(src_dir, "normalized")
+    io.refuse_in_place("normalize", out_dir, src_dir=src_dir)
     os.makedirs(out_dir, exist_ok=True)
     files = [(os.path.join(src_dir, f), f) for f in io.list_audio(src_dir)]
     files += [(p, os.path.basename(p)) for p in extra]
     if not files:
         raise ValueError(f"no audio files in {src_dir!r}")
+    # Outputs are named by BASENAME, so an --include whose basename matches a stem
+    # (or another include) silently overwrote it in out_dir — one of the two files
+    # simply vanished from the normalized set with no error.
+    seen: dict[str, str] = {}
+    for src, rel in files:
+        if rel in seen and os.path.realpath(seen[rel]) != os.path.realpath(src):
+            raise ValueError(
+                f"two inputs share the basename {rel!r} ({seen[rel]} and {src}) — "
+                f"outputs are written by basename and would overwrite each other; "
+                f"rename one first"
+            )
+        seen[rel] = src
 
     target_lin = 10.0 ** (target_dbfs / 20.0)
     peaks = {src: _peak(src) for src, _ in files}

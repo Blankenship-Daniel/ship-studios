@@ -216,7 +216,17 @@ def _timeout(env: str, default: float) -> float | None:
             stacklevel=2,
         )
         return default
-    return None if val <= 0 else val
+    if val < 0:
+        # Only 0 is documented as "no limit". A negative value is a typo (or the
+        # "-1 means unset" idiom from other tools) and used to silently REMOVE the
+        # timeout — the opposite of a safe reading — so surface it and use the default.
+        warnings.warn(
+            f"{env}={raw!r} is negative; only 0 disables the timeout. "
+            f"Using default {default}s",
+            stacklevel=2,
+        )
+        return default
+    return None if val == 0 else val
 
 
 def startup_timeout_s() -> float | None:

@@ -70,12 +70,27 @@ def _measure(aligned_dir: str, ref_path: str, nperseg: int,
             n = min(len(cur), len(m))
             cur = cur[:n] + m[:n]
     assert cur is not None
+    # The coherent sum measured here is truncated to the SHORTEST stem, but the EQ
+    # below is applied to every stem at FULL length. One badly-exported 2 s tom in a
+    # 30 s kit therefore derived the whole kit's corrective curve from a 2-second
+    # window. mix/stem_mix both emit io.truncation_note for exactly this; ref-match
+    # did not, so it happened silently.
+    trunc = io.truncation_note([len(m) for _, m in ((n, dsp.mono(x)) for n, x in raw)])
+
     fc, pc = dsp.psd(cur, sr, nperseg)
     cur_db = dsp.band_db(fc, pc, THIRD)
+    # A NaN band means the analysis resolution is coarser than the band is wide (a
+    # short one-bar reference clamps nperseg to its own length) — see dsp.band_power.
+    # Such a band carries NO information, so it gets NO correction; previously it read
+    # -200 dB and took the full cut_cap on every stem. A short reference stays a
+    # supported input — the unresolved bands are simply reported and skipped.
+    unresolved = [float(THIRD[i])
+                  for i in np.flatnonzero(~np.isfinite(ref_db) | ~np.isfinite(cur_db))]
     M = np.array(powr)
     share = M / (M.sum(axis=0, keepdims=True) + 1e-20)
     return {"ref_db": ref_db, "cur_db": cur_db, "names": names, "raw": raw,
-            "share": share, "sr": sr, "nperseg": nperseg}
+            "share": share, "sr": sr, "nperseg": nperseg, "truncation_note": trunc,
+            "unresolved_bands_hz": unresolved or None}
 
 
 def analyze(kit: Kit, ref_path: str | None = None, aligned_dir: str | None = None,
@@ -87,6 +102,7 @@ def analyze(kit: Kit, ref_path: str | None = None, aligned_dir: str | None = Non
         raise ValueError("no reference given (pass ref_path or set it in kit.json)")
     m = _measure(aligned_dir, ref_path, nperseg, keep=_kit_keep(kit))
     delta = dsp.shape(m["ref_db"], THIRD) - dsp.shape(m["cur_db"], THIRD)
+    delta = np.where(np.isfinite(delta), delta, 0.0)   # unresolved band -> no delta
     # dominant stem per macro band (informational)
     share = m["share"]
     ownership = {}
@@ -101,6 +117,8 @@ def analyze(kit: Kit, ref_path: str | None = None, aligned_dir: str | None = Non
         "kit_tilt": round(dsp.tilt(m["cur_db"], THIRD), 3),
         "delta_6band": {k: round(v, 2) for k, v in dsp.group_avg(delta, THIRD).items()},
         "band_owner": ownership, "stems": m["names"],
+        "truncation_note": m.get("truncation_note"),
+        "unresolved_bands_hz": m.get("unresolved_bands_hz"),
     }
 
 
@@ -111,6 +129,10 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
                 nperseg: int = 16384, ceil_dbfs: float = -1.0) -> dict:
     aligned_dir = aligned_dir or os.path.join(kit.src_dir, "phase-aligned")
     out_dir = out_dir or os.path.join(kit.src_dir, "ref-matched")
+    # aligned_dir too: re-matching into the directory just read from compounds the
+    # corrective EQ onto already-matched stems on every subsequent run.
+    io.refuse_in_place("reference-match", out_dir,
+                       the_stem_dir=kit.src_dir, aligned_dir=aligned_dir)
     os.makedirs(out_dir, exist_ok=True)
     ref_path = ref_path or kit.reference
     if not ref_path:
@@ -121,6 +143,10 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
 
     # corrective curve: smoothed, strength-scaled, capped
     delta = dsp.shape(m["ref_db"], THIRD) - dsp.shape(m["cur_db"], THIRD)
+    # No information -> no correction. Zeroing (rather than leaving NaN) keeps the
+    # smoothing convolution below finite; a NaN would otherwise spread to the
+    # neighbouring bands and then into the rendered gains.
+    delta = np.where(np.isfinite(delta), delta, 0.0)
     sm = np.convolve(delta, [0.25, 0.5, 0.25], mode="same")
     sm[0], sm[-1] = delta[0], delta[-1]
     corr = np.clip(sm * strength, cut_cap, boost_cap)
@@ -191,4 +217,6 @@ def apply_match(kit: Kit, ref_path: str | None = None, aligned_dir: str | None =
         "residual_before": {k: round(v, 2) for k, v in before.items()},
         "residual_after": {k: round(v, 2) for k, v in after.items()},
         "per_stem_eq": per_stem_eq, "notes": notes,
+        "truncation_note": m.get("truncation_note"),
+        "unresolved_bands_hz": m.get("unresolved_bands_hz"),
     }

@@ -14,7 +14,11 @@ the `UAD ….component` / `UAD ….vst3` twins pass through offline.
 """
 import sys, glob, math
 import numpy as np
-from pedalboard import load_plugin, Pedalboard
+
+# pedalboard is imported lazily inside the two functions that actually load a
+# plugin, mirroring apply_vst_preset — so the pure-logic helpers below
+# (`same_value`, `extreme`, `pick_params`) stay importable, and unit-testable,
+# without the `vst` extra installed.
 
 DIR = "/Library/Audio/Plug-Ins/VST3/"
 SR = 48000
@@ -57,6 +61,24 @@ def pick_param(p):  # back-compat: the single best param
     return r[0] if r else None
 
 
+def same_value(a, b):
+    """Compare a param value against a ``valid_values`` entry, tolerating type/format.
+
+    ``valid_values`` are STRINGS; a param's present value may arrive as a string, an
+    int/float, or with different spacing (' 4.0:1' vs '4.0:1'). A bare ``==`` between
+    a float and a string is always False, which silently defeats every
+    differs-from-current check below."""
+    if a is None or b is None:
+        return False
+    sa, sb = str(a).strip(), str(b).strip()
+    if sa == sb:
+        return True
+    try:                       # '40.2' == 40.2, '4.0' == '4'
+        return float(sa) == float(sb)
+    except (TypeError, ValueError):
+        return False
+
+
 def extreme(par, current=None):
     """An extreme value to push ``par`` to. For an enum, prefer an end that DIFFERS from ``current``
     (the param's present/default value): vv[0] unless it equals current, else vv[-1] — otherwise a
@@ -66,7 +88,7 @@ def extreme(par, current=None):
     if vv:
         vv = list(vv)
         end = vv[0]
-        if current is not None and end == current and len(vv) > 1:
+        if current is not None and same_value(end, current) and len(vv) > 1:
             end = vv[-1]
         return end
     lo = getattr(par, "min_value", None)
@@ -79,6 +101,7 @@ def extreme(par, current=None):
 
 
 def render(path, param=None, value=None):
+    from pedalboard import Pedalboard, load_plugin
     p = load_plugin(path)
     if param is not None:
         setattr(p, param, value)
@@ -87,6 +110,7 @@ def render(path, param=None, value=None):
 
 def probe(arg):
     path = resolve(arg)
+    from pedalboard import load_plugin
     try:
         p = load_plugin(path)
     except Exception as e:
@@ -107,10 +131,19 @@ def probe(arg):
         a = render(path)                            # default, once
         best, attempts = 0.0, []
         for pn in pns[:6]:                           # cap the retry so probing stays quick
-            cur = getattr(p.parameters[pn], "raw_value", None)
-            cur = cur if cur is not None else getattr(p, pn, None)
+            # The COOKED value first (`getattr(p, pn)` — the enum label / real-world
+            # float), not `raw_value`, which is Pedalboard's NORMALIZED 0..1 float.
+            # valid_values are enum LABELS, so comparing them against a normalized
+            # float never matched: `extreme` always returned vv[0], and for an
+            # enum-default-at-index-0 plugin (the filter-only case this retry loop
+            # exists for) the probe pushed the default against itself, measured Δ0,
+            # and falsely reported PASSTHROUGH — the one verdict the whole vst-*
+            # suite and demo/headless-safe-titles.txt depend on.
+            cur = getattr(p, pn, None)
+            if cur is None:
+                cur = getattr(p.parameters[pn], "raw_value", None)
             val = extreme(p.parameters[pn], cur)
-            if val is None or val == cur:           # nothing distinct to push; skip
+            if val is None or same_value(val, cur):  # nothing distinct to push; skip
                 continue
             b = render(path, pn, val)               # one param pushed to a distinct extreme
             n = min(a.shape[1], b.shape[1])

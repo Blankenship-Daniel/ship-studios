@@ -17,9 +17,13 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 from scipy.signal import stft
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
 
 SR = 48000
-ROOT = Path("/Users/ship/Documents/code/ship-studios")
+ROOT = repo_root()
 KEY = ROOT / "artifacts/desktop-drums-demucs/drum_key.wav"
 STEMS = ["kick_in", "snare_top", "snare_bottom", "crotch_mic", "overheads", "room"]
 

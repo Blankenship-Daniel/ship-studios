@@ -1490,3 +1490,105 @@ async def test_live_tool_names_exist_on_servers() -> None:
             continue  # enum not discoverable from this server's schema; skip silently
         extra = ours - live_vocab
         assert not extra, f"{label}: {sorted(extra)} not in live vocabulary {sorted(live_vocab)}"
+
+
+# --- code-review regressions (A4, A7, A8, A9, A10, A14) ----------------------
+
+
+def test_streaming_compliant_is_unknown_when_a_platform_verdict_is_unreadable() -> None:
+    """An entry we cannot read is UNKNOWN, not compliant.
+
+    Dropping unreadable entries made [{spotify: true}, {tidal: null}] report FULL
+    compliance while tidal's verdict was never established.
+    """
+    from ship_studios.pipelines import _streaming_compliant
+
+    ok = {"platforms": [{"name": "spotify", "fully_compliant": True},
+                        {"name": "tidal", "fully_compliant": True}]}
+    assert _streaming_compliant(ok) is True
+
+    partial = {"platforms": [{"name": "spotify", "fully_compliant": True},
+                             {"name": "tidal", "fully_compliant": None}]}
+    assert _streaming_compliant(partial) is None
+
+    bad = {"platforms": [{"name": "spotify", "fully_compliant": True}, "nonsense"]}
+    assert _streaming_compliant(bad) is None
+
+    fails = {"platforms": [{"name": "spotify", "fully_compliant": True},
+                           {"name": "tidal", "fully_compliant": False}]}
+    assert _streaming_compliant(fails) is False
+
+
+def test_master_outs_disambiguate_colliding_basenames() -> None:
+    """Two like-named mixes under one --masters-dir must not write the same file.
+
+    Both used to render to <masters_dir>/intro.master.wav: the second silently
+    overwrote the first, `masters` held the path twice, and the album pass measured
+    one file as two "tracks".
+    """
+    from ship_studios.pipelines import _unique_master_outs
+
+    outs = _unique_master_outs(
+        ["projects/a/mix/intro.wav", "projects/b/mix/intro.wav"], "out"
+    )
+    assert len(set(outs)) == 2, outs
+    assert all(o.startswith("out/") for o in outs), outs
+
+    # no collision -> names are left exactly as _master_out produced them
+    plain = _unique_master_outs(["projects/a/mix/one.wav", "projects/b/mix/two.wav"], "out")
+    assert plain == ["out/one.master.wav", "out/two.master.wav"]
+
+
+async def test_batch_master_keeps_the_steps_of_a_failing_track() -> None:
+    """A failed track must still contribute its trace.
+
+    master_track's recorder was local, so when it raised, `res` was never bound and
+    `steps.extend(res[...])` was skipped — the failing track contributed NOTHING,
+    neither its successful measure steps nor the failing one, contradicting both the
+    module docstring and Step's ("a failed step is still recorded").
+    """
+    from tests.conftest import RecordingHub
+
+    class _FailAtRender(RecordingHub):
+        async def call_tool(self, server_key, tool, args):
+            if tool == "render-mastered":
+                raise RuntimeError("boom")
+            return await super().call_tool(server_key, tool, args)
+
+    hub = _FailAtRender()
+    res = await pipelines.batch_master(hub, ["a.wav"], continue_on_error=True)
+
+    assert res["tracks"][0]["error"]
+    tools = [s["tool"] for s in res["steps"]]
+    assert "measure-loudness" in tools, "pre-failure steps were dropped"
+    assert "render-mastered" in tools, "the failing step itself was dropped"
+    assert any(s["ok"] is False for s in res["steps"])
+
+
+async def test_loops_found_counts_before_the_max_total_slice() -> None:
+    """`loops_found` reports what the manifest yielded, not the post-cap count."""
+    manifest = {
+        "find-loops": {
+            "out_dir": "out",
+            "manifest": {"bpm": 120.0,
+                         "loops": [{"wav": f"l{i}.wav"} for i in range(20)]},
+        }
+    }
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub(canned=manifest)
+    res = await pipelines.loops_to_deliverables(
+        hub, "d.wav", 120.0, out_dir="out", max_total_loops=5
+    )
+    assert res["loops_found"] == 20, "the cap must not be reported as the find count"
+
+
+async def test_house_curve_warns_when_no_correction_was_rendered() -> None:
+    """output == input with matched:false is a no-op, and must say so."""
+    from tests.conftest import RecordingHub
+
+    hub = RecordingHub()  # no canned match-to-profile -> no recoverable delta
+    res = await pipelines.house_curve(hub, "m.wav", ["r.wav"])
+    assert res["matched"] is False
+    assert res["output"] == "m.wav"
+    assert res["warning"] and "no correction" in res["warning"].lower()

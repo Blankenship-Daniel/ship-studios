@@ -101,6 +101,28 @@ def truncation_note(frames: list[int]) -> str | None:
     return f"stems truncated to the shortest ({n} frames); longest was {longest}"
 
 
+def refuse_in_place(flow: str, out_dir: str, **sources: str) -> None:
+    """Raise if ``out_dir`` resolves to one of ``sources``.
+
+    The write flows are documented as non-destructive — they render a fresh set
+    into a subdirectory. Nothing stopped ``--out-dir`` from naming the SOURCE
+    directory, though, which silently replaced the originals: a raw WAV/PCM_16
+    ``snare top.wav`` came back as AIFF/PCM_24 under the same name, with the
+    untouched multitrack gone and no prompt. Compared by ``realpath`` so a
+    symlink or a trailing slash cannot slip past. Also guards re-processing an
+    already-processed set (matching a kit into the directory it was read from
+    compounds the EQ on every run).
+    """
+    out = os.path.realpath(out_dir)
+    for label, src in sources.items():
+        if src and os.path.realpath(src) == out:
+            raise ValueError(
+                f"{flow}: --out-dir resolves to the same directory as {label} "
+                f"({out}) — this flow writes a fresh set and would overwrite the "
+                f"input in place. Point --out-dir at a new directory."
+            )
+
+
 def to_stereo(x: np.ndarray) -> np.ndarray:
     """Coerce to (N, 2): mono -> centred (both channels); keep first two of >2."""
     a = np.asarray(x, dtype=float)

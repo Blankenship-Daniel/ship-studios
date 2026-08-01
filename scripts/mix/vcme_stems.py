@@ -12,9 +12,14 @@ import numpy as np
 import soundfile as sf
 from pedalboard import Pedalboard, load_plugin
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
+
 PLUGIN = "/Library/Audio/Plug-Ins/VST3/Ghz VCME 3.vst3"
 # SRC / OUT default to the original run; override via argv: vcme_stems.py <SRC> <OUT>
-SRC = sys.argv[1] if len(sys.argv) > 1 else "/Users/ship/Documents/code/ship-studios/projects/desktop-drums/stems"
+SRC = sys.argv[1] if len(sys.argv) > 1 else f"{ROOT}/projects/desktop-drums/stems"
 OUT = sys.argv[2] if len(sys.argv) > 2 else f"{SRC}/vcme"
 STEMS = [
     "crotch_mic.wav",

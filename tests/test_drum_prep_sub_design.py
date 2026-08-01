@@ -50,3 +50,40 @@ def test_add_sub_honors_sub_hz_override(tmp_path) -> None:
     out = tmp_path / "kick_sub.wav"
     res = add_sub(str(src), str(out), sub_hz=50.0, amount_db=-3.0)
     assert res["sub_hz"] == 50.0
+
+
+@pytest.mark.parametrize("kick_phase", [0.0, np.pi, np.pi / 2, 3 * np.pi / 4])
+def test_sub_reinforces_regardless_of_the_kicks_phase(tmp_path, kick_phase) -> None:
+    """The sub must ADD low end whatever phase the kick's fundamental starts at.
+
+    The sub used to be free-running (phase 0 at t=0) with no relationship to the
+    kick, so at the default — sub_hz ON the kick's own fundamental — the relative
+    phase decided the outcome: measured +4.62 dB at one kick phase and **-10.05 dB**
+    at anti-phase, i.e. the "reinforcement" removed 10 dB of low end. Nothing warned;
+    `low_60_gain_db` was computed and reported but never checked.
+    """
+    sr = 48000
+    t = np.arange(int(sr * 0.4)) / sr
+    kick = np.sin(2 * np.pi * 55 * t + kick_phase) * np.exp(-t * 9) * 0.7
+    src = tmp_path / "kick.wav"
+    sf.write(str(src), np.column_stack([kick, kick]), sr)
+
+    res = add_sub(str(src), str(tmp_path / "out.wav"), sub_hz=55.0)
+    assert res["low_60_gain_db"] > 2.0, res
+
+
+def test_sub_reports_a_fundamental_above_the_sub_range(tmp_path) -> None:
+    """A 100 Hz kick silently got an 80 Hz sub — a detuned, beating layer.
+
+    ``estimate_fundamental`` searched [30, 120] while the caller clamped to [30, 80],
+    so the two disagreed with no signal to the operator.
+    """
+    sr = 48000
+    t = np.arange(int(sr * 0.4)) / sr
+    kick = np.sin(2 * np.pi * 100 * t) * np.exp(-t * 9) * 0.7
+    src = tmp_path / "kick100.wav"
+    sf.write(str(src), np.column_stack([kick, kick]), sr)
+
+    res = add_sub(str(src), str(tmp_path / "out100.wav"))
+    assert res["notes"], "a clamped fundamental must be reported"
+    assert "100" in " ".join(res["notes"]) or "sub range" in " ".join(res["notes"])

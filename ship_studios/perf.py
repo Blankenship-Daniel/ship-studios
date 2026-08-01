@@ -104,12 +104,15 @@ def sample_rss() -> dict[str, int] | None:
     (and any DSP/Demucs/Pedalboard workers they spawn) — the per-subprocess cost
     Claude Code's native telemetry cannot see. Never raises.
     """
+    # Check the documented opt-out FIRST: importing psutil to then discard the
+    # result made SHIP_STUDIOS_PERF_RSS=0 not actually avoid the import cost it
+    # exists to avoid.
+    if os.environ.get(PERF_RSS_ENV, "1") == "0":
+        return None
     global _PSUTIL
     if _PSUTIL is _UNSET:
         _PSUTIL = _load_psutil()
     if _PSUTIL is None:
-        return None
-    if os.environ.get(PERF_RSS_ENV, "1") == "0":
         return None
     try:
         proc = _PSUTIL.Process()

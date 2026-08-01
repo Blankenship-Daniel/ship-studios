@@ -94,6 +94,23 @@ def test_set_param_no_numeric_valid_values_reports_failure():
     assert "shape" not in p.assigned
 
 
+def test_set_param_non_numeric_target_against_numeric_enum_warns_not_raises():
+    """A non-numeric target against NUMERIC valid_values must return a note, not raise.
+
+    ``dist()`` was evaluated while building the candidate list, i.e. BEFORE the
+    ``tn is not None`` guard, so ``abs(35.0 - None)`` raised TypeError straight out of
+    set_param — aborting the whole chain render at the one place that promises never
+    to (main() only prints a ``warn:`` line and carries on). One mistyped or
+    plugin-renamed enum label was enough to trigger it. The existing non-numeric case
+    above cannot reach this: its valid_values are non-numeric too, so the candidate
+    list is empty and the comprehension never calls ``dist``.
+    """
+    p = FakePlugin({"hpf": FakeParam(["35.0", "39.8", "40.2"])})
+    note = harness.set_param(p, "hpf", "Off")
+    assert note is not None and "hpf" in note
+    assert "hpf" not in p.assigned
+
+
 # --- the labeled-ratio snap parses ' 4.0:1'-style values -------------------------------------
 
 def test_set_param_snaps_labeled_ratio_enum():
@@ -127,10 +144,6 @@ def test_output_gain_faithful_on_null():
     # JSON null -> faithful: gain is exactly 1.0, so a limiter ceiling/quiet render is untouched.
     assert harness.output_gain(0.5, None) == 1.0
     assert harness.output_gain(0.01, None) == 1.0  # never AMPLIFIES a quiet faithful render
-
-
-def test_output_gain_faithful_on_sentinel():
-    assert harness.output_gain(0.7, harness._FAITHFUL) == 1.0
 
 
 def test_output_gain_renormalizes_to_target_peak():

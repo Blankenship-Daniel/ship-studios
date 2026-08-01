@@ -71,8 +71,17 @@ def _prep_pair(left: np.ndarray, right: np.ndarray, sr: int, ceil: float):
     meter = pyln.Meter(sr)
     l_left = meter.integrated_loudness(left)
     l_right = meter.integrated_loudness(right)
+    note = None
     if np.isfinite(l_left) and np.isfinite(l_right):  # silent signal -> -inf; skip (no NaN)
         right = right * 10 ** ((l_left - l_right) / 20.0)
+    else:
+        # One half is silent/immeasurable, so NO loudness match happened — and
+        # _json_safe maps the -inf LUFS to `null`, so the report showed
+        # "lufs_before": null beside a file still described as loudness-matched.
+        # Name it instead.
+        which = "A" if not np.isfinite(l_left) else "B"
+        note = (f"side {which} is silent or immeasurable (-inf LUFS) — the A/B is "
+                f"NOT loudness-matched")
     pk = max(float(np.abs(left).max()), float(np.abs(right).max()))
     if pk > ceil:
         f = ceil / pk
@@ -80,7 +89,7 @@ def _prep_pair(left: np.ndarray, right: np.ndarray, sr: int, ceil: float):
         trim_db = 20.0 * float(np.log10(f))  # f < 1 -> negative; both clips trimmed equally
         l_left += trim_db
         l_right += trim_db
-    return left, right, l_left, l_right
+    return left, right, l_left, l_right, note
 
 
 def _assemble(a: np.ndarray, b: np.ndarray, sr: int, gap: float, path: str) -> float:
@@ -137,19 +146,21 @@ def render_auditions(kit: Kit, ref_path: str | None = None, aligned_dir: str | N
                 "increase --dur or use longer source audio")
 
     auditions = []
-    bA, aA, lb, la = _prep_pair(before_x, after_x, sr, ceil)
+    bA, aA, lb, la, note_a = _prep_pair(before_x, after_x, sr, ceil)
     path_a = os.path.join(out_dir, "AB_before-vs-after.wav")
     dur_a = _assemble(bA, aA, sr, gap, path_a)
     auditions.append({"name": "before-vs-after", "path": path_a, "seconds": round(dur_a, 1),
                       "lufs_before": round(lb, 2), "lufs_after": round(la, 2),
-                      "gain_db_on_after": round(lb - la, 2)})
+                      "gain_db_on_after": round(lb - la, 2),
+                      "loudness_matched": note_a is None, "note": note_a})
 
-    rB, aB, lr, lak = _prep_pair(ref_x, after_x, sr, ceil)
+    rB, aB, lr, lak, note_b = _prep_pair(ref_x, after_x, sr, ceil)
     path_b = os.path.join(out_dir, "AB_reference-vs-after.wav")
     dur_b = _assemble(rB, aB, sr, gap, path_b)
     auditions.append({"name": "reference-vs-after", "path": path_b, "seconds": round(dur_b, 1),
                       "lufs_reference": round(lr, 2), "lufs_after": round(lak, 2),
-                      "gain_db_on_after": round(lr - lak, 2)})
+                      "gain_db_on_after": round(lr - lak, 2),
+                      "loudness_matched": note_b is None, "note": note_b})
 
     # standalone loudness-matched halves -> feed directly to stemmy-gemini
     # compare-to-reference (mix_path=after, reference_path=reference). Saves the
@@ -161,9 +172,11 @@ def render_auditions(kit: Kit, ref_path: str | None = None, aligned_dir: str | N
         io.write_wav24(ref_h, rB, sr)
         io.write_wav24(aft_h, aB, sr)
         halves = {"reference": ref_h, "after": aft_h, "lufs": round(lr, 2),
-                  "note": "loudness-matched; feed to compare-to-reference "
-                          "(mix_path=after, reference_path=reference)"}
+                  "loudness_matched": note_b is None,
+                  "note": note_b or ("loudness-matched; feed to compare-to-reference "
+                                     "(mix_path=after, reference_path=reference)")}
 
     return {"flow": "audition", "reference": ref_path, "out_dir": out_dir,
             "kit_excerpt_s": [round(a / sr, 1), round(b / sr, 1)], "auditions": auditions,
-            "gemini_halves": halves}
+            "gemini_halves": halves,
+            "warnings": [n for n in (note_a, note_b) if n] or None}

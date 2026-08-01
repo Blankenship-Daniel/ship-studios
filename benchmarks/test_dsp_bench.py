@@ -5,11 +5,16 @@ is ``["tests"]``), so the offline suite never collects it. Run explicitly:
 
     uv run --extra bench --extra drum-prep pytest benchmarks/
 
-Save a baseline and fail CI on a regression with pytest-benchmark's own flags:
+Save a baseline and fail on a regression with pytest-benchmark's own flags:
 
     uv run --extra bench --extra drum-prep pytest benchmarks/ --benchmark-autosave
     uv run --extra bench --extra drum-prep pytest benchmarks/ \
         --benchmark-compare=0001 --benchmark-compare-fail=mean:5%
+
+That comparison is a LOCAL workflow, deliberately not a CI gate: a 5% wall-clock
+threshold on shared CI runners is noise, not signal, and would fail at random. CI
+instead RUNS this suite (the `bench` job) so the benchmarks cannot bit-rot —
+compare against a saved baseline on one machine when you need the real number.
 
 Benchmark ONLY deterministic local DSP — never the Gemini-network or the
 non-deterministic VST/Pedalboard paths (their variance swamps the signal).

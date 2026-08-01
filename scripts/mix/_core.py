@@ -11,8 +11,50 @@ balance), all present in the plain `mixing` venv — so a test can import this m
 exercise the proven behavior on synthetic stems.
 """
 import math
+import os
+from pathlib import Path
 
 import numpy as np
+
+
+def repo_root():
+    """The ship-studios checkout this script lives in, derived from ``__file__``.
+
+    Replaces the hardcoded ``/Users/ship/Documents/code/ship-studios`` that was
+    copy-pasted across the scripts/mix recipes — those broke on any other checkout
+    (and in CI) with a bare FileNotFoundError at subprocess spawn.
+    """
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def sibling_dir(name):
+    """Locate a sibling MCP repo (``stemmy-loops-mcp`` / ``stemmy-gemini-mcp``).
+
+    Prefers ship_studios.config, which already resolves siblings from the MAIN
+    checkout even when running inside a .claude/worktrees/ worktree — the exact
+    case a bare ``repo_root().parent / name`` gets wrong. Falls back to that
+    simple guess when ship_studios isn't importable (these scripts often run under
+    the stemmy-loops `vst` venv, which need not have this package installed).
+    Honors the documented SHIP_STUDIOS_*_DIR overrides via config.
+    """
+    try:
+        from ship_studios import config
+        key = {"stemmy-loops-mcp": config.LOOPS_SERVER,
+               "stemmy-gemini-mcp": config.GEMINI_SERVER}.get(name)
+        if key is not None:
+            return Path(config.server_dir(key))
+    except Exception:
+        pass
+    env = {"stemmy-loops-mcp": "SHIP_STUDIOS_LOOPS_DIR",
+           "stemmy-gemini-mcp": "SHIP_STUDIOS_GEMINI_DIR"}.get(name)
+    if env and os.environ.get(env):
+        return Path(os.environ[env])
+    return repo_root().parent / name
+
+
+def sibling_python(name="stemmy-loops-mcp"):
+    """The sibling repo's venv interpreter (for the VST/stemmy subprocess stages)."""
+    return sibling_dir(name) / ".venv" / "bin" / "python"
 
 
 def peak_normalize(y, peak_dbfs=-1.0):

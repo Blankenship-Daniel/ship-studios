@@ -55,6 +55,12 @@ class Hub:
                 f"unknown server key(s): {unknown}; "
                 f"valid keys are {list(config.SERVER_KEYS)}"
             )
+        # A repeated key spawned a second `uv run` subprocess while _sessions kept
+        # only the last one — a redundant child held for the Hub's whole lifetime,
+        # with no way to reach it.
+        dupes = sorted({k for k in keys if keys.count(k) > 1})
+        if dupes:
+            raise ValueError(f"duplicate server key(s): {dupes}")
         self.server_keys: list[str] = keys
         self._sessions: dict[str, ClientSession] = {}
         self._stack: contextlib.AsyncExitStack | None = None
@@ -70,18 +76,20 @@ class Hub:
             raise RuntimeError("Hub is already open; use a fresh Hub per context")
         self._stack = contextlib.AsyncExitStack()
         try:
-            # Open every server CONCURRENTLY so two independent cold `uv run`
-            # handshakes overlap instead of summing. Within this one event loop the
-            # gathered _open_session coroutines only interleave at await points, and
-            # the shared self._stack is mutated by an atomic list append, so sharing
-            # the AsyncExitStack across them is safe. gather preserves argument order,
-            # so _sessions keeps server_keys insertion order; if any open raises,
-            # gather re-raises the FIRST exception, handled by the except below.
-            results = await asyncio.gather(
-                *(self._open_session(key) for key in self.server_keys)
-            )
-            for key, session in zip(self.server_keys, results, strict=True):
-                self._sessions[key] = session
+            # Open the servers SEQUENTIALLY, in this task. Do NOT reintroduce
+            # asyncio.gather here: `stdio_client` and `ClientSession.__aenter__` each
+            # enter an `anyio.create_task_group()`, and anyio binds a cancel scope's
+            # `_host_task` to whichever task ENTERED it. gather runs every coroutine in
+            # its own child Task, so the scopes would be entered there while __aexit__
+            # unwinds self._stack from THIS task — and anyio raises "Attempted to exit
+            # cancel scope in a different task than it was entered in" on every
+            # teardown (including with a single key: gather still spawns a Task).
+            # Entering here keeps enter and exit in the same task by construction, and
+            # removes the rollback race below: no sibling open can still be in flight
+            # pushing onto a stack the `except` has already closed. The cost is that
+            # two cold `uv run` handshakes sum rather than overlap, on cold start only.
+            for key in self.server_keys:
+                self._sessions[key] = await self._open_session(key)
         except BaseException:
             # Roll back any partially-opened sessions so a failure on one
             # server doesn't leak another server's subprocess.

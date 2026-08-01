@@ -27,17 +27,36 @@ pytest.importorskip("pyloudnorm")
 _MIX_DIR = Path(__file__).resolve().parents[1] / "scripts" / "mix"
 
 
+_LOADED: dict[str, object] = {}
+
+
 def _load(name: str):
-    """Import a scripts/mix module by path, registering it so its own ``from _core import`` works."""
-    if name in sys.modules:
-        return sys.modules[name]
-    # ensure scripts/mix is importable for the module's own ``from _core import ...``
+    """Import a scripts/mix module by path.
+
+    Cached in a module-local dict, NOT in ``sys.modules`` under its bare name: these
+    files are ``_core``/``process_stems``/``warm_bus``, and registering those names
+    globally made any later ``import _core`` anywhere in the session resolve into
+    ``scripts/mix`` — an ordering-dependent trap that also made ``-n auto`` differ
+    from a serial run. The ``sys.path`` entry (needed for each module's own
+    ``from _core import ...``) is added once and removed again in a finally.
+    """
+    if name in _LOADED:
+        return _LOADED[name]
     sys.path.insert(0, str(_MIX_DIR))
-    spec = importlib.util.spec_from_file_location(name, _MIX_DIR / f"{name}.py")
-    assert spec and spec.loader, f"cannot load {name}"
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec = importlib.util.spec_from_file_location(name, _MIX_DIR / f"{name}.py")
+        assert spec and spec.loader, f"cannot load {name}"
+        mod = importlib.util.module_from_spec(spec)
+        # `_core` alone must be reachable by name while the others exec their
+        # `from _core import ...`; scope it to this dict + a temporary registration.
+        sys.modules.setdefault(name, mod)
+        spec.loader.exec_module(mod)
+    finally:
+        try:
+            sys.path.remove(str(_MIX_DIR))
+        except ValueError:
+            pass
+    _LOADED[name] = mod
     return mod
 
 
@@ -184,10 +203,16 @@ def test_pan_to_stereo_equal_power(core):
     assert core.pan_to_stereo(stereo, 0.5) is stereo
 
 
-# --- warm_bus: warm tilt sign + zero-phase -------------------------------------------------------
+# --- _core.warm_tilt_eq: a shared rFFT tilt helper -----------------------------------------------
+# NOTE: this is NOT the tilt warm_bus.py renders. The shipped bus applies its tilt via
+# stemmy's biquad `apply_eq(phase='zero')` (see warm_bus.warm_tilt_bands, covered
+# below); this helper is a separate rFFT-magnitude implementation and is currently
+# unreferenced by any script. These tests validate the helper on its own terms — they
+# say nothing about the warm-bus recipe, which is exactly the confusion that let
+# `--hs-gain` be flippable from -4 to +4 with the whole suite green.
 
-def test_warm_tilt_sign_low_up_high_down(core):
-    """The warm tilt boosts lows and cuts highs (the recipe: low-shelf + / high-shelf -)."""
+def test_warm_tilt_helper_sign_low_up_high_down(core):
+    """The helper boosts lows and cuts highs (low-shelf + / high-shelf -)."""
     sr = 48000
     n = sr
     x = np.random.default_rng(4).standard_normal(n).astype(np.float32)
@@ -199,7 +224,7 @@ def test_warm_tilt_sign_low_up_high_down(core):
     assert y.shape == x.shape and y.dtype == np.float32
 
 
-def test_warm_tilt_is_zero_phase(core):
+def test_warm_tilt_helper_is_zero_phase(core):
     """Real, symmetric magnitude => zero-phase: the impulse response is circularly symmetric."""
     sr = 48000
     n = 4096
@@ -211,7 +236,7 @@ def test_warm_tilt_is_zero_phase(core):
     assert sym_err < 1e-6
 
 
-def test_warm_tilt_flat_settings_is_near_identity(core):
+def test_warm_tilt_helper_flat_settings_is_near_identity(core):
     """All-zero gains -> the curve is unity -> output ~= input (a sanity floor on the core)."""
     sr = 48000
     x = np.random.default_rng(5).standard_normal(sr).astype(np.float32)
@@ -219,8 +244,49 @@ def test_warm_tilt_flat_settings_is_near_identity(core):
     assert np.max(np.abs(y - x)) < 1e-4
 
 
-def test_warm_bus_module_uses_the_core(core):
-    """warm_bus exposes the shared peak_normalize + the testable tilt mirror."""
+# --- warm_bus: the SHIPPED tilt spec -------------------------------------------------------------
+
+def test_warm_bus_uses_the_shared_peak_normalize(core):
     wb = _load("warm_bus")
     assert wb.peak_normalize is core.peak_normalize
-    assert wb.warm_tilt_eq is core.warm_tilt_eq
+
+
+def test_warm_bus_default_tilt_is_warm():
+    """The approved signature: lows UP, presence DOWN, top DOWN, sub filtered.
+
+    Asserts the spec main() actually renders. The previous test here
+    (`assert wb.warm_tilt_eq is core.warm_tilt_eq`) was tautological — it could only
+    fail if someone deleted an unused import — so flipping the default `--hs-gain`
+    from -4.0 to +4.0 made the "warm" bus bright with every test still passing.
+    """
+    wb = _load("warm_bus")
+    bands = {b["type"]: b for b in wb.warm_tilt_bands()}
+
+    assert bands["low_shelf"]["gain_db"] > 0, "warmth needs the low shelf UP"
+    assert bands["high_shelf"]["gain_db"] < 0, "warmth needs the top DOWN, not up"
+    assert bands["bell"]["gain_db"] < 0, "the presence bell is a cut"
+    assert bands["high_pass"]["freq_hz"] == 35.0, "sub filter is part of 'tight bottom'"
+    assert bands["high_shelf"]["freq_hz"] == 6000.0
+    assert bands["low_shelf"]["freq_hz"] == 180.0
+    assert bands["bell"]["freq_hz"] == 2500.0
+
+
+def test_warm_bus_tilt_bands_follow_the_cli_knobs():
+    """Each documented knob reaches the band it names (no silently-ignored flag)."""
+    wb = _load("warm_bus")
+    bands = {b["type"]: b for b in wb.warm_tilt_bands(
+        hs_gain=-2.0, hs_freq=7000.0, low_shelf_gain=2.5, bell_gain=-0.5)}
+    assert bands["high_shelf"]["gain_db"] == -2.0
+    assert bands["high_shelf"]["freq_hz"] == 7000.0
+    assert bands["low_shelf"]["gain_db"] == 2.5
+    assert bands["bell"]["gain_db"] == -0.5
+
+
+def test_warm_bus_tilt_band_types_are_valid_apply_eq_types():
+    """The dicts are splatted into stemmy's EqBand — a typo'd type would only surface
+    at render time, inside the vst venv, on a real file."""
+    wb = _load("warm_bus")
+    valid = {"high_pass", "low_pass", "low_shelf", "high_shelf", "bell"}
+    for b in wb.warm_tilt_bands():
+        assert b["type"] in valid, b
+        assert set(b) == {"type", "freq_hz", "gain_db", "q"}, b

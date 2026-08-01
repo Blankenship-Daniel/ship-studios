@@ -56,6 +56,23 @@ def _frontmatter(text: str) -> dict[str, str]:
     return out
 
 
+#: Sentence break: end punctuation followed by whitespace, or any newline(s).
+#: The trailing-whitespace requirement keeps "docs/foo.md" and "-14 LUFS." mid-token
+#: periods from splitting; newlines break markdown bullets and table rows apart,
+#: which is what we want — each is its own claim.
+_SENTENCE_RE = re.compile(r"(?<=[.;:!?])\s+|\n+")
+
+
+def _sentences(text: str) -> list[str]:
+    """Split into claim-sized chunks for the key-label check (whitespace collapsed).
+
+    Scoping that check to a sentence rather than a character window is what makes
+    it sound: a window cannot attribute a negation to a tool, so a correct
+    disclaimer about tool B silences a genuine mislabel of tool A sitting beside it.
+    """
+    return [" ".join(part.split()) for part in _SENTENCE_RE.split(text) if part.strip()]
+
+
 def _wikilink_targets(raw: str) -> list[str]:
     """Normalize a [[...]] payload to its target name(s): strip alias (|) and
     anchor (#); a payload may itself be a pipe-list of alternatives."""
@@ -100,29 +117,28 @@ def main(argv: list[str]) -> int:
             if not fm.get(field):
                 errors.append(f"{rel}: frontmatter missing/empty `{field}`")
 
-        # (1) key-label bug — proximity-window scoped (newlines normalized to
-        # spaces) so a wrapped "X needs the key; <keyless-tool> is pure DSP"
-        # contrast keeps its negation in view and is NOT flagged.
-        flat = " ".join(text.split())
-        flat_low = flat.lower()
+        # (1) key-label bug — scoped to the SENTENCE the tool name appears in.
+        # NOT a +/-100 char window: a window cannot tell WHOSE negation it sees, so
+        # the repo's idiomatic contrast phrasing silenced real hits —
+        #   "requires GEMINI_API_KEY for find-sibilance. measure-loudness is pure
+        #    DSP and needs no key."
+        # put a negation ("pure dsp", "needs no key") belonging to measure-loudness
+        # inside find-sibilance's window, and the bug this gate exists to catch
+        # passed CI. A sentence still holds a genuine same-clause disclaimer
+        # ("find-sibilance needs no key"), which is the case we must not flag.
         seen_tools: set[str] = set()
-        for tool in KEYLESS_GEMINI_TOOLS:
-            start = 0
-            while (i := flat_low.find(tool, start)) != -1:
-                start = i + len(tool)
-                if tool in seen_tools:
-                    break
-                win = flat_low[max(0, i - 100): i + len(tool) + 100]
-                if (
-                    "gemini_api_key" in win
-                    and any(w in win for w in NEED_WORDS)
-                    and not any(neg in win for neg in NEGATIONS)
-                ):
+        for sentence in _sentences(text):
+            low = sentence.lower()
+            if "gemini_api_key" not in low or not any(w in low for w in NEED_WORDS):
+                continue
+            if any(neg in low for neg in NEGATIONS):
+                continue
+            for tool in KEYLESS_GEMINI_TOOLS:
+                if tool in low and tool not in seen_tools:
                     seen_tools.add(tool)
-                    snippet = flat[max(0, i - 60): i + len(tool) + 60].strip()
                     errors.append(
                         f"{rel}: key-label-bug — `{tool}` is pure DSP (no GEMINI_API_KEY) "
-                        f"but this implies it needs one: …{snippet}…"
+                        f"but this implies it needs one: …{sentence.strip()}…"
                     )
 
         # (2) broken wikilinks

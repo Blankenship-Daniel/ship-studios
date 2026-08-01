@@ -22,10 +22,16 @@ import re
 import numpy as np
 import soundfile as sf
 from pedalboard import load_plugin, Pedalboard
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 
 PLUG = "/Library/Audio/Plug-Ins/VST3/uaudio_distressor.vst3"
-SRC = "/Users/ship/Documents/code/ship-studios/projects/watercolors/mix/bus_warm.wav"
-OUT = "/Users/ship/Documents/code/ship-studios/artifacts/distressor"
+SRC = f"{ROOT}/projects/watercolors/mix/bus_warm.wav"
+OUT = f"{ROOT}/artifacts/distressor"
 SR = 48000
 EXCERPT_S = 20.0
 

@@ -32,8 +32,10 @@ def dump(arg):
     for n in params:
         par = params[n]
         vv = getattr(par, "valid_values", None)
-        cur = getattr(par, "raw_value", None)
         try:
+            # The COOKED value (enum label / real-world float), which is what
+            # valid_values are expressed in — not `par.raw_value`, Pedalboard's
+            # normalized 0..1 float (see probe_plugin.same_value).
             cur_str = repr(getattr(p, n))
         except Exception:
             cur_str = "?"

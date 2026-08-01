@@ -72,3 +72,21 @@ def test_retune_rejects_out_of_range_ratio(tmp_path) -> None:
     sf.write(str(p), _tone(100.0), SR, subtype="FLOAT")
     with pytest.raises(ValueError, match="outside the resampling range"):
         retune(str(p), str(tmp_path / "x.wav"), semitones=180)  # 15 octaves up -> 1/ratio rounds to 0
+
+
+@pytest.mark.parametrize("hz", [54.0, 55.0, 61.7, 98.0])
+@pytest.mark.parametrize("dur", [0.30, 0.50])
+def test_measure_fundamental_is_accurate_to_a_few_cents(tmp_path, hz, dur) -> None:
+    """The raw argmax bin is only good to +/- half a bin, which at this resolution
+    is a MUSICAL error: a 0.3 s kick gives df = 3.33 Hz, so 55 Hz used to read
+    56.67 Hz (+52 cents) and 54 Hz read 53.33 Hz (-22 cents). ``retune`` derives its
+    resample ratio from this and re-measures the same way, so the error lands in the
+    output sample while the report still looks self-consistent."""
+    t = np.arange(int(SR * dur)) / SR
+    sig = np.sin(2 * np.pi * hz * t) * np.exp(-t * 8) * 0.8
+    p = tmp_path / "kick.wav"
+    sf.write(str(p), sig, SR)
+
+    got = measure_fundamental(str(p))["hz"]
+    cents = 1200 * np.log2(got / hz)
+    assert abs(cents) < 5, f"{got} Hz vs {hz} Hz = {cents:+.1f} cents"

@@ -29,7 +29,6 @@ from pathlib import Path
 import numpy as np, soundfile as sf
 
 PLUGIN_DIR = "/Library/Audio/Plug-Ins/VST3/"
-_FAITHFUL = object()  # sentinel: recipe omitted output_peak_dbfs's null vs the -1.0 default
 
 
 def set_param(p, name, value):
@@ -61,11 +60,19 @@ def set_param(p, name, value):
             except Exception:
                 return None
         tn = num(value)
+        # Bail BEFORE building candidates when the target isn't numeric: there is
+        # nothing to snap to, and `dist` would evaluate abs(<float> - None) and raise
+        # TypeError out of set_param — aborting the whole chain render at the one
+        # place that promises never to (main() only prints a `warn:` line). Reached by
+        # a single mistyped or plugin-renamed enum label ('Off' against valid_values
+        # ['35.0','39.8','40.2']).
+        if tn is None:
+            return f"{name}={value!r}: {str(ex)[:100]}"
 
         def dist(nv):  # 0 for an exact match (incl. inf==inf, where abs(inf-inf) would be nan)
             return 0.0 if nv == tn else abs(nv - tn)
         cand = [(dist(num(v)), v) for v in vv if num(v) is not None]
-        if tn is not None and cand:
+        if cand:
             best = min(cand, key=lambda t: t[0])[1]
             setattr(p, name, best)
             return f"{name}={value!r} -> nearest valid {best!r}"
@@ -76,10 +83,15 @@ def output_gain(peak, target_dbfs):
     """Pure: the linear gain to apply to a buffer whose current sample peak is ``peak``.
 
     ``target_dbfs`` is the recipe's ``output_peak_dbfs`` — a real number to renormalize to that
-    sample-peak dBFS, or ``None`` (JSON null) / the ``_FAITHFUL`` sentinel to leave gain untouched
-    (returns 1.0). Also returns 1.0 for a silent buffer (peak <= 0). Extracted so the faithful-vs-
-    renormalize decision is testable with no plugin/pedalboard."""
-    if target_dbfs is None or target_dbfs is _FAITHFUL or peak <= 0:
+    sample-peak dBFS, or ``None`` (explicit JSON null) to leave the gain untouched (returns 1.0).
+    Also returns 1.0 for a silent buffer (peak <= 0). Extracted so the faithful-vs-renormalize
+    decision is testable with no plugin/pedalboard.
+
+    There is no separate "absent" sentinel: ``R.get("output_peak_dbfs", -1.0)`` in main() already
+    maps an ABSENT key to the -1.0 historical default and an explicit null to ``None``, so the old
+    ``_FAITHFUL`` object could never reach here from a real recipe — it only ever appeared in its
+    own test."""
+    if target_dbfs is None or peak <= 0:
         return 1.0
     return (10 ** (target_dbfs / 20.0)) / peak
 

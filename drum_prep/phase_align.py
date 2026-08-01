@@ -21,11 +21,27 @@ from dataclasses import asdict, dataclass
 import numpy as np
 
 from drum_prep import dsp, io
-from drum_prep.kit import Kit, ambience_stems, anchored_to_oh, partner_pairs
+from drum_prep.kit import (
+    Kit,
+    ambience_stems,
+    anchored_to_oh,
+    overhead_lr,
+    overhead_reference,
+    partner_pairs,
+)
 from drum_prep.overheads import resolve_overhead
 
 SOUND_CMS = 34300.0  # speed of sound, cm/s — for the distance sanity column
 _MIN_OVERLAP = 64    # samples — below this an FFT correlation is meaningless
+
+#: post_corr below this triggers a wider re-search to check for a railed max_lag.
+#: Above it the peak is already convincing, so the (2x cost) probe is skipped —
+#: which is the common case, so a healthy kit pays nothing.
+_RAIL_PROBE_BELOW = 0.75
+#: ...and the wider result must beat the narrow one by this much to be believed,
+#: so a legitimately low-correlation mic (hi-hat vs overheads) isn't misread as
+#: railed and skipped.
+_RAIL_MARGIN = 0.10
 
 
 def _excerpt_overlap(sig: np.ndarray, sl: slice) -> tuple[slice, bool]:
@@ -44,6 +60,26 @@ def _excerpt_overlap(sig: np.ndarray, sl: slice) -> tuple[slice, bool]:
     return slice(sl.start, stop), True
 
 
+def _touched_paths(kit: Kit) -> list[str]:
+    """Every stem path :func:`phase_align` reads and writes back out.
+
+    Deliberately built from the same role helpers the flow itself iterates, so a
+    stem can never be aligned without having been sample-rate checked. Stems
+    excluded from alignment (FX returns) are not touched and not checked.
+    """
+    stems = list(anchored_to_oh(kit)) + list(ambience_stems(kit))
+    for partner, anchor in partner_pairs(kit):
+        stems += [partner, anchor]
+    oh = overhead_reference(kit)
+    if oh is not None:
+        stems.append(oh)
+    else:
+        stems += [s for s in overhead_lr(kit) if s is not None]
+    # dict.fromkeys: de-dupe (an anchor is also in anchored_to_oh) but keep order,
+    # so the mismatch message lists stems in a stable, reproducible order.
+    return list(dict.fromkeys(kit.path(s) for s in stems))
+
+
 @dataclass
 class AlignResult:
     name: str
@@ -58,8 +94,19 @@ class AlignResult:
 def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
                 excerpt_s: float = 40.0, kick_lowpass: float = 180.0) -> dict:
     out_dir = out_dir or os.path.join(kit.src_dir, "phase-aligned")
-    os.makedirs(out_dir, exist_ok=True)
+    io.refuse_in_place("phase-align", out_dir, the_stem_dir=kit.src_dir)
 
+    # Every stem is written back out at the OVERHEAD's rate, so the whole set must
+    # already share one rate. Without this a 44.1k room mic in a 48k kit is rewritten
+    # as 48k — pitched +8.8%, `warnings: []` — and because every downstream stage then
+    # sees a uniform set, it passes THEIR io.common_samplerate checks and the
+    # corruption is laundered through the rest of the chain. Header-only, and checked
+    # BEFORE makedirs so a mismatch leaves no empty output dir behind. Resampling is
+    # out of scope here (it would change the timing this flow exists to measure) —
+    # raise and let the operator convert upstream.
+    io.common_samplerate(_touched_paths(kit))
+
+    os.makedirs(out_dir, exist_ok=True)
     oh_arr, sr, oh_name = resolve_overhead(kit)
     ref_m = dsp.mono(oh_arr)
     sl = dsp.pick_excerpt(ref_m, sr, excerpt_s)
@@ -83,6 +130,23 @@ def phase_align(kit: Kit, out_dir: str | None = None, max_lag: int = 600,
             plan.append((s, sig, 0.0, 1.0, 0.0, 0.0, "-> OH (skipped: too short)"))
             continue
         d, pol, pre, post = dsp.align_to(sig[sub], ref_m[sub], max_lag, sr, band=band)
+        if post < _RAIL_PROBE_BELOW:
+            wider = dsp.align_probe_wider(sig[sub], ref_m[sub], max_lag, sr, band=band)
+            if wider is not None and wider[3] > post + _RAIL_MARGIN:
+                # The true delay is OUTSIDE +/- max_lag, so `d` is a sidelobe — and a
+                # sidelobe brings a bogus polarity with it, which would make this mic
+                # partially CANCEL the overheads. Keep the stem untouched and say so;
+                # applying a shift we have just proven wrong is the actual defect.
+                # Not auto-widening: max_lag is the operator's stated search range,
+                # and silently exceeding it would hide a genuine mic-distance error.
+                warn = (f"{s.name}: true delay ≈ {wider[0]:.0f} samples lies outside "
+                        f"--max-lag {max_lag} (corr {post:.3f} -> {wider[3]:.3f} when "
+                        f"searched wider) — alignment SKIPPED; re-run with "
+                        f"--max-lag {int(abs(wider[0]) * 1.5)} or larger")
+                kit.warnings.append(warn)
+                anchor_delay[s.name] = (0.0, 1.0)
+                plan.append((s, sig, 0.0, 1.0, pre, post, "-> OH (skipped: lag > max_lag)"))
+                continue
         if s.polarity_lock is not None:
             pol = float(s.polarity_lock)
         anchor_delay[s.name] = (d, pol)

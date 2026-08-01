@@ -40,8 +40,12 @@ def setp(p, name, value):
             except Exception:
                 return None
         tn = num(value)
+        # Check tn BEFORE the comprehension: abs(num(v) - None) raises TypeError,
+        # which would also mask the original setattr error this `raise` re-surfaces.
+        if tn is None:
+            raise
         cand = [(abs(num(v) - tn), v) for v in vv if num(v) is not None]
-        if tn is not None and cand:
+        if cand:
             setattr(p, name, min(cand, key=lambda t: t[0])[1])
         else:
             raise

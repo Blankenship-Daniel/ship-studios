@@ -20,8 +20,13 @@ Subsequence (not equality) is deliberate:
   even purely descriptive ``[L]``/``[G]`` references ("``[L] compare-tonality``
   again"). Those are extra prose tokens the default code path skips.
 * What this enforces is the strong half: every tool the default path actually
-  calls appears in the prose, in the same relative order. A reorder / rename /
-  dropped mandatory step breaks the subsequence and fails here.
+  calls appears in the prose, in the same relative order. A reorder or a rename
+  breaks the subsequence and fails here.
+
+  A DROPPED step does NOT fail this gate — removing a call only shortens
+  ``code_seq``, which remains an ordered subsequence of the prose. Drops are
+  covered by ``test_pipelines.py``, whose per-pipeline assertions compare the
+  emitted sequence for EQUALITY. Don't reach for this gate to catch a deletion.
 
 Unparseable blocks are skipped (not failed), but ``master-track``,
 ``mix-check`` and ``reference-match`` MUST be parsed and checked — they are the

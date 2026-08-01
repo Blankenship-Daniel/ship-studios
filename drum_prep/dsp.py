@@ -29,6 +29,14 @@ GROUPS: dict[str, tuple[float, float]] = {
 }
 
 
+#: Ceiling on a per-stem loudness-match gain, dB. A stem this far under the anchor
+#: is a recording-level problem, not a balance one — matching it only lifts its own
+#: noise floor, and the mixers' single global anti-clip trim then charges the whole
+#: bus for the headroom. Shared by mix.mix_kit and stem_mix.mix_stems so the two
+#: balance flows cannot drift apart.
+MAX_MATCH_GAIN_DB = 24.0
+
+
 # --------------------------------------------------------------------------- #
 # time-domain alignment helpers
 # --------------------------------------------------------------------------- #
@@ -99,11 +107,15 @@ def estimate(a: np.ndarray, b: np.ndarray, max_lag: int,
     a = a - a.mean()
     b = b - b.mean()
     nfft = next_fast_len(2 * n)
-    # Clamp the search to the available correlation range. For normal inputs
-    # nfft >> 2*max_lag so this is a no-op; it only guards pathologically short
-    # segments (n <= max_lag), where the unclamped slices below would wrap the
-    # circular correlation and return a corrupt lag.
-    max_lag = min(max_lag, nfft - 1)
+    # Clamp the search to the range the linear cross-correlation actually spans:
+    # for two length-n segments that is |lag| <= n - 1; past it cc holds only the
+    # zero-padding. NOT `nfft - 1` — with n=64 that admits lag -127, whose index
+    # (nfft - 127 == 1) is the SAME bin as lag +1, so a true +1 peak also appears
+    # at -127 and argmax, scanning negative lags first, returns the ghost. The two
+    # carry identical magnitude, so no later confidence check can tell them apart.
+    # (Verified: 64-sample segments, true lag +1, max_lag=600 -> -127.0 at peak
+    # 0.984.) For normal inputs n >> max_lag and this is a no-op.
+    max_lag = min(max_lag, n - 1)
     cc = np.fft.irfft(np.fft.rfft(a, nfft) * np.conj(np.fft.rfft(b, nfft)), nfft)
     # Index from the front (len(cc) == nfft): identical to cc[-max_lag:] for any
     # max_lag >= 1, but correct at the degenerate max_lag == 0 (where cc[-0:] would
@@ -154,6 +166,28 @@ def align_to(target_seg: np.ndarray, ref_seg: np.ndarray, max_lag: int, sr: int,
     return best[0], pol, normcorr(a, b), best[1]
 
 
+def align_probe_wider(target_seg: np.ndarray, ref_seg: np.ndarray, max_lag: int, sr: int,
+                      band: float | None = None, hw: int = 60, widen: int = 4
+                      ) -> tuple[float, float, float, float] | None:
+    """Re-run :func:`align_to` over a ``widen``x wider window; ``None`` if not better.
+
+    Detects a RAILED search — the true delay lies outside +/- ``max_lag``, so the
+    correlation peak inside the window is a sidelobe. The railed answer is NOT
+    pinned at the rail (a true 880-sample offset at ``max_lag=600`` returns -541.4
+    with polarity flipped to -1), so no cheap ``abs(d) == max_lag`` test can catch
+    it — only searching wider and comparing the achieved correlation can. This is
+    the fixed inter-converter (ADAT vs MIC/LINE) offset documented in CLAUDE.md.
+
+    Returns the wider result only when the delay it finds actually lies OUTSIDE
+    the caller's window; the caller additionally requires a materially better
+    correlation before acting, so an ordinarily low-correlation mic (a hi-hat
+    against the overheads) is not mistaken for a railed one.
+    """
+    wide = max(int(max_lag * widen), max_lag)
+    res = align_to(target_seg, ref_seg, wide, sr, band=band, hw=hw)
+    return res if abs(res[0]) > max_lag else None
+
+
 def pick_excerpt(ref_m: np.ndarray, sr: int, seconds: float = 40.0) -> slice:
     """Slice of the loudest ``seconds``-long window of ``ref_m`` (by energy)."""
     win = int(seconds * sr)
@@ -184,9 +218,21 @@ def psd(xmono: np.ndarray, sr: int, nperseg: int = 16384) -> tuple[np.ndarray, n
 
 
 def band_power(f: np.ndarray, p: np.ndarray, centers: np.ndarray) -> np.ndarray:
-    """Sum PSD into 1/3-octave (or octave) bands around ``centers``."""
-    return np.array([p[(f >= fc / 2 ** (1 / 6)) & (f < fc * 2 ** (1 / 6))].sum() or 1e-20
-                     for fc in centers])
+    """Sum PSD into 1/3-octave (or octave) bands around ``centers``.
+
+    A band containing NO FFT bin (the analysis resolution is coarser than the band
+    is wide — e.g. a sub-0.2 s reference clamps ``nperseg`` to its length, giving
+    df = 20 Hz against a 25 Hz band ~5.8 Hz wide) returns NaN, not a floor. It used
+    to return 1e-20, i.e. -200 dB, indistinguishable from a genuinely silent band —
+    which made `tilt()` read 9.84 dB/oct against a true ~3.0, and pushed those bands
+    to the full `cut_cap` on every stem. NaN propagates visibly instead of lying.
+    A band that HAS bins but sums to zero keeps the 1e-20 floor (really silent).
+    """
+    out = []
+    for fc in centers:
+        sel = p[(f >= fc / 2 ** (1 / 6)) & (f < fc * 2 ** (1 / 6))]
+        out.append(np.nan if sel.size == 0 else (sel.sum() or 1e-20))
+    return np.array(out)
 
 
 def band_db(f: np.ndarray, p: np.ndarray, centers: np.ndarray) -> np.ndarray:
@@ -195,15 +241,22 @@ def band_db(f: np.ndarray, p: np.ndarray, centers: np.ndarray) -> np.ndarray:
 
 def shape(db: np.ndarray, centers: np.ndarray, lo: float = 80.0, hi: float = 12000.0) -> np.ndarray:
     """Normalize a band curve by subtracting its broadband mean over [lo, hi]
-    so curves compare by SHAPE (tonal balance), not absolute level."""
-    idx = (centers >= lo) & (centers <= hi)
-    return db - db[idx].mean()
+    so curves compare by SHAPE (tonal balance), not absolute level.
+
+    Bands the analysis could not resolve (NaN — see :func:`band_power`) are excluded
+    from the mean, so one unresolvable band cannot shift the whole curve."""
+    idx = (centers >= lo) & (centers <= hi) & np.isfinite(db)
+    return db - (db[idx].mean() if idx.any() else 0.0)
 
 
 def group_avg(curve: np.ndarray, centers: np.ndarray,
               groups: dict[str, tuple[float, float]] = GROUPS) -> dict[str, float]:
-    return {n: float(curve[(centers >= lo) & (centers < hi)].mean())
-            for n, (lo, hi) in groups.items()}
+    out = {}
+    for n, (lo, hi) in groups.items():
+        sel = curve[(centers >= lo) & (centers < hi)]
+        sel = sel[np.isfinite(sel)]          # skip unresolvable bands, don't average NaN in
+        out[n] = float(sel.mean()) if sel.size else float("nan")
+    return out
 
 
 def tilt(db: np.ndarray, centers: np.ndarray) -> float:
@@ -212,7 +265,14 @@ def tilt(db: np.ndarray, centers: np.ndarray) -> float:
         # log2(<=0) -> -inf/nan makes polyfit fail with "SVD did not converge";
         # reject up front so a caller passing a 0 Hz center gets a clear error.
         raise ValueError("tilt() centers must be positive frequencies (log2 needs > 0)")
-    return float(np.polyfit(np.log2(centers), db, 1)[0])
+    # Fit only over bands the analysis resolved: a NaN would make polyfit return NaN,
+    # and the old -200 dB floor for a bin-less band dragged the slope wildly (9.84
+    # dB/oct against a true ~3.0 on a very short reference).
+    db = np.asarray(db, dtype=float)
+    ok = np.isfinite(db)
+    if ok.sum() < 2:
+        return float("nan")
+    return float(np.polyfit(np.log2(np.asarray(centers, dtype=float)[ok]), db[ok], 1)[0])
 
 
 def interp_gain_db(freqs: np.ndarray, centers: np.ndarray, gains_db: np.ndarray) -> np.ndarray:

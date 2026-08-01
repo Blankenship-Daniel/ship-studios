@@ -75,18 +75,34 @@ dev = [
 [tool.ruff]
 # The codebase reads at ~100 cols (dense DSP + tool-arg dicts); match it rather
 # than reflow everything to 88.
+# Advisory only: E501 is NOT in `select` below and `ruff format` is deliberately
+# not run here, so nothing enforces this — it is the width to hand-wrap toward.
 line-length = 100
 # Lint the library + tests, not the one-off experiment/probe helpers under
 # scripts/ and presets/, nor the per-track human-owned scratch under projects/
 # (deliberately terse; mypy likewise only covers the two packages via
 # [tool.mypy] files). Keeps `ruff check` / CI focused on shipped code.
-extend-exclude = ["scripts", "presets", "projects"]
+# scripts/mix + presets/vst carry real, skill-referenced deliverables (the ten
+# famous-drum bus recipes, the VST harness), so they ARE linted. The rest of
+# scripts/ and presets/ stays excluded: session scratch and JSON data.
+extend-exclude = [
+    "scripts/*.py",
+    "presets/mix",
+    "projects",
+]
 
 [tool.ruff.lint]
 # Defaults (E4/E7/E9, F) plus bugbear (B — real bug classes like B904/B905),
 # isort (I — import order), and pyupgrade (UP — modern syntax). These catch
 # exactly the lint classes the bare default ruleset let through.
 select = ["E4", "E7", "E9", "F", "B", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# The scripts/mix recipes and the VST harness are terse, deliberately-dense session
+# tools (multi-statement lines, one-line param dicts) — lint them for real BUGS
+# (E4/E7/E9/F/B) without reflowing their imports or modernizing their syntax.
+"scripts/mix/*.py" = ["I", "UP", "E401", "E702"]
+"presets/vst/*.py" = ["I", "UP", "E401", "E702"]
 
 [tool.pytest.ini_options]
 # Pipeline tests are async; let pytest-asyncio drive bare `async def test_*`

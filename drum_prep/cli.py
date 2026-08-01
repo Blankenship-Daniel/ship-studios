@@ -110,13 +110,17 @@ def detect(src: str, manifest: str | None, write_manifest: str | None, strict: b
               help="Output stereo overhead (default: <SRC>/stereo/overheads-merged.aif).")
 @click.option("--align", is_flag=True, default=False,
               help="Phase-lock R to L (collapses a spaced-pair image; off by default).")
-def overheads(src: str, manifest: str | None, out_path: str | None, align: bool) -> None:
+@click.option("--max-lag", default=600, show_default=True, type=int,
+              help="Max |lag| searched when --align is set (samples).")
+def overheads(src: str, manifest: str | None, out_path: str | None, align: bool,
+              max_lag: int) -> None:
     """Merge an L/R overhead pair into one stereo reference (no-op if already stereo)."""
     def run() -> dict[str, Any]:
         from drum_prep.kit import resolve_kit
         from drum_prep.overheads import merge_overheads
 
-        return merge_overheads(resolve_kit(src, manifest, strict=False), out_path, align)
+        return merge_overheads(resolve_kit(src, manifest, strict=False), out_path, align,
+                               max_lag=max_lag)
     _go(run)
 
 
@@ -126,13 +130,15 @@ def overheads(src: str, manifest: str | None, out_path: str | None, align: bool)
               help="Output dir (default: <SRC>/stereo/).")
 @click.option("--align", is_flag=True, default=False,
               help="Phase-lock R to L (collapses a spaced image; off by default).")
-def stereo_merge_cmd(src: str, out_dir: str | None, align: bool) -> None:
+@click.option("--max-lag", default=600, show_default=True, type=int,
+              help="Max |lag| searched when --align is set (samples).")
+def stereo_merge_cmd(src: str, out_dir: str | None, align: bool, max_lag: int) -> None:
     """Merge every '<name> - left/right' pair into a stereo file (subtype-preserving;
     container follows the output extension)."""
     def run() -> dict[str, Any]:
         from drum_prep.stereo_merge import merge_dir
 
-        return merge_dir(src, out_dir, align)
+        return merge_dir(src, out_dir, align, max_lag=max_lag)
     _go(run)
 
 
@@ -174,11 +180,15 @@ def normalize(src: str, out_dir: str | None, target_dbfs: float, mode: str,
 @click.option("--flat", is_flag=True, default=False,
               help="Unity bounce (no balance/pan), just anti-clip — a print of the prepped kit.")
 @click.option("--t0", default=44.0, show_default=True, type=float, help="Excerpt start (s).")
+@click.option("--ceil-dbfs", default=-1.0, show_default=True, type=float,
+              help="Anti-clip ceiling for the bus (dBFS).")
+@click.option("--out-name", default=None,
+              help="Output bus filename (default: drum-mix.wav).")
 @click.option("--dur", default=12.0, show_default=True, type=float,
               help="Excerpt length (s); 0 to skip.")
 def mix(src: str, manifest: str | None, stems_dir: str | None, out_dir: str | None,
         feel: str, perspective: str, plate: str | None, plate_offset: float,
-        flat: bool, t0: float, dur: float) -> None:
+        flat: bool, t0: float, ceil_dbfs: float, out_name: str | None, dur: float) -> None:
     """Mix the prepped kit to a stereo bus (balance + pan + FX return)."""
     def run() -> dict[str, Any]:
         from drum_prep.kit import resolve_kit
@@ -188,7 +198,8 @@ def mix(src: str, manifest: str | None, stems_dir: str | None, out_dir: str | No
         rm = os.path.join(src, "ref-matched")
         sd = stems_dir or (rm if os.path.isdir(rm) else src)
         return mix_kit(kit, sd, out_dir=out_dir, feel=feel, perspective=perspective,
-                       plate=plate, plate_offset=plate_offset, flat=flat, t0=t0, dur=dur)
+                       plate=plate, plate_offset=plate_offset, flat=flat, t0=t0, dur=dur,
+                       ceil_dbfs=ceil_dbfs, out_name=out_name)
     _go(run)
 
 
@@ -381,16 +392,25 @@ def audition(src: str, reference: str | None, manifest: str | None, aligned_dir:
 @click.option("--t0", default=44.0, show_default=True, type=float)
 @click.option("--dur", default=12.0, show_default=True, type=float)
 @click.option("--gap", default=0.6, show_default=True, type=float)
+@click.option("--boost-cap", default=6.0, show_default=True, type=float,
+              help="Reference-match boost cap (dB); same knob as `reference-match`.")
+@click.option("--cut-cap", default=-8.0, show_default=True, type=float)
+@click.option("--owner-thresh", default=0.20, show_default=True, type=float)
+@click.option("--low-zero", default=30.0, show_default=True, type=float)
+@click.option("--ceil-dbfs", default=-1.0, show_default=True, type=float)
 def chain(src: str, reference: str, manifest: str | None, out_root: str | None, strict: bool,
           max_lag: int, excerpt_s: float, kick_lowpass: float, strength: float,
-          t0: float, dur: float, gap: float) -> None:
+          t0: float, dur: float, gap: float, boost_cap: float, cut_cap: float,
+          owner_thresh: float, low_zero: float, ceil_dbfs: float) -> None:
     """End-to-end: detect -> phase-align -> reference-match -> audition."""
     def run() -> dict[str, Any]:
         from drum_prep.chain import run_chain
 
         return run_chain(src, reference, manifest_path=manifest, out_root=out_root,
                          strict=strict, max_lag=max_lag, excerpt_s=excerpt_s,
-                         kick_lowpass=kick_lowpass, strength=strength, t0=t0, dur=dur, gap=gap)
+                         kick_lowpass=kick_lowpass, strength=strength, t0=t0, dur=dur,
+                         gap=gap, boost_cap=boost_cap, cut_cap=cut_cap,
+                         owner_thresh=owner_thresh, low_zero=low_zero, ceil_dbfs=ceil_dbfs)
     _go(run)
 
 

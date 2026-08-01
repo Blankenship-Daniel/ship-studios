@@ -149,3 +149,52 @@ def test_tilt_rejects_nonpositive_centers() -> None:
         dsp.tilt(db, np.array([0.0, 1000.0, 2000.0]))
     # a valid positive-frequency call still works.
     assert np.isfinite(dsp.tilt(db, np.array([250.0, 1000.0, 4000.0])))
+
+
+def test_band_power_marks_unresolvable_bands_instead_of_flooring_them() -> None:
+    """A band containing NO FFT bin is NaN (unknown), not 1e-20 (-200 dB).
+
+    A short reference clamps ``nperseg`` to its own length, so the lowest 1/3-octave
+    bands can be narrower than one bin. Flooring them at -200 dB made them look
+    genuinely silent: `tilt` read +7.9 dB/oct against a true ~0.0, and every stem
+    took the full `cut_cap` in those bands.
+    """
+    sr = 48000
+    sig = np.random.default_rng(1).standard_normal(int(sr * 0.05))
+    f, p = dsp.psd(sig, sr)
+    bp = dsp.band_power(f, p, dsp.THIRD_OCT)
+
+    unresolved = ~np.isfinite(bp)
+    assert unresolved.any(), "expected some band to be narrower than one FFT bin here"
+    # everything that WAS resolvable is still a real, positive power
+    assert np.all(bp[~unresolved] > 0)
+
+
+def test_tilt_and_group_avg_ignore_unresolvable_bands() -> None:
+    sr = 48000
+    long_sig = np.random.default_rng(2).standard_normal(sr * 2)
+    short_sig = np.random.default_rng(2).standard_normal(int(sr * 0.05))
+
+    def band_db(sig):
+        f, p = dsp.psd(sig, sr)
+        return dsp.band_db(f, p, dsp.THIRD_OCT)
+
+    truth = dsp.tilt(band_db(long_sig), dsp.THIRD_OCT)
+    short = dsp.tilt(band_db(short_sig), dsp.THIRD_OCT)
+    assert np.isfinite(short)
+    # the old -200 dB floor put this ~8 dB/oct away from the truth
+    assert abs(short - truth) < 1.5, f"short-reference tilt {short} vs truth {truth}"
+
+    # group_avg must not average a NaN band into its macro group
+    curve = np.full(len(dsp.THIRD_OCT), 1.0)
+    curve[0] = np.nan
+    groups = dsp.group_avg(curve, dsp.THIRD_OCT)
+    assert all(np.isfinite(v) for v in groups.values()), groups
+
+
+def test_shape_excludes_unresolvable_bands_from_its_mean() -> None:
+    curve = np.full(len(dsp.THIRD_OCT), 3.0)
+    curve[0] = np.nan
+    out = dsp.shape(curve, dsp.THIRD_OCT)
+    finite = out[np.isfinite(out)]
+    assert np.allclose(finite, 0.0), "a NaN band must not shift the normalized curve"

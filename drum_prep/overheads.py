@@ -21,7 +21,7 @@ from drum_prep.kit import Kit, KitError, overhead_lr, overhead_reference
 MERGED_OH_NAME = "overheads-merged.aif"
 
 
-def resolve_overhead(kit: Kit, align: bool = False, max_lag: int = 200
+def resolve_overhead(kit: Kit, align: bool = False, max_lag: int = 600
                      ) -> tuple[np.ndarray, int, str]:
     """Return ``(stereo (N,2), sr, out_name)`` for the overhead reference.
 
@@ -48,13 +48,14 @@ def resolve_overhead(kit: Kit, align: bool = False, max_lag: int = 200
     return np.column_stack([lft, rgt]), sr, MERGED_OH_NAME
 
 
-def merge_overheads(kit: Kit, out_path: str | None = None, align: bool = False) -> dict:
+def merge_overheads(kit: Kit, out_path: str | None = None, align: bool = False,
+                    max_lag: int = 600) -> dict:
     """Standalone flow: write the merged stereo overhead (no-op if already stereo)."""
     oh = overhead_reference(kit)
     if oh is not None:
         return {"flow": "overheads", "merged": False, "reference": kit.path(oh),
                 "note": "already a stereo overhead — nothing to merge"}
-    arr, sr, name = resolve_overhead(kit, align=align)
+    arr, sr, name = resolve_overhead(kit, align=align, max_lag=max_lag)
     # Write to a subdir, not src_dir: dropping the merged stereo OH alongside the
     # raw L/R pair makes a later resolve_kit() re-detect it as a second overhead
     # and silently mix all three. Every other flow writes a subdir for the same

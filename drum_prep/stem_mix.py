@@ -15,6 +15,8 @@ import numpy as np
 
 from drum_prep import dsp, io
 
+_MAX_GAIN = 10 ** (dsp.MAX_MATCH_GAIN_DB / 20.0)  # see dsp.MAX_MATCH_GAIN_DB
+
 
 def _db(v: float) -> float:
     return 20.0 * np.log10(v) if v > 0 else float("-inf")
@@ -58,6 +60,7 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
 
     mix = np.zeros((n, 2))
     rows = []
+    notes: list[str] = []
     for nm in names:
         s = spec.get(nm, {})
         if s.get("mute"):
@@ -70,6 +73,13 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
         # Silent/immeasurable stem (-inf LUFS) -> unity, matching mix_kit; don't
         # boost a dead channel by its offset (that would just amplify noise).
         gain = 10 ** ((target_lufs + off - lufs) / 20.0) if np.isfinite(lufs) else 1.0
+        if gain > _MAX_GAIN:
+            # See mix._MAX_GAIN: an unbounded match gain amplifies a badly-recorded
+            # stem's own noise floor, and the global anti-clip trim then charges the
+            # whole bus for it. Cap and record it in the row rather than silently.
+            notes.append(f"{nm}: loudness-match wanted {_db(gain):+.1f} dB — capped at "
+                         f"{_db(_MAX_GAIN):+.0f} dB (check the recording level)")
+            gain = _MAX_GAIN
         # Clamp pan to [-1, 1]: an out-of-range value from the user JSON would make
         # a channel gain negative (1 - |pan| < 0), silently inverting polarity.
         pan = float(np.clip(s.get("pan", 0.0), -1.0, 1.0))
@@ -79,7 +89,12 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
                 ch = _balance(ch, pan)
             contrib, place = ch, ("stereo" if pan == 0 else f"stereo bal {round(pan * 100)}%")
         else:
-            contrib = _pan(x[:n, 0], pan) * gain
+            # Pan what was MEASURED (the mono sum), not channel 0 — for a >2-channel
+            # file those differ, so taking [:, 0] would discard audio the gain was
+            # derived from and place the stem at the wrong level.
+            if x.shape[1] > 1:
+                notes.append(f"{nm}: {x.shape[1]}-channel file — folded to mono before panning")
+            contrib = _pan(meas[:n], pan) * gain
             place = "center" if pan == 0 else f"pan {round(pan * 100)}%"
         mix[:len(contrib)] += contrib[:n]
         rows.append({"stem": nm, "lufs": round(float(lufs), 1), "offset_db": off,
@@ -105,5 +120,5 @@ def mix_stems(src_dir: str, out_dir: str | None = None, target_lufs: float = -18
             "peak_dbfs": round(_db(float(np.max(np.abs(mix)))), 2),
             "lufs": round(float(meter.integrated_loudness(mix)), 1),
             "channels": 2, "duration_s": round(n / sr, 2),
-            "truncation_note": trunc_note,
+            "truncation_note": trunc_note, "notes": notes or None,
             "ignored_spec_keys": ignored_spec_keys or None, "stems": rows}

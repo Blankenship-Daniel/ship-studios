@@ -11,13 +11,17 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+import os
 
-ROOT = Path("/Users/ship/Documents/code/ship-studios")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "projects/desktop-drums/stems/raw-debled"
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "projects/desktop-drums/stems/voxbox"
 PRESET_DIR = ROOT / "projects/desktop-drums/presets/voxbox"
 HARNESS = ROOT / "presets/vst/apply_vst_preset.py"
-PY = ROOT.parent / "stemmy-loops-mcp/.venv/bin/python"
+PY = sibling_python()
 
 # Common VOXBOX defaults; each stem overrides a few. Numeric enums as floats,
 # string enums as exact strings (the harness setattr's them). mid_dip is negative.

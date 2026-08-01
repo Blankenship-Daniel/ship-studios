@@ -357,7 +357,7 @@ The repo's *own* Python is two `uv` packages — **`ship_studios/`** (the DSP-fr
 ```bash
 uv sync --extra drum-prep      # adds the DSP test deps (dev tools install by default)
 uv run pytest                  # full offline suite; -k drum_prep for the DSP subset (needs the extra)
-uv run ruff check              # lint (line-length 100; scripts/ + presets/ excluded)
+uv run ruff check              # lint: E4/E7/E9/F/B/I/UP (E501 NOT enforced — no line-length gate)
 uv run mypy                    # types — ship_studios + drum_prep only
 uv run python scripts/lint_skills.py   # skill-contract lint (CI-gated)
 ```

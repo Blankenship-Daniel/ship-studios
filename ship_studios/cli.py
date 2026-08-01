@@ -170,6 +170,62 @@ def _load_eq_bands(
     return data
 
 
+def _stems_from_paths(stem_paths: tuple[str, ...]) -> dict[str, str]:
+    """``{stem-name: path}`` from CLI stem paths, rejecting duplicates.
+
+    Shared by `unmask-stems` and `stem-master`, which built this identically —
+    a drift risk on any future change to the naming rule.
+    """
+    from pathlib import Path
+
+    if len(stem_paths) < 2:
+        raise click.BadParameter("pass at least two stem files", param_hint="STEM_PATHS")
+    stems: dict[str, str] = {}
+    for p in stem_paths:
+        name = Path(p).stem
+        if name in stems:
+            raise click.BadParameter(
+                f"duplicate stem name {name!r} (rename so the names are unique)",
+                param_hint="STEM_PATHS",
+            )
+        stems[name] = p
+    return stems
+
+
+def _load_corrections(
+    path: str | None, stems: dict[str, str]
+) -> dict[str, Any] | None:
+    """Load ``--corrections-json`` and validate it against the actual stem set.
+
+    Two silent failures this closes:
+
+    * keys are STEM NAMES while the CLI args are FILENAMES, so the natural
+      ``{"kick.wav": {...}}`` matched nothing — zero corrective calls ran while the
+      pipeline still made its (paid) Gemini masking calls and exited 0, reporting an
+      unmasking that never happened;
+    * a non-object value (``{"kick": ["low cut"]}``) only blew up later as
+      ``AttributeError: 'list' object has no attribute 'get'``, AFTER those paid
+      calls had already been made.
+    """
+    data = _load_json_obj(path, "--corrections-json")
+    if data is None:
+        return None
+    unknown = sorted(set(data) - set(stems))
+    if unknown:
+        raise click.BadParameter(
+            f"key(s) {unknown} match no stem; keys are stem NAMES (no extension) — "
+            f"expected one of {sorted(stems)}",
+            param_hint="--corrections-json",
+        )
+    bad = sorted(k for k, v in data.items() if not isinstance(v, dict))
+    if bad:
+        raise click.BadParameter(
+            f"value for key(s) {bad} must be a JSON object of corrective settings",
+            param_hint="--corrections-json",
+        )
+    return data
+
+
 def _load_json_obj(path: str | None, hint: str) -> dict[str, Any] | None:
     """Load a JSON object (e.g. a JSON Schema) from ``path``; clean error on bad input."""
     if not path:
@@ -194,8 +250,8 @@ def main() -> None:
 
 
 @main.command()
-@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
-@click.option("--out", "out_path", type=click.Path(), default=None,
+@click.argument("mix_path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
+@click.option("--out", "out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the rendered master WAV "
                    "(default: <project>/masters/<stem>.master.wav).")
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
@@ -209,7 +265,7 @@ def main() -> None:
 @click.option("--transient-shape", type=float, default=None)
 @click.option("--bit-depth", type=int, default=None)
 @click.option("--sample-rate", type=int, default=None)
-@click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--deliverables-dir", type=click.Path(resolve_path=True), default=None)
 @click.option("--assistant", is_flag=True, default=False,
               help="Use master-assistant (a typed chain plan) for the perceptual "
                    "step instead of mastering-feedback.")
@@ -273,11 +329,11 @@ def master(
 
 
 @main.command(name="house-curve")
-@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("mix_path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
 @click.option("--reference", "reference_paths", multiple=True, required=True,
-              type=click.Path(exists=True, dir_okay=False),
+              type=click.Path(resolve_path=True, exists=True, dir_okay=False),
               help="Reference track to fold into the house curve (repeatable).")
-@click.option("--profile-json", "profile_json", type=click.Path(), default=None,
+@click.option("--profile-json", "profile_json", type=click.Path(resolve_path=True), default=None,
               help="Where to write/read the shared profile JSON "
                    "(default: <mix>.house-profile.json). Reuse it across an EP.")
 @click.option("--match-strength", type=click.FloatRange(0.0, 1.0), default=0.5,
@@ -286,7 +342,7 @@ def master(
 @click.option("--match-phase", type=click.Choice(MATCH_PHASE_CHOICES),
               default="minimum", show_default=True,
               help="match-eq filter realization.")
-@click.option("--out", "out_path", type=click.Path(), default=None,
+@click.option("--out", "out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the corrected mix "
                    "(default: <mix>.house-matched.wav).")
 def house_curve_cmd(mix_path: str, reference_paths: tuple[str, ...],
@@ -307,39 +363,64 @@ def house_curve_cmd(mix_path: str, reference_paths: tuple[str, ...],
     _run(_go())
 
 
+#: Audio extensions `batch-master <dir>` picks up, matched case-INSENSITIVELY.
+#: A bare ``*.wav`` glob missed ``.WAV`` (macOS paths are case-sensitive to glob
+#: even on a case-insensitive filesystem) and every AIFF/FLAC master, then reported
+#: the misleading "no .wav files in <dir>".
+_MIX_EXTS = (".wav", ".aif", ".aiff", ".flac")
+
+
 def _expand_mix_paths(paths: tuple[str, ...]) -> list[str]:
-    """Expand CLI mix args: a lone directory -> its sorted ``*.wav`` children.
+    """Expand CLI mix args: a lone directory -> its sorted audio children.
 
     Otherwise the paths pass through unchanged (so tests need no filesystem).
     """
     from pathlib import Path
 
     if len(paths) == 1 and Path(paths[0]).is_dir():
-        wavs = sorted(str(p) for p in Path(paths[0]).glob("*.wav"))
-        if not wavs:
+        found = sorted(
+            str(p) for p in Path(paths[0]).iterdir()
+            if p.is_file() and not p.name.startswith(".")
+            and p.suffix.lower() in _MIX_EXTS
+        )
+        if not found:
             raise click.BadParameter(
-                f"no .wav files in {paths[0]}", param_hint="MIX_PATHS"
+                f"no audio files in {paths[0]} "
+                f"(looked for {', '.join(_MIX_EXTS)}, any case)",
+                param_hint="MIX_PATHS",
             )
-        return wavs
+        return found
     return list(paths)
 
 
 @main.command(name="batch-master")
-@click.argument("mix_paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.argument("mix_paths", nargs=-1, required=True, type=click.Path(resolve_path=True, exists=True))
 @click.option("--target-lufs", default=-14.0, show_default=True, type=float)
 @click.option("--ceiling-dbtp", default=-1.0, show_default=True, type=float)
 @click.option("--platform", "target_platform", default="spotify", show_default=True,
               type=click.Choice(PLATFORM_CHOICES),
               help="Shared release target for the whole set.")
-@click.option("--masters-dir", type=click.Path(), default=None,
+@click.option("--masters-dir", type=click.Path(resolve_path=True), default=None,
               help="Write every master here (default: each mix's project masters/).")
-@click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--deliverables-dir", type=click.Path(resolve_path=True), default=None)
 @click.option("--bit-depth", type=int, default=None)
 @click.option("--sample-rate", type=int, default=None)
+@click.option("--high-pass-hz", type=float, default=None)
+@click.option("--transient-shape", type=float, default=None)
+@click.option("--presets", "presets_raw", default=None,
+              help=f"Comma-separated export presets ({', '.join(DEFAULT_PRESETS)}).")
+@click.option("--assistant", is_flag=True, default=False,
+              help="Use master-assistant (a typed chain plan) for the perceptual step.")
+@click.option("--intent", default="balanced", show_default=True)
+@click.option("--intensity", default="medium", show_default=True)
+@click.option("--style", default=None)
 def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
                      ceiling_dbtp: float, target_platform: str,
                      masters_dir: str | None, deliverables_dir: str | None,
-                     bit_depth: int | None, sample_rate: int | None) -> None:
+                     bit_depth: int | None, sample_rate: int | None,
+                     high_pass_hz: float | None, transient_shape: float | None,
+                     presets_raw: str | None, assistant: bool, intent: str,
+                     intensity: str, style: str | None) -> None:
     """Master a set of mixes to one shared target + a cross-track album pass.
 
     MIX_PATHS are the mix files; pass a single directory to master every .wav in it.
@@ -348,6 +429,7 @@ def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
     from ship_studios.pipelines import batch_master
 
     mixes = _expand_mix_paths(mix_paths)
+    presets = _parse_presets(presets_raw)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -356,15 +438,17 @@ def batch_master_cmd(mix_paths: tuple[str, ...], target_lufs: float,
                 target_lufs=target_lufs, ceiling_dbtp=ceiling_dbtp,
                 target_platform=target_platform, masters_dir=masters_dir,
                 deliverables_dir=deliverables_dir, bit_depth=bit_depth,
-                sample_rate=sample_rate,
+                sample_rate=sample_rate, high_pass_hz=high_pass_hz,
+                transient_shape=transient_shape, presets=presets,
+                assistant=assistant, intent=intent, intensity=intensity, style=style,
             )
 
     _run(_go())
 
 
 @main.command(name="unmask-stems")
-@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
-@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(resolve_path=True, exists=True, dir_okay=False))
+@click.option("--corrections-json", "corrections_json", type=click.Path(resolve_path=True), default=None,
               help="JSON object mapping a stem NAME (filename without extension) to "
                    "its complementary EQ cuts (eq_bands / dynamic_eq_bands).")
 @click.option("--cross-check", is_flag=True, default=False,
@@ -378,25 +462,12 @@ def unmask_stems_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
     The masking-only subset of stem-master — no tone/dynamics shaping, no sum,
     no master. Pass two or more stem files.
     """
-    from pathlib import Path
 
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import unmask_stems
 
-    if len(stem_paths) < 2:
-        raise click.BadParameter(
-            "pass at least two stem files", param_hint="STEM_PATHS"
-        )
-    stems: dict[str, str] = {}
-    for p in stem_paths:
-        name = Path(p).stem
-        if name in stems:
-            raise click.BadParameter(
-                f"duplicate stem name {name!r} (rename so the names are unique)",
-                param_hint="STEM_PATHS",
-            )
-        stems[name] = p
-    corrections = _load_json_obj(corrections_json, "--corrections-json")
+    stems = _stems_from_paths(stem_paths)
+    corrections = _load_corrections(corrections_json, stems)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -409,8 +480,8 @@ def unmask_stems_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
 
 
 @main.command(name="stem-master")
-@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
-@click.option("--corrections-json", "corrections_json", type=click.Path(), default=None,
+@click.argument("stem_paths", nargs=-1, required=True, type=click.Path(resolve_path=True, exists=True, dir_okay=False))
+@click.option("--corrections-json", "corrections_json", type=click.Path(resolve_path=True), default=None,
               help="JSON object mapping a stem NAME (filename without extension) to "
                    "its corrective moves (eq_bands / deess / suppress / "
                    "dynamic_eq_bands / compress / multiband / shape_bands).")
@@ -426,25 +497,12 @@ def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
     `drum-prep stem-mix` and master the bus with `ship-studios master` — those
     stages are local DSP / a separate pipeline, by design.
     """
-    from pathlib import Path
 
     from ship_studios.mcp_client import open_hub
     from ship_studios.pipelines import stem_master
 
-    if len(stem_paths) < 2:
-        raise click.BadParameter(
-            "pass at least two stem files", param_hint="STEM_PATHS"
-        )
-    stems: dict[str, str] = {}
-    for p in stem_paths:
-        name = Path(p).stem
-        if name in stems:
-            raise click.BadParameter(
-                f"duplicate stem name {name!r} (rename so the names are unique)",
-                param_hint="STEM_PATHS",
-            )
-        stems[name] = p
-    corrections = _load_json_obj(corrections_json, "--corrections-json")
+    stems = _stems_from_paths(stem_paths)
+    corrections = _load_corrections(corrections_json, stems)
 
     async def _go() -> dict[str, Any]:
         async with open_hub() as hub:
@@ -457,26 +515,26 @@ def stem_master_cmd(stem_paths: tuple[str, ...], corrections_json: str | None,
 
 
 @main.command(name="mix-check")
-@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("mix_path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
 @click.option("--severity", "severity_threshold", default="any", show_default=True,
               type=click.Choice(SEVERITY_CHOICES),
               help="Lowest severity floor to report (any reports everything).")
-@click.option("--eq-json", "eq_json", type=click.Path(), default=None,
+@click.option("--eq-json", "eq_json", type=click.Path(resolve_path=True), default=None,
               help="JSON list of corrective EQ bands to apply after diagnosis "
                    '(e.g. [{"freq_hz":200,"gain_db":-2,"q":1,"type":"bell"}]).')
-@click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
+@click.option("--eq-out", "eq_out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the EQ'd mix (with --eq-json).")
 @click.option("--deess", is_flag=True, default=False,
               help="Also de-ess (tame sibilance) with default settings.")
 @click.option("--de-harsh", "de_harsh", is_flag=True, default=False,
               help="Also run suppress-resonances (Soothe-style de-harsh).")
-@click.option("--dynamic-eq-json", "dynamic_eq_json", type=click.Path(), default=None,
+@click.option("--dynamic-eq-json", "dynamic_eq_json", type=click.Path(resolve_path=True), default=None,
               help="JSON list of dynamic-EQ bands (level-dependent carves).")
 @click.option("--excite", is_flag=True, default=False,
               help="Also add band-limited air/presence (excite-loop).")
 @click.option("--compress", is_flag=True, default=False,
               help="Also run compress-loop.")
-@click.option("--compress-out", "compress_out_path", type=click.Path(), default=None,
+@click.option("--compress-out", "compress_out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the compressed mix (with --compress).")
 @click.option("--multiband", is_flag=True, default=False,
               help="Also run multiband-compress (per-band dynamics).")
@@ -514,9 +572,9 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
 
 
 @main.command(name="reference-match")
-@click.argument("mix_path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("mix_path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
 @click.option("--reference", "ref_path", required=True,
-              type=click.Path(exists=True, dir_okay=False),
+              type=click.Path(resolve_path=True, exists=True, dir_okay=False),
               help="Reference track to match the mix toward.")
 @click.option("--goal", default="match the reference tonal balance and loudness",
               show_default=True)
@@ -527,14 +585,14 @@ def mix_check_cmd(mix_path: str, severity_threshold: str, eq_json: str | None,
 @click.option("--match-phase", type=click.Choice(MATCH_PHASE_CHOICES),
               default="minimum", show_default=True,
               help="match-eq filter realization (FIR phase, or 1 kHz tilt shelves).")
-@click.option("--match-out", "match_out_path", type=click.Path(), default=None,
+@click.option("--match-out", "match_out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the match-eq corrected mix.")
-@click.option("--ab-out", "ab_out_path", type=click.Path(), default=None,
+@click.option("--ab-out", "ab_out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the A/B audition WAV.")
-@click.option("--eq-json", "eq_json", type=click.Path(), default=None,
+@click.option("--eq-json", "eq_json", type=click.Path(resolve_path=True), default=None,
               help="JSON list of SURGICAL residual EQ bands, layered on the "
                    "match-eq'd mix before the A/B (match-eq always runs first).")
-@click.option("--eq-out", "eq_out_path", type=click.Path(), default=None,
+@click.option("--eq-out", "eq_out_path", type=click.Path(resolve_path=True), default=None,
               help="Where to write the residual-EQ'd mix (with --eq-json).")
 def reference_match_cmd(
     mix_path: str, ref_path: str, goal: str,
@@ -560,12 +618,12 @@ def reference_match_cmd(
 
 
 @main.command()
-@click.argument("input_path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("input_path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
 @click.option("--bpm", required=True, type=click.FloatRange(min=1, max=400),
               help="Known tempo of the source (1-400 BPM).")
-@click.option("--out-dir", type=click.Path(), default=None,
+@click.option("--out-dir", type=click.Path(resolve_path=True), default=None,
               help="Where find-loops writes loop WAVs + manifest.json.")
-@click.option("--deliverables-dir", type=click.Path(), default=None)
+@click.option("--deliverables-dir", type=click.Path(resolve_path=True), default=None)
 @click.option("--bars", default=None,
               help="Comma-separated bar lengths, e.g. 1,2,4.")
 @click.option("--top-n", type=int, default=None)
@@ -631,7 +689,7 @@ def loops(
 
 
 @main.command()
-@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.argument("path", type=click.Path(resolve_path=True, exists=True, dir_okay=False))
 @click.option("--transcribe/--no-transcribe", default=True, show_default=True,
               help="Transcribe speech (the default). Auto-skips when you request a "
                    "more specific analysis (region/event/labels/compare/json) without "
@@ -645,15 +703,15 @@ def loops(
               help="Comma-separated labels for zero-shot classification.")
 @click.option("--multi-label", is_flag=True, default=False)
 @click.option("--compare", "compare_paths", multiple=True,
-              type=click.Path(exists=True, dir_okay=False),
+              type=click.Path(resolve_path=True, exists=True, dir_okay=False),
               help="Additional file(s) to compare against PATH.")
 @click.option("--compare-prompt", "compare_prompt", default=None,
               help="Prompt to focus the comparison (with --compare).")
-@click.option("--compare-schema", "compare_schema_path", type=click.Path(), default=None,
+@click.option("--compare-schema", "compare_schema_path", type=click.Path(resolve_path=True), default=None,
               help="JSON Schema file to structure the comparison output.")
 @click.option("--json-prompt", "json_prompt", default=None,
               help="Prompt for audio-to-json structured extraction (with --json-schema).")
-@click.option("--json-schema", "json_schema_path", type=click.Path(), default=None,
+@click.option("--json-schema", "json_schema_path", type=click.Path(resolve_path=True), default=None,
               help="JSON Schema file -> run audio-to-json structured extraction on PATH.")
 def understand(
     path: str,

@@ -11,14 +11,18 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+import os
 
-ROOT = Path("/Users/ship/Documents/code/ship-studios")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 # SRC / OUT default to the original run; override via argv: bb_a5_eq_stems.py <SRC> <OUT>
 SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "projects/desktop-drums/stems/vcme"
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "projects/desktop-drums/stems/vcme-eq"
 PRESET_DIR = ROOT / "projects/desktop-drums/presets/bb-a5"
 HARNESS = ROOT / "presets/vst/apply_vst_preset.py"
-PY = ROOT.parent / "stemmy-loops-mcp/.venv/bin/python"
+PY = sibling_python()
 
 # Per-stem 55L moves (gain dB / freq Hz from the discrete enum grids; shelf=type true).
 STEMS = {

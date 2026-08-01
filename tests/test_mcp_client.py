@@ -313,3 +313,56 @@ async def test_mid_call_raise_still_tears_down_stack(monkeypatch) -> None:
     # stdio transport contexts were exited (reverse order, on the way out).
     assert hub._stack is None
     assert "session" in closed and "stdio" in closed
+
+
+async def test_hub_teardown_survives_task_group_backed_transport(monkeypatch) -> None:
+    """Opening N sessions must enter every anyio cancel scope in the SAME task that
+    ``__aexit__`` later unwinds them from.
+
+    The real ``stdio_client`` and ``ClientSession.__aenter__`` each enter an
+    ``anyio.create_task_group()``, and anyio binds a cancel scope's ``_host_task`` at
+    entry. The other offline stubs in this module are plain ``@asynccontextmanager``
+    functions with no task group, so they cannot observe that binding — which is how a
+    guaranteed-crash teardown (``asyncio.gather`` in ``__aenter__``) shipped green.
+    This fake reproduces the SDK's task-group shape so the regression fails loudly:
+    with a gather-based open it raises ``RuntimeError: Attempted to exit cancel scope
+    in a different task than it was entered in``.
+    """
+    import contextlib
+
+    import anyio
+    import mcp
+    import mcp.client.stdio as mcp_stdio
+
+    from ship_studios import config, mcp_client
+
+    monkeypatch.setattr(config, "startup_timeout_s", lambda: None)
+    monkeypatch.setattr(config, "checked_server_dir", lambda key: None, raising=True)
+    monkeypatch.setattr(config, "server_parameters", lambda key: None, raising=True)
+
+    @contextlib.asynccontextmanager
+    async def fake_stdio_client(params):
+        async with anyio.create_task_group():
+            yield (None, None)
+
+    class _TaskGroupSession:
+        def __init__(self, read, write):
+            self._tg = anyio.create_task_group()
+
+        async def __aenter__(self):
+            await self._tg.__aenter__()
+            return self
+
+        async def __aexit__(self, *exc):
+            return await self._tg.__aexit__(*exc)
+
+        async def initialize(self):
+            return None
+
+    monkeypatch.setattr(mcp_stdio, "stdio_client", fake_stdio_client, raising=True)
+    monkeypatch.setattr(mcp, "ClientSession", _TaskGroupSession, raising=True)
+
+    hub = mcp_client.Hub([LOOPS_SERVER, GEMINI_SERVER])
+    async with hub:
+        assert set(hub._sessions) == {LOOPS_SERVER, GEMINI_SERVER}
+    assert hub._stack is None

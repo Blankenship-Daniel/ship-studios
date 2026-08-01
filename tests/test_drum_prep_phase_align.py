@@ -1,6 +1,8 @@
 """phase-align flow: recovers known per-mic delays + a known polarity flip."""
 from __future__ import annotations
 
+import os
+
 import pytest
 
 np = pytest.importorskip("numpy")
@@ -124,3 +126,77 @@ def test_phase_align_lr_overhead_pair(tmp_path) -> None:
     assert arr.ndim == 2 and arr.shape[1] == 2     # stereo OH written
     by = {r["name"]: r for r in res["results"]}
     assert abs(by["snare top.aif"]["delay_samples"] - 50) < 3
+
+
+def test_phase_align_rejects_mixed_sample_rates(tmp_path) -> None:
+    """An off-rate stem must RAISE, not be silently rewritten at the overhead's rate.
+
+    Every stem is written back out with the overhead's ``sr``, so a 44.1k room mic in
+    a 48k kit would land pitched +8.8% with an empty ``warnings`` list — and because
+    every downstream stage then sees a uniform 48k set, it passes their own sample-rate
+    checks and the corruption is laundered through the rest of the chain.
+    """
+    n = SR * 2
+    base = np.random.default_rng(3).standard_normal(n) * 0.2
+    _w(tmp_path / "overheads - stereo.aif", np.column_stack([base, base]))
+    _w(tmp_path / "snare top.aif", dsp.fractional_delay(base, -40))
+    # same musical length, recorded on a converter running at 44.1k
+    off = np.random.default_rng(4).standard_normal(44100 * 2) * 0.1
+    sf.write(str(tmp_path / "drum room.aif"), np.column_stack([off, off]), 44100,
+             subtype="PCM_24", format="AIFF")
+
+    kit = resolve_kit(str(tmp_path))
+    with pytest.raises(ValueError, match="sample-rate mismatch"):
+        phase_align(kit, max_lag=400, excerpt_s=1.0)
+    # and it failed BEFORE writing anything
+    assert not (tmp_path / "phase-aligned").exists()
+
+
+def test_phase_align_detects_railed_max_lag(tmp_path) -> None:
+    """A true delay outside +/- max_lag must be DETECTED and skipped, not applied.
+
+    The railed answer is not pinned at the rail — a true 880-sample offset searched
+    at max_lag=600 returns ~-541 with polarity flipped — so the close mic would be
+    shifted wrongly AND inverted, partially cancelling the overheads. This is the
+    fixed inter-converter (ADAT vs MIC/LINE) offset documented in CLAUDE.md.
+    """
+    n = SR * 3
+    base = np.random.default_rng(7).standard_normal(n) * 0.2
+    _w(tmp_path / "overheads - stereo.aif", np.column_stack([base, base]))
+    _w(tmp_path / "hi-hat.aif", dsp.fractional_delay(base, -60))          # in range
+    _w(tmp_path / "snare top.aif", dsp.fractional_delay(base, -880))      # out of range
+
+    kit = resolve_kit(str(tmp_path))
+    res = phase_align(kit, max_lag=600, excerpt_s=2.0)
+    by = {r["name"]: r for r in res["results"]}
+
+    # the out-of-range mic is left untouched rather than wrongly shifted/inverted
+    assert by["snare top.aif"]["delay_samples"] == 0.0
+    assert by["snare top.aif"]["polarity"] == 1
+    assert "max_lag" in by["snare top.aif"]["note"]
+    warn = " ".join(res.get("warnings", []) or kit.warnings)
+    assert "snare top.aif" in warn and "--max-lag" in warn
+    # the in-range mic is unaffected by the probe
+    assert abs(by["hi-hat.aif"]["delay_samples"] - 60) < 2
+
+    # and with a wide enough window it aligns correctly
+    kit2 = resolve_kit(str(tmp_path))
+    res2 = phase_align(kit2, max_lag=1500, excerpt_s=2.0)
+    by2 = {r["name"]: r for r in res2["results"]}
+    assert abs(by2["snare top.aif"]["delay_samples"] - 880) < 4
+    assert by2["snare top.aif"]["polarity"] == 1
+
+
+def test_phase_align_refuses_to_write_over_the_source(tmp_path) -> None:
+    """--out-dir naming the SOURCE dir would replace the raw multitrack in place
+    (WAV/PCM_16 originals come back as AIFF/PCM_24 under the same names), despite
+    the flow being documented as non-destructive."""
+    n = SR
+    base = np.random.default_rng(11).standard_normal(n) * 0.2
+    _w(tmp_path / "overheads - stereo.aif", np.column_stack([base, base]))
+    _w(tmp_path / "snare top.aif", dsp.fractional_delay(base, -30))
+    kit = resolve_kit(str(tmp_path))
+
+    for target in (str(tmp_path), str(tmp_path) + os.sep, str(tmp_path / "." )):
+        with pytest.raises(ValueError, match="same directory"):
+            phase_align(kit, out_dir=target, excerpt_s=0.5)

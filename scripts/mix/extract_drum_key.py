@@ -15,8 +15,12 @@ import torch
 from demucs.apply import apply_model
 from demucs.pretrained import get_model
 from scipy.signal import resample_poly
+import os
 
-ROOT = Path("/Users/ship/Documents/code/ship-studios")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # scripts/ isn't a package
+from _core import repo_root, sibling_python    # noqa: E402
+
+ROOT = repo_root()
 RAW = ROOT / "projects/desktop-drums/stems"
 OUT = ROOT / "artifacts/desktop-drums-demucs/drum_key.wav"
 KEY_MICS = ["kick_in", "snare_top"]

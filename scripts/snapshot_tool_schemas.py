@@ -105,10 +105,28 @@ def main(argv: list[str] | None = None) -> int:
         print("error: no tools discovered on any server", file=sys.stderr)
         return 1
 
+    # MERGE into whatever is already on disk rather than replacing it. --out is the
+    # SHARED fixture regardless of --server, so a wholesale write while refreshing one
+    # server silently DELETED the other's schemas — and test_arg_schemas then skips
+    # the missing server (`if not isinstance(server_schemas, dict): continue`) while
+    # still passing on the one that remains, half-disabling the gate with no signal.
+    merged: dict[str, dict] = {}
+    if args.out.is_file():
+        try:
+            existing = json.loads(args.out.read_text(encoding="utf-8"))
+            if isinstance(existing, dict):
+                merged = {k: v for k, v in existing.items() if isinstance(v, dict)}
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"warning: ignoring unreadable {args.out} ({exc})", file=sys.stderr)
+    kept = sorted(set(merged) - set(snapshot))
+    merged.update(snapshot)  # freshly-snapshotted servers win
+
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
-        json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        json.dumps(merged, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+    for key in kept:
+        print(f"{key}: {len(merged[key])} tool schemas (kept from the existing file)")
     for key, m in snapshot.items():
         print(f"{key}: {len(m)} tool schemas")
     print(f"wrote {total} tool schemas across {len(snapshot)} servers -> {args.out}")

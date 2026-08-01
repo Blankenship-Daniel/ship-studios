@@ -196,7 +196,8 @@ def merge_pair(left_path: str, right_path: str, out_path: str,
             "aligned": align, "verified": bool(verified), "review": rep}
 
 
-def merge_dir(src_dir: str, out_dir: str | None = None, align: bool = False) -> dict:
+def merge_dir(src_dir: str, out_dir: str | None = None, align: bool = False,
+              max_lag: int = 600) -> dict:
     """Merge every complete L/R pair found in ``src_dir`` into stereo files."""
     pairs = find_pairs(src_dir)
     if not pairs:
@@ -207,7 +208,8 @@ def merge_dir(src_dir: str, out_dir: str | None = None, align: bool = False) -> 
     for stem, lf, rf in pairs:
         ext = os.path.splitext(lf)[1]
         res = merge_pair(os.path.join(src_dir, lf), os.path.join(src_dir, rf),
-                         os.path.join(out_dir, f"{stem}{ext}"), align=align)
+                         os.path.join(out_dir, f"{stem}{ext}"), align=align,
+                         max_lag=max_lag)
         res["stem"] = stem
         results.append(res)
     return {"flow": "stereo-merge", "src_dir": src_dir, "out_dir": out_dir,

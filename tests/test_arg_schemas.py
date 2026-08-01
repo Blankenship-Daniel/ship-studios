@@ -119,22 +119,25 @@ def _validate(args: dict[str, Any], schema: Any) -> list[str]:
 # --- collect every call every pipeline emits (default + branch paths) --------
 
 
-async def _all_recorded_calls() -> list[RecordedCall]:
+async def _all_recorded_calls() -> tuple[list[RecordedCall], list[str]]:
     """Drive each pipeline so its conditional branches all fire, collecting calls.
 
-    Each pipeline is driven inside a try/except so a single pipeline whose
-    signature is mid-flux can't abort the whole collection — the args of every
-    pipeline that DOES run still get validated.
+    Returns ``(calls, failures)``. A pipeline that raises still contributes the
+    calls it made BEFORE raising, and its failure is reported to the caller — the
+    old version swallowed the exception and dropped that pipeline's calls entirely,
+    so a pipeline broken badly enough to raise was simply excluded from the gate
+    and the suite stayed green.
     """
     calls: list[RecordedCall] = []
+    failures: list[str] = []
 
     async def _run(make_hub, coro_factory) -> None:
         hub = make_hub()
         try:
             await coro_factory(hub)
-        except Exception:  # noqa: BLE001 — tolerate a mid-edit signature
-            return
-        calls.extend(hub.calls)
+        except Exception as exc:  # noqa: BLE001 — report, don't hide
+            failures.append(f"{type(exc).__name__}: {exc}")
+        calls.extend(hub.calls)  # whatever it managed to emit is still validated
 
     eq_band = {"type": "bell", "freq_hz": 1.0, "gain_db": 0.0, "q": 1.0}
     dyn_band = {"freq_hz": 1.0, "gain_db": 0.0, "q": 1.0, "threshold_db": -24.0}
@@ -224,7 +227,7 @@ async def _all_recorded_calls() -> list[RecordedCall]:
             },
         ),
     )
-    return calls
+    return calls, failures
 
 
 # --- the gate (skips cleanly when the fixture is absent) ---------------------
@@ -238,8 +241,14 @@ async def test_emitted_args_validate_against_snapshot() -> None:
         )
 
     snapshot = _load_snapshot()
-    calls = await _all_recorded_calls()
+    calls, drive_failures = await _all_recorded_calls()
     assert calls, "no pipeline calls were collected to validate"
+    # A pipeline that raised while being driven is a real defect, not a reason to
+    # quietly validate less. Surface it rather than shrinking the gate's coverage.
+    assert not drive_failures, (
+        "pipeline(s) raised while being driven for arg validation:\n  "
+        + "\n  ".join(drive_failures)
+    )
 
     failures: list[str] = []
     validated = 0

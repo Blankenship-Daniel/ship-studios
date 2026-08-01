@@ -28,11 +28,38 @@ def note_to_hz(midi: int) -> float:
     return _A4 * 2 ** ((midi - 69) / 12)
 
 
+def _refine_peak(f: np.ndarray, p: np.ndarray, i: int) -> float:
+    """Sub-bin peak frequency by a parabolic fit through bins ``i-1, i, i+1``.
+
+    The raw ``argmax`` bin is only accurate to +/- half a bin, and at this job's
+    resolution that is a musical error, not a rounding one: a 0.3 s kick gives
+    df = 3.33 Hz, so a true 54 Hz fundamental reads 53.33 Hz (-22 cents) and a
+    55 Hz one reads 56.67 Hz (+52 cents). Since :func:`retune` derives its
+    resample ratio from this number — and then re-measures the result the same
+    way, so the report looks self-consistent — the error lands silently in the
+    output sample. Fitting in the LOG domain is the right model: a windowed
+    spectral peak is approximately Gaussian in magnitude, hence parabolic in log
+    magnitude. Deliberately local to this module: ``dsp.psd``'s resolution is
+    shared with the reference-match EQ and must not change.
+    """
+    if i <= 0 or i >= len(p) - 1:
+        return float(f[i])
+    tiny = 1e-30  # welch can return exact zeros; log(0) would poison the fit
+    y0, y1, y2 = (float(np.log(p[j] + tiny)) for j in (i - 1, i, i + 1))
+    den = y0 - 2 * y1 + y2
+    if abs(den) < 1e-12:  # flat/degenerate — no better estimate than the bin
+        return float(f[i])
+    # clip to the bin: a parabola through noisy neighbours can extrapolate wildly,
+    # and the true peak cannot be more than half a bin from the argmax bin.
+    delta = float(np.clip(0.5 * (y0 - y2) / den, -0.5, 0.5))
+    return float(f[i] + delta * (f[i + 1] - f[i]))
+
+
 def measure_fundamental(path: str, lo: float = 30.0, hi: float = 400.0) -> dict:
     x, sr = io.read(path)
     f, p = dsp.psd(dsp.mono(x), sr)
-    band = (f >= lo) & (f <= hi)
-    hz = float(f[band][np.argmax(p[band])]) if band.any() else 0.0
+    idx = np.flatnonzero((f >= lo) & (f <= hi))
+    hz = _refine_peak(f, p, int(idx[np.argmax(p[idx])])) if idx.size else 0.0
     return {"hz": round(hz, 2), **hz_to_note(hz)}
 
 

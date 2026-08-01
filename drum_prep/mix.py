@@ -44,6 +44,8 @@ _CENTER = {Role.KICK_IN, Role.KICK_OUT, Role.KICK_SUB, Role.KICK_BEATER,
            Role.SNARE_TOP, Role.SNARE_BOTTOM}
 _STEREO = {Role.OVERHEAD, Role.ROOM, Role.FX}
 
+_MAX_GAIN = 10 ** (dsp.MAX_MATCH_GAIN_DB / 20.0)  # see dsp.MAX_MATCH_GAIN_DB
+
 
 def _db(v: float) -> float:
     return 20.0 * np.log10(v) if v > 0 else float("-inf")
@@ -108,9 +110,25 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
     # anchor, mis-referencing every loudness offset, and (2) sum each OH side as
     # a dead-centre mono mic, collapsing the image. Refuse with guidance rather
     # than print a silently wrong mix — the merge is a documented prior step.
+    notes: list[str] = []
     has_oh = any(s.role == Role.OVERHEAD for s in stems)
-    has_lr = (any(s.role == Role.OVERHEAD_L for s in stems)
-              and any(s.role == Role.OVERHEAD_R for s in stems))
+    has_l = any(s.role == Role.OVERHEAD_L for s in stems)
+    has_r = any(s.role == Role.OVERHEAD_R for s in stems)
+    has_lr = has_l and has_r
+    if not has_oh and (has_l != has_r):
+        # ONE side only. Without this the `not has_oh and has_lr` guard below misses
+        # it (has_lr is False), no overhead is found, and `anchor` falls back to
+        # stems[0] — so every per-role loudness offset ends up referenced to whatever
+        # sorts first (a crash mic), and the lone side is summed dead-centre as a mono
+        # mic. Refuse with the same guidance as the raw-pair case.
+        side = "overhead_l" if has_l else "overhead_r"
+        raise ValueError(
+            f"found only one overhead side ({side}) and no merged stereo overhead — "
+            "the balance would be anchored to an arbitrary close mic and the side "
+            "summed as a dead-centre mono mic. Supply both sides and merge them "
+            "(`drum-prep overheads`), or pin the file's role to `overhead` in "
+            "kit.json if it is genuinely a single mono overhead."
+        )
     if not has_oh and has_lr:
         raise ValueError(
             "found a raw L/R overhead pair (overhead_l + overhead_r) but no merged "
@@ -178,6 +196,16 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
             meas = io.to_stereo(x) if s.role in _STEREO else dsp.mono(x)
             lufs = meter.integrated_loudness(meas)
             gain = 10 ** ((lufs_anchor + off - lufs) / 20.0) if np.isfinite(lufs) else 1.0
+            if gain > _MAX_GAIN:
+                # An unbounded match gain turns a badly-recorded stem into its own
+                # noise floor: a room mic 40 dB down would be lifted +40 dB, and the
+                # single global anti-clip trim then pulls the WHOLE bus down to make
+                # room for it, costing every other stem headroom. Cap and say so.
+                notes.append(
+                    f"{s.name}: loudness-match wanted {_db(gain):+.1f} dB — capped at "
+                    f"{_db(_MAX_GAIN):+.0f} dB (stem is far below the anchor; check "
+                    f"the recording level rather than mixing it up)")
+                gain = _MAX_GAIN
             gain_db = _db(gain)
             if s.role in _STEREO:
                 ch = io.to_stereo(x)
@@ -195,7 +223,15 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
                 role_idx[s.role] = i + 1
                 theta = float(np.clip(
                     _role_pan(s.role, perspective, i, role_counts[s.role]), -1.0, 1.0))
-                contrib = _pan(x[:n, 0], theta) * gain
+                # Pan the SAME signal the gain was measured from (`meas`, the mono
+                # sum) — not x[:, 0]. Taking channel 0 while measuring the mean of
+                # both silently discards half of a stereo close mic AND mis-derives
+                # its gain: a stereo snare with a near-silent L and the take on R
+                # lands ~25 dB low with the audible channel thrown away.
+                if x.shape[1] > 1:
+                    notes.append(f"{s.name}: {x.shape[1]}-channel file in mono role "
+                                 f"{s.role.value!r} — folded to mono before panning")
+                contrib = _pan(meas[:n], theta) * gain
                 place = "center" if theta == 0 else f"pan {round(theta * 100)}%"
         mix[:len(contrib)] += contrib[:n]
         rows.append({"stem": s.name, "role": s.role.value,
@@ -267,6 +303,7 @@ def mix_kit(kit: Kit, stems_dir: str, out_dir: str | None = None, feel: str = "r
         "peak_dbfs": final_peak, "lufs": round(float(meter.integrated_loudness(mix)), 1),
         "channels": 2, "duration_s": round(n / sr, 2),
         "truncation_note": trunc_note,
+        "notes": notes or None,
         "excluded_overhead_sides": excluded_oh_sides or None,
         "plate": plate_row, "returns": return_rows or None, "balance": rows,
     }

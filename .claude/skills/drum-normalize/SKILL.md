@@ -51,6 +51,13 @@ knows whether the kit sound changed.
 
 ## Pitfalls
 
+
+- **`--out-dir` may not be the source dir** — refused now; it used to overwrite the
+  originals in place under the same names. Same guard in [[drum-phase-align]] /
+  [[drum-reference-match]].
+- **Two inputs may not share a basename.** Outputs are named by basename, so an
+  `--include` whose basename collided with a stem silently overwrote it in the
+  output — one of the two just vanished from the normalized set. Rename first.
 - **per-file changes the kit sound** — only reach for it when the user explicitly
   wants each stem maxed and accepts a re-balance; otherwise stay global.
 - **Already at 0 dBFS → target below 0** — a global normalize to 0 is a no-op

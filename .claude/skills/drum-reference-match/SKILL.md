@@ -67,6 +67,17 @@ to do next:
 
 ## Pitfalls
 
+
+- **`--out-dir` may not equal the source *or* `--aligned-dir`** — both are refused
+  now. Matching back into the directory you read from compounds the corrective EQ
+  onto already-matched stems on every re-run.
+- **A short stem shrinks the measurement window, and it's reported.** The coherent
+  kit sum is truncated to the SHORTEST stem while the EQ is applied full-length, so
+  one badly-exported 2 s tom in a 30 s kit derived the whole kit's corrective curve
+  from a 2-second window. Check `truncation_note` in the result. Likewise a very
+  short reference can leave low bands unresolvable at the analysis resolution —
+  those are listed in `unresolved_bands_hz` and get NO correction (they used to
+  read -200 dB and take the full `cut_cap` on every stem).
 - **Match strength is a taste call.** Fully matching a steep-rolloff vintage loop
   darkens hard; 0.5–0.75 is usually the sweet spot. Audition before committing.
 - **Run phase-align first.** Matching un-aligned stems bakes comb-filtering into

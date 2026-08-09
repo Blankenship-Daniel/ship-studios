@@ -55,6 +55,18 @@ and was trimmed — consider a lower `--amount-db`). State plainly that this is 
 
 ## Pitfalls
 
+
+- **The sub is phase-locked to the kick — don't reintroduce a free-running one.**
+  At the default the sub sits on the kick's OWN fundamental, so an arbitrary
+  relative phase decides whether it reinforces or cancels: measured **+4.6 dB** of
+  sub-60 Hz at one kick phase and **-10.0 dB** at anti-phase, from the same
+  settings. The flow now picks the phase that correlates with the kick's low band,
+  and warns when `low_60_gain_db` comes out <= 0 — if you see that warning the
+  blend is subtracting low end, so change `--sub-hz`.
+- **A kick fundamental above the sub range is reported, not silently clamped.** The
+  detector searches to 120 Hz while the sub range stops at 80, so a 100 Hz kick
+  gets an 80 Hz sub — a detuned layer that *beats* against the fundamental rather
+  than reinforcing it. Pass `--sub-hz` explicitly when you see that note.
 - **It adds a tracked sine, not a new kick.** It reinforces the fundamental; it
   won't fix attack, click, or body — that's EQ/transient work.
 - **Too much `--amount-db` muds the low end.** Always audition; the default `-3`

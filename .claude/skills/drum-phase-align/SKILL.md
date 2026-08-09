@@ -59,6 +59,25 @@ mic whose delay is physically implausible.
 
 ## Pitfalls
 
+
+- **A mixed-sample-rate kit now RAISES — convert upstream first.** Every stem is
+  written back out at the *overhead's* rate, so an off-rate stem used to be
+  silently reinterpreted: a 44.1k room mic in a 48k kit came out pitched **+8.8%**
+  with an empty `warnings` list, and because every later stage then saw a uniform
+  set it passed *their* sample-rate checks too — the corruption was laundered
+  through the whole chain. The flow now header-checks every stem it touches and
+  fails before writing anything. Resample the odd stem, then re-run.
+- **A delay outside `--max-lag` is DETECTED, not applied — read the warning.** The
+  railed answer is *not* pinned at the rail: a true 880-sample offset searched at
+  `--max-lag 600` returned **-541 with the polarity flipped**, so the mic would
+  have partially *cancelled* the overheads. When `post_corr` is low the flow now
+  re-searches wider and, if the true peak lies outside your window, **skips** that
+  mic and names the `--max-lag` to re-run with. A skipped mic is unaligned, not
+  aligned — re-run with the suggested value rather than shipping it. (This is the
+  fixed inter-converter offset in the Field notes.)
+- **`--out-dir` may not be the source dir.** It's refused now: this flow writes a
+  fresh 24-bit AIFF set, so pointing it at the stems folder replaced the raw
+  WAV/PCM_16 multitrack in place, under the same names, with no prompt.
 - **Align on FULL-BAND signals — phase-align BEFORE corrective EQ.** The delays
   are physical mic distances; estimate them from the unprocessed stems. In
   particular, if the overheads have already been **high-passed** (a common

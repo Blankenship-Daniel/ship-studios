@@ -1,7 +1,7 @@
 ---
 name: batch-master
 description: Use when the user wants a whole EP/album/folder of mixes mastered consistently — "master this whole EP", "master all these tracks to the same loudness", "batch master this folder", "make the album consistent", "master all the songs for Spotify". Masters every mix in a folder to one shared platform target, then emits a cross-track loudness/true-peak consistency table flagging any track off the album median. [[master-track]] is single-file; this adds the album-level consistency read no single-file tool gives.
-argument-hint: <mixes-dir> [target platform/LUFS]
+argument-hint: <mixes-dir> [target platform/LUFS] [--presets] [--assistant]
 ---
 
 # Batch master — master a folder to one target, with a consistency table
@@ -25,6 +25,12 @@ computes the identical consistency table; this skill is the single-session form.
 - Resolve **up front, once for the whole set**: the folder of mixes, the
   shared `target_platform`, and the resulting `target_lufs` / `ceiling_dbtp`.
   Don't let tracks drift to individual targets.
+- The headless CLI (`ship-studios batch-master`) takes the same render + export
+  knobs as the single-track `master`, applied to the WHOLE set: `--presets`,
+  `--high-pass-hz`, `--transient-shape`, and `--assistant` /`--intent` /
+  `--intensity` / `--style`. Pass a non-default export matrix here rather than
+  re-exporting per track afterwards. A folder arg picks up `.wav`/`.aif`/`.aiff`/
+  `.flac` in any case, not just lowercase `.wav`.
 
 ## Recipe (ordered — per file, then cross-track)
 

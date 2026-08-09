@@ -49,6 +49,15 @@ tool.
 
 ## Pitfalls
 
+
+- **The measured fundamental is interpolated — trust it to a few cents, not to the
+  bin.** A raw FFT-bin argmax is only good to +/- half a bin, which at this job's
+  resolution is a *musical* error, not a rounding one: a 0.3 s kick gives ~3.3 Hz
+  bins, so 55 Hz used to read 56.67 Hz (**+52 cents**) and 54 Hz read 53.33 Hz
+  (-22 cents). `retune` derives its resample ratio from this number and then
+  re-measures the result the same way, so the report looked self-consistent while
+  the sample landed ~50 cents off the note you asked for. Now log-domain
+  parabolic-interpolated (verified < 5 cents across 54-98 Hz at 0.3-0.5 s).
 - **Never retune a full drum TRACK or loop** — resampling changes its tempo. This
   is for single samples only; pitch-preserving time-stretch is out of scope.
 - **For a kit**: retune the kick/tom **samples**, then re-trigger them in the

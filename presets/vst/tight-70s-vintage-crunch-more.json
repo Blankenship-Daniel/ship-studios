@@ -1,0 +1,41 @@
+{
+  "name": "tight-70s-vintage-crunch-more",
+  "description": "Crunchier pass: harder drive (input 0dB), dbx thresh -32 @6:1, Studer input 13 @15IPS. More audible vintage crunch/glue for There There take2.",
+  "recipe": {
+    "input_gain_db": 0,
+    "output_peak_dbfs": -1.0,
+    "width": 0.85,
+    "chain": [
+      {
+        "file": "uaudio_neve_1073.vst3",
+        "params": {
+          "eql": "In",
+          "hp_filt": "80 Hz",
+          "lf_freq": "60 Hz",
+          "lf_gain": 2.0,
+          "mf_freq": "3.2 kHz",
+          "mf_gain": 0.0,
+          "hf_gain": 0.0
+        }
+      },
+      {
+        "file": "uaudio_dbx_160.vst3",
+        "params": {
+          "thresh": -32.0,
+          "compress": " 6.0:1",
+          "gain": 4.0
+        }
+      },
+      {
+        "file": "uaudio_studer_a800.vst3",
+        "params": {
+          "ips": "15 IPS",
+          "tape_type": "456",
+          "auto_cal": false,
+          "input_level": 13.0,
+          "repro_hf_eq": 2.5
+        }
+      }
+    ]
+  }
+}

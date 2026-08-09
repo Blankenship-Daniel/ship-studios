@@ -53,6 +53,15 @@ was built from a *load* probe, so it **overcounts** — this skill is the render
 
 ## Pitfalls
 
+- **`parameters[name].raw_value` is Pedalboard's NORMALIZED 0..1 float — not the
+  value `valid_values` are written in.** `getattr(plugin, name)` gives the *cooked*
+  value (the enum label, or the real-world float); `raw_value` gives its position.
+  Comparing the two never matches, which silently defeats any
+  "push something DIFFERENT from the current value" logic — the probe kept
+  choosing `valid_values[0]`, so a filter-only plugin whose enum default sits at
+  index 0 was probed **default against default**, measured a delta of 0, and was
+  reported `PASSTHROUGH` when it renders fine. Compare cooked-to-cooked, and
+  tolerate formatting (`'40.2'` vs `40.2`, `' 4.0:1'` vs `'4.0:1'`).
 - **`changed:true` is not enough** — `apply-vst-chain` reports `changed` on any difference incl. latency;
   judge by *detail* (spectrum/crest/tilt) or the probe's `Δparam`.
 - **`RENDERS ✓` can be a FALSE positive — a param responding ≠ the EFFECT engaging.** `probe_plugin.py`

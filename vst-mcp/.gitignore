@@ -1,0 +1,4 @@
+# CMake build tree. Also where FetchContent clones JUCE, so this keeps the
+# framework out of the repo -- the version is pinned in CMakeLists.txt instead.
+build/
+build-*/

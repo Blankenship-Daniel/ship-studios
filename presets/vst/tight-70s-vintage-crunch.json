@@ -1,0 +1,41 @@
+{
+  "name": "tight-70s-vintage-crunch",
+  "description": "Vintage crunch drum bus for There There take2: warm Neve1073 (no presence boost) -> dbx160 driven punch -> Studer A800 15IPS driven tape (crunch+headbump), gain-staged HOT for audible crunch on a -1dBFS bus.",
+  "recipe": {
+    "input_gain_db": -2,
+    "output_peak_dbfs": -1.0,
+    "width": 0.85,
+    "chain": [
+      {
+        "file": "uaudio_neve_1073.vst3",
+        "params": {
+          "eql": "In",
+          "hp_filt": "80 Hz",
+          "lf_freq": "60 Hz",
+          "lf_gain": 2.0,
+          "mf_freq": "3.2 kHz",
+          "mf_gain": 0.0,
+          "hf_gain": 0.0
+        }
+      },
+      {
+        "file": "uaudio_dbx_160.vst3",
+        "params": {
+          "thresh": -28.0,
+          "compress": " 4.0:1",
+          "gain": 3.0
+        }
+      },
+      {
+        "file": "uaudio_studer_a800.vst3",
+        "params": {
+          "ips": "15 IPS",
+          "tape_type": "456",
+          "auto_cal": false,
+          "input_level": 12.0,
+          "repro_hf_eq": 2.5
+        }
+      }
+    ]
+  }
+}
